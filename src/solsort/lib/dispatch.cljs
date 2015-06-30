@@ -1,4 +1,4 @@
-(ns solsort.dispatch
+(ns solsort.lib.dispatch
   (:require-macros [cljs.core.async.macros :refer [go alt!]])
   (:require
     [solsort.sys.mbox :refer [local-mbox? call local local-mboxes log]]
