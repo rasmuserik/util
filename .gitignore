@@ -1,0 +1,12 @@
+node_modules
+.nrepl-port 
+target/
+tmp/
+*.swp
+npm-debug.log
+lein.log
+.lein-repl-history
+pom.xml
+.lein-failures
+.nrepl-port
+logs
