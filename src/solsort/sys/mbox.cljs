@@ -29,7 +29,7 @@
   (let [id (aget msg "mbox")
         fs (get @-mboxes id)]
 ;    (when (not= id "log") (log 'local-handler id (map (fn [[k v]] [k (count v)]) @-mboxes)))
-    (when (not fs) (log 'local-handler 'no-handler msg))
+    (when-not fs (log 'local-handler 'no-handler msg))
     (doall (for [f fs] (f msg)))))
 (def -unique-id-counter (atom 0))
 (defn -change-mbox [id f]
@@ -38,7 +38,7 @@
            (let [mbox (mboxes id)
                  mbox (or mbox #{})
                  mbox (f mbox)]
-             (if (< 0 (count mbox))
+             (if (pos? (count mbox))
                (assoc mboxes id mbox)
                (dissoc mboxes id))))))
 
