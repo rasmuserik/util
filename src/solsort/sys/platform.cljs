@@ -41,12 +41,11 @@
            (go
              (swap! buf #(str % data))
              (let [lines (.split @buf "\n")]
-               (swap! buf #(aget lines (- (.-length lines) 1)))
+               (swap! buf #(aget lines (dec (.-length lines))))
                (loop [i 0]
-                 (if (< i (- (.-length lines) 1))
-                   (do
-                     (>! c (str (aget lines i) "\n"))
-                     (recur (inc i))))))
+                 (when (< i (dec (.-length lines)))
+                   (>! c (str (aget lines i) "\n"))
+                   (recur (inc i)))))
              (.resume stream)
              )
            ))
@@ -62,7 +61,7 @@
   (let [c (chan)]
     (.exec (js/require "child_process") cmd
            (fn [err stdout stderr]
-             (if (= err nil)
+             (if (nil? err)
                (put! c stdout)
                (close! c)
                )))
