@@ -20,7 +20,7 @@
 
 (defn jsextend [target source]
   (let [ks (js/Object.keys source)]
-    (while (< 0 (.-length ks))
+    (while (pos? (.-length ks))
       (let [k (.pop ks)] (aset target k (aget source k)))))
   target)
 
@@ -47,7 +47,7 @@
 
 (defn print-channel [c]
   (go (loop [msg (<! c)]
-        (if msg (do (print msg) (recur (<! c)))))))
+        (when msg (print msg) (recur (<! c))))))
 
 
 ; transducers
@@ -56,16 +56,15 @@
         values (atom '())]
     (fn
       ([result]
-       (if (< 0 (count @values))
-         (do
-           (xf result [@prev-key @values])
-           (reset! values '())))
+       (when (pos? (count @values))
+         (xf result [@prev-key @values])
+         (reset! values '()))
        (xf result))
       ([result input]
        (if (= (first input) @prev-key)
          (swap! values conj (rest input))
          (do
-           (if (< 0 (count @values)) (xf result [@prev-key @values]))
+           (if (pos? (count @values)) (xf result [@prev-key @values]))
            (reset! prev-key (first input))
            (reset! values (list (rest input)))))))))
 
@@ -79,10 +78,9 @@
          (xf result))
         ([result input]
          (swap! cnt inc)
-         (if (< 60000 (- (.now js/Date) @prev-time))
-           (do
-             (reset! prev-time (.now js/Date))
-             (apply log (concat s (list @cnt)))))
+         (when (< 60000 (- (.now js/Date) @prev-time))
+           (reset! prev-time (.now js/Date))
+           (apply log (concat s (list @cnt))))
          (xf result input))))))
 
 (defn transducer-accumulate [initial]
@@ -90,9 +88,9 @@
     (let [acc (atom initial)]
       (fn
         ([result]
-         (if @acc (do
-                    (xf result @acc)
-                    (reset! acc nil)))
+         (when @acc
+           (xf result @acc)
+           (reset! acc nil))
          (xf result))
         ([result input]
          (swap! acc conj input))))))
