@@ -23,7 +23,7 @@
     (let [c (chan)
           writes-left (atom (count stores))
           ]
-      (when (= 0 (count stores)) (close! c))
+      (when (zero? (count stores)) (close! c))
       (doall
         (for [query (seq stores)]
           (let [db-name (first query)
@@ -33,7 +33,7 @@
                     (clj->js (for [[k v] (seq kvs)] {:type "put" :key k :value v}))
                     (fn [err]
                       (when err (log 'kvdb 'get 'error err))
-                      (when (= 0 (swap! writes-left dec)) (close! c)))))))
+                      (when (zero? (swap! writes-left dec)) (close! c)))))))
       (doall
         (for [query queries]
           (let [db-name (first query)
@@ -81,8 +81,8 @@
       c))
   (defn execute-transaction [queries stores]
     (let [c (chan)
-          read-only (= 0 (count stores))
-          dbs (into (into #{} (keys queries)) (keys stores))
+          read-only (zero? (count stores))
+          dbs (into (set (keys queries)) (keys stores))
           transaction (.transaction @indexed-db
                                     (clj->js (seq dbs))
                                     (if read-only "readonly" "readwrite"))
@@ -132,12 +132,12 @@
 
 (defn run-transaction [queries stores]
   (go
-    (loop [db-list (seq (into (into #{} (keys queries)) (keys stores)))]
+    (loop [db-list (seq (into (set (keys queries)) (keys stores)))]
       (when (first db-list)
         (when-not (contains? @dbs (first db-list))
           (<! (open-db (first db-list))))
         (recur (rest db-list))))
-    (when (< 0 (+ (count queries) (count stores)))
+    (when (pos? (+ (count queries) (count stores)))
       (<! (execute-transaction queries stores)))))
 
 (defn transaction-loop []
@@ -208,7 +208,7 @@
           #(go
              (loop [i 10000]
                (<! (store 'kvdb-bench (str i) i))
-               (when (< 0 i)
+               (when (pos? i)
                  (recur (dec i))))
              (<! (commit)))))
     (<! (time-async
@@ -216,7 +216,7 @@
           #(go
              (log 'kvdb-bench 'sum
                   (loop [i 1000 sum 0]
-                    (when (< 0 i)
+                    (when (pos? i)
                       (recur (dec i) (+ sum (<! (fetch 'kvdb-bench (str i))))))))
              )))
     ))
@@ -254,7 +254,7 @@
   (let [c (chan 1)
         result #js{}
         cnt (atom (count ids))]
-    (if (= 0 @cnt)
+    (if (zero? @cnt)
       (close! c)
       (doall (for [id ids]
                (take! (fetch storage id)
