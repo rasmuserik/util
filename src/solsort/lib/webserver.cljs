@@ -11,8 +11,8 @@
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
 
 (comment is-nodejs)
-(if is-nodejs
-  (do
+(when is-nodejs
+  
     ;cljs-bug (go (let [a :ok] (print #js{:bug a} {:no-bug a})))
     (def cached-file (memoize read-file-sync))
     (defn default-route [& args]
@@ -32,7 +32,7 @@
               query (.-query req)
               body (.-body req)
               [route & arglist] (parse-path (.-path req))
-              arglist (if (< 0 (.-length (js/Object.keys body)))
+              arglist (if (pos? (.-length (js/Object.keys body)))
                         (cons body arglist)
                         arglist)
               [route arglist]
@@ -74,4 +74,4 @@
         (start-websocket-server http-server-instance)
         (log 'webserver 'starting host port)))
     (set-immediate -start-server)
-    (comment end is-nodejs)))
+    (comment end is-nodejs))
