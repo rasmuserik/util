@@ -13,11 +13,10 @@
            tests (rest (seq @testcases))]
       (log 'test id)
       (let [v (f)]
-        (if (not (if (chan? v) (<! v) v))
-          (do
+        (when-not (if (chan? v) (<! v) v)
             (log 'test id 'failed)
             (js/console.log "TEST FAIL" (name id))
-            (exit 1))))
+            (exit 1)))
       (if (first tests)
         (recur (first tests) (rest tests))))
     (log 'test "tests done")

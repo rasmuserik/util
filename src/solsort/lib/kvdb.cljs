@@ -175,7 +175,7 @@
   (let [db (str db)
         k (str k)]
     (swap! cache assoc-in [db k] v)
-    (when (= @store-count 0) (transact))
+    (when (zero? @store-count) (transact))
     (swap! store-count inc)
     (if (< @store-count 1000) (go) (commit))))
 

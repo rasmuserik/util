@@ -50,7 +50,7 @@
 
     (defn ensure-store [storage]
       (go
-        (if (not (@stores storage))
+        (if-not (@stores storage)
           (let [store-list (read-string (or (.getItem js/localStorage "keyval-db") "#{}"))]
             (swap! stores assoc storage {})
             (.setItem js/localStorage "keyval-db" (str (conj store-list storage)))
@@ -59,9 +59,7 @@
 
     (defn commit [storage]
       (go
-
-        (if (< 0 (count (@stores storage)))
-          (do
+        (while (pos? (count (@stores storage)))
             (<! (lock 'b))
             (let [c (chan 1)
                   trans (.transaction @db #js[storage] "readwrite")
@@ -82,7 +80,7 @@
                        (print "commit abort")
                        (close! c)))
               (swap! stores assoc storage {})
-              (<! c))))))
+              (<! c)))))
 
     (defn multifetch [storage ids]
       (go
@@ -161,7 +159,7 @@
       (let [c (chan 1)
             result #js{}
             cnt (atom (count ids))]
-        (if (= 0 @cnt)
+        (if (zero? @cnt)
           (close! c)
           (doall (for [id ids]
                    (take! (fetch storage id)

@@ -12,7 +12,7 @@
 (def do-log-to-db false)
 (def log-data (atom []))
 (defn log-sync []
-  (when (< 0 (count @log-data))
+  (when (pos? (count @log-data))
     (let [id (js/parseInt (or (js/localStorage.getItem "next-log") "0") 10)
           entries @log-data]
       (reset! log-data [])
@@ -56,15 +56,14 @@
         (let [date (date-string)
               logpath "logs/"
               logname (str logpath (.hostname (js/require "os")) "-" date ".log")]
-          (if (not (= @logfile-name logname))
-            (do
-              (if @logfile-stream
-                (let [oldname @logfile-name]
-                  (.on @logfile-stream "close" (exec (str "xz -9 " oldname)))
-                  (.end @logfile-stream)))
-              (ensure-dir logpath)
-              (reset! logfile-stream (.createWriteStream fs logname #js{:flags "a"}))
-              (reset! logfile-name logname)))
+          (when-not (= @logfile-name logname)
+            (if @logfile-stream
+              (let [oldname @logfile-name]
+                (.on @logfile-stream "close" (exec (str "xz -9 " oldname)))
+                (.end @logfile-stream)))
+            (ensure-dir logpath)
+            (reset! logfile-stream (.createWriteStream fs logname #js{:flags "a"}))
+            (reset! logfile-name logname))
           (.write @logfile-stream (str msg "\n"))))
       (when do-log-to-db (log-to-db msg))
       (.log js/console msg))))
