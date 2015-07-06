@@ -9,7 +9,7 @@ install:
 before_script:
   - lein2 classpath
 script:
-  - lein2 test solsort.hello-module
+  - lein2 test solsort.sys.util solsort.sys.platform
   - lein2 cljsbuild test
   - lein2 bikeshed -m 1000
   - lein2 kibit
