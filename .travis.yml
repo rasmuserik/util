@@ -11,6 +11,6 @@ before_script:
 script:
   - lein2 test solsort.hello-module
   - lein2 cljsbuild test
-  - lein2 bikeshed
+  - lein2 bikeshed -m 1000
   - lein2 kibit
   - xvfb-run firefox test/test.html & node test/test-wait.js 
