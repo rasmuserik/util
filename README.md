@@ -4,3 +4,4 @@
 [![Clojars Project](http://clojars.org/solsort/util/latest-version.svg)](http://clojars.org/solsort/util)
 
 # Various utility functions
+
