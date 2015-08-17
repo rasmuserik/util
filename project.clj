@@ -17,7 +17,7 @@
    [lein-bikeshed "0.2.0"]
    [cider/cider-nrepl "0.9.1"] 
    [michaelblume/lein-marginalia "0.9.0"]
-   ]
+   [lein-shell "0.4.1"]]
 
   :source-paths ["src"]
 
@@ -28,6 +28,8 @@
    "docs"
    "node_modules"
    ]
+
+  :aliases {"gendoc" ["shell" "./gendoc.sh"]}
 
   :cljsbuild 
   { :builds 
