@@ -14,5 +14,5 @@ tr "\n" "\r" |
 sed -e "s/\(\r;;[^\r]*\r\)\([^;]\)/\1\r\2/g" |
 tr "\r" "\n" |
 sed -e "s/^/    /" |
-sed -e "s/^    ;;//" \
+sed -e "s/^    ;; ?//" \
   > README.md
