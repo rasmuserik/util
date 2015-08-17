@@ -1,8 +1,7 @@
-;; # About
+;; # Lemon
 ;;
-;; ## Lemon - prototype of the tinkuy app
-;; 
-;; Initial prototype of tinkuy app, more notes/documentation to come here real soon.
+;; Lemon is the initial prototype of an app for tinkuy.
+;; More notes/documentation to come here real soon.
 ;; 
 ;; ## Build commands
 ;; 
@@ -53,3 +52,8 @@
 (reagent/render-component main (.getElementById js/document "app"))
 
 (defn on-js-reload [])
+
+;; # test-test
+(deftest dummy-test
+    (testing "dummy description"
+          (is  (= 1 2))))

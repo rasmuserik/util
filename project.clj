@@ -5,9 +5,12 @@
 
   :dependencies
   [[org.clojure/clojure "1.7.0"]
-   [org.clojure/clojurescript "0.0-3308"]
+   [org.clojure/clojurescript "1.7.107"]
    [org.clojure/core.async "0.1.346.0-17112a-alpha"]
    [cljsjs/pouchdb "3.5.0-0"]
+   [garden "1.2.5"]
+   [facjure/mesh "0.3.0"]
+   [re-frame "0.4.1"]
    [reagent "0.5.0"]]
 
   :plugins
@@ -32,31 +35,27 @@
   :aliases {"gendoc" ["shell" "./gendoc.sh"]}
 
   :cljsbuild 
-  { :builds 
+  {:builds 
    [{:id "dev"
      :source-paths ["src"]
-
      :figwheel { :on-jsload "lemon.core/on-js-reload" }
-
      :compiler {:main lemon.core
                 :asset-path "js/compiled/out"
                 :output-to "resources/public/js/compiled/main.js"
                 :output-dir "resources/public/js/compiled/out"
                 :source-map-timestamp true }}
 
-    {:id "test"
-     :source-paths  ["src" "test/cljs"]
-     :notify-command  ["phantomjs" "test/unit-test.js" "test/unit-test.html"]
-     :compiler  {:optimizations :whitespace
-                 :pretty-print true
-                 :output-to "test/js/app_test.js"
-                 :warnings  {:single-segment-namespace false}}}
-
     {:id "dist"
      :source-paths ["src"]
      :compiler {:output-to "resources/public/js/compiled/main.js"
                 :main lemon.core
                 :optimizations :advanced
-                :pretty-print false}}]}
+                :pretty-print false}}]
+   ; TODO, notes:
+   ; https://github.com/cemerick/clojurescript.test/tree/master/resources/cemerick/cljs/test
+   ; https://github.com/emezeske/lein-cljsbuild/blob/master/doc/TESTING.md
+   ; :test-commands
+   ; {"unit-tests" ["phantomjs" :runner "resources/public/js/compiled/main.js"]}
+   }
 
   :figwheel { :nrepl-port 7888})
