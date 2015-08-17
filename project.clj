@@ -8,7 +8,7 @@
    [org.clojure/clojurescript "1.7.107"]
    [org.clojure/core.async "0.1.346.0-17112a-alpha"]
    [cljsjs/pouchdb "3.5.0-0"]
-   [garden "1.2.5"]
+   [garden "1.2.6"]
    [facjure/mesh "0.3.0"]
    [re-frame "0.4.1"]
    [reagent "0.5.0"]]
