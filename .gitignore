@@ -13,3 +13,4 @@ pom.xml
 figwheel_server.log
 target/
 bower_components/
+node_modules

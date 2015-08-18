@@ -9,6 +9,7 @@
 ;
 ; ## Build commands
 ;
+; - `lein npm install` installs dependencies
 ; - `lein figwheel` starts development server on [http://localhost:3449](http://localhost:3449/) with nrepl on port 7888.
 ; - `lein clean` removes artifacts etc
 ; - `lein kibit` and `lein bikeshed -m 1000` runs various style tests
@@ -62,7 +63,7 @@
     (reduce into [] (map #(% @viewport) @styles))))
 
 (ratom/run!
-  (print @style)
+  (print 'style @style (css @style))
   (aset
     (or (js/document.getElementById "solsort-style")
         (let [elem (js/document.createElement "style")]
@@ -76,14 +77,20 @@
 
 (add-style 
   (fn [viewport]
-    [:body {:background "cyan"}
-     :h1 {:font-size (:height viewport)
+    [[:body {:background "cyan"}]
+     [:h1 {:font-size (:height viewport)
           :position :absolute
           :left (px (/ (:width viewport) 2))
-          }]
-    )
-  )
+          }]]))
 
+(add-style 
+  (fn [viewport]
+    [["@font-face"
+     {:font-family "Ubuntu"
+      :font-weight 400
+      :src "url(font/latin/ubuntu-regular.ttf)format(truetype)"}]
+     [:body {:font-family ["ubuntu", "sans-serif"]}]
+     ]))
 ; # App-state
 (defonce app-state
   (reagent/atom
