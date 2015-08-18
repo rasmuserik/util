@@ -5,8 +5,6 @@
 ;
 ; ## Backlog
 ;
-; -
-;
 ; ## Build commands
 ;
 ; - `lein npm install` installs dependencies
@@ -38,6 +36,18 @@
 
 (enable-console-print!)
 
+; # Utility functions (to be merged into util)
+(defn ajaxText "Do an ajax request and return the result as JSON" ; ## 
+  [url]
+  (let  [c  (chan)]
+    (goog.net.XhrIo/send
+      url
+      (fn  [o]
+        (when
+          (and o  (.-target o))
+          (put! c  (.getResponseText (.-target o))))
+        (close! c)))
+    c))
 ; # Style
 ; ## Viewport
 ;
@@ -59,11 +69,10 @@
 ; ## Reactive application of styles
 (def style
   (ratom/reaction
-    (print @styles)
-    (reduce into [] (map #(% @viewport) @styles))))
+    (reduce into [] (map (fn [ratom] @ratom) @styles))))
 
 (ratom/run!
-  (print 'style @style (css @style))
+  (print (css  @style))
   (aset
     (or (js/document.getElementById "solsort-style")
         (let [elem (js/document.createElement "style")]
@@ -75,32 +84,43 @@
 
 ; ## Actual styles
 
-(add-style 
-  (fn [viewport]
-    [[:body {:background "cyan"}]
-     [:h1 {:font-size (:height viewport)
-          :position :absolute
-          :left (px (/ (:width viewport) 2))
-          }]]))
+#_(add-style 
+  (ratom/reaction
+    [[:body {:background "cyan"}]]))
 
 (add-style 
-  (fn [viewport]
+  (ratom/reaction
     [["@font-face"
-     {:font-family "Ubuntu"
-      :font-weight 400
-      :src "url(font/latin/ubuntu-regular.ttf)format(truetype)"}]
+      {:font-family "Ubuntu"
+       :font-weight 400
+       :src "url(fonts/latin/ubuntu-regular.ttf)format(truetype)"}]
      [:body {:font-family ["ubuntu", "sans-serif"]}]
      ]))
+
 ; # App-state
 (defonce app-state
   (reagent/atom
     {:path ["index"]
      }))
 
+; # Reactions / data views
+(def events
+  (ratom/reaction (:events @app-state)))
 ; # Actual html
+(defn show-event [event]
+  [:span (str 
+           (keys event)
+           (event "startdate")
+           )]
+  )
 (defn front-page []
   [:div
-   [:h1 "hello"]])
+   (into [:div ]
+         (map show-event @events)
+         )
+   [:div "event-count" (str (count (:events @app-state)))]
+   [:h1 "hello"]
+   ])
 
 (defn main []
   (case (first (:path @app-state))
@@ -108,24 +128,103 @@
   )
 
 ; # Container etc.
+; ## Cursors
+(def show-menu (ratom/reaction (:show-menu @viewport)))
+(def width (ratom/reaction (or (:width @viewport) 320)))
+(def viewport-scale (ratom/reaction
+              (cond
+                (< @width 640) :small
+                (< @width 960) :medium
+                :else :large
+                )
+              ))
+(def unit 
+  (ratom/reaction (/ @width
+                     (case @viewport-scale
+                       :small 8
+                       :medium 16
+                       :large 24))))
+(def border (ratom/reaction (/ @unit 40)))
+(def link-color "#44f")
+(ratom/run! (print 'blah @unit))
+; ## style
+(add-style 
+  (ratom/reaction
+    (let [unit #(px (* @unit %))
+          bar-height 1
+          bar-text .6
+          margin (/ (- bar-height bar-text) 2)]
+      (print (unit 3))
+      (print @viewport-scale)
+    [[:.top-bar
+      {:text-align :center
+       :background "rgba(255,255,255,0.90)"
+       :position :fixed
+       :top "0px"
+       :width "100%"
+       :font-size (unit bar-text)
+       :height (unit bar-height)
+       :box-shadow "2px 2px 4px rgba(0,0,0,.5)"
+       :font-height (unit bar-text)
+       }
+      ]
+     [:.top-bar>.elem
+      {
+       :display :inline-block
+       :height (unit bar-text)
+       :margin (unit 0)
+       :padding (unit margin)
+       :line-height (unit bar-text)
+       }
+      ]
+     [:.top-bar>.action
+      {
+       :width (unit bar-text)
+       :color link-color
+       }
+      ]
+     [:.top-bar>.back {:float :left }]
+     [:.top-bar>.menu {:float :right}]
+     [:.bar-clear {:height (unit bar-height)}]
+     
+     ])
 
-(defn stylefn []
-  (print 'stylefn @style)
-  [:style 
-   {:dangerouslySetInnerHTML
-    #js{:__html (css @style)}
-    }])
+
+    ))
+
+; ## html
 (defn root-elem []
-  [:div
-   [:h1 "hi"]
-   [main]
-   ]
+  [:div.root
+   [:div.top-bar
+    [:a.back.elem.action "<"]
+    [:span.title.elem "tinkuy " @width (name @viewport-scale)]
+    [:a.menu.elem.action {:href "#"} "x"]
+    ]
+   #_[:div.menu
+    [:ul
+     [:li "hello"]
+     [:li "world"]
+     [:li "bye"]
+     [:li "bye"] ]]
+   [:div.bar-clear]
+   [:div.content
+    [main]]]
   )
-(reagent/render-component root-elem js/document.body)
+(reagent/render-component [root-elem] js/document.body)
 
 (defn on-js-reload [])
+
+; # Get data from server
+(defn load-events [server]
+  (go 
+    (let [events (<! (ajaxText (str "http://" server "/events.json")))]
+      (when events
+        (swap! app-state assoc :events (js->clj (js/JSON.parse events)))))))
+(load-events "localhost:3000")
+;(load-events "tinkuy.dk")
 
 ; # test-test
 (deftest dummy-test
   (testing "dummy description"
     (is  (= 1 2))))
+
