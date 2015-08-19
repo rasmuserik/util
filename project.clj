@@ -44,7 +44,7 @@
    [{:id "dev"
      :source-paths ["src"]
      :figwheel { 
-                ;:websocket-host "192.168.0.100"
+                :websocket-host ~(.getHostAddress (java.net.InetAddress/getLocalHost))
                 :on-jsload "lemon.core/on-js-reload" }
      :compiler {:main lemon.core
                 :asset-path "js/compiled/out"
