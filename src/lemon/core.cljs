@@ -115,6 +115,7 @@
          (map show-event @events)
          )
    [:div "event-count" (str (count (:events @app-state)))]
+   [:div (str (range 1000))]
    ])
 
 (defn main []
@@ -181,7 +182,7 @@
            }]
          [".burger.cross>div:nth-child(3)" {:transform "rotate(-135deg)"}]]))))
 ; ### top-bar style
-(def bar-height 36)
+(def bar-height 44)
 (add-style 
   (ratom/reaction
     (let [unit #(px (* bar-height %))
@@ -263,7 +264,7 @@
     (let [events (<! (ajaxText (str "http://" server "/events.json")))]
       (when events
         (swap! app-state assoc :events (js->clj (js/JSON.parse events)))))))
-(load-events "localhost:3000")
+;(load-events "localhost:3000")
 ;(load-events "tinkuy.dk")
 
 ; # test-test

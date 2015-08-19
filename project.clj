@@ -43,7 +43,9 @@
   {:builds 
    [{:id "dev"
      :source-paths ["src"]
-     :figwheel { :on-jsload "lemon.core/on-js-reload" }
+     :figwheel { 
+                ;:websocket-host "192.168.0.100"
+                :on-jsload "lemon.core/on-js-reload" }
      :compiler {:main lemon.core
                 :asset-path "js/compiled/out"
                 :output-to "resources/public/js/compiled/main.js"
@@ -63,4 +65,4 @@
    ; {"unit-tests" ["phantomjs" :runner "resources/public/js/compiled/main.js"]}
    }
 
-  :figwheel { :nrepl-port 7888})
+  :figwheel {:nrepl-port 7888})
