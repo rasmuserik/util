@@ -93,7 +93,8 @@
       {:font-family "Ubuntu"
        :font-weight 400
        :src "url(fonts/latin/ubuntu-regular.ttf)format(truetype)"}]
-     [:body {:font-family ["ubuntu", "sans-serif"]}]
+     [:body {:font-family ["ubuntu", "sans-serif"]
+             }]
      ]))
 
 ; # App-state
@@ -150,7 +151,7 @@
 ; ### hamburger-style
 (def burger-style (add-style
                     (ratom/reaction
-                      (let [burger-size 0.8
+                      (let [burger-size 1
                             burger-unit (/ burger-size 6)
                             ]
                         [[:.burger 
@@ -160,15 +161,15 @@
                            :height (em burger-size)
                            }]
                          [".burger>div"
-                           {:display :block
-                            :position :absolute
-                            :height (em burger-unit)
-                            :width (em (* 6 burger-unit))
-                            :background "#88f"
-                            :border-radius (em burger-unit)
-                            :left 0
-                            :transition ".3s ease-in-out"
-                            }]
+                          {:display :block
+                           :position :absolute
+                           :height (em burger-unit)
+                           :width (em (* 6 burger-unit))
+                           :background "#88f"
+                           :border-radius (em burger-unit)
+                           :left 0
+                           :transition ".3s ease-in-out"
+                           }]
                          [".burger>div:nth-child(1)" {:top (em (* 0.5 burger-unit))}]
                          [".burger>div:nth-child(2)" {:top (em (* 2.5 burger-unit))}]
                          [".burger>div:nth-child(3)" {:top (em  (* 4.5 burger-unit))}]
@@ -189,25 +190,23 @@
 ; ### top-bar style
 (add-style 
   (ratom/reaction
-    (let [unit #(px (* @unit %))
+    (let [unit #(px (* 36 %))
           bar-height 1
-          bar-text .6
+          bar-text .5
           margin (/ (- bar-height bar-text) 2)]
       (print (unit 3))
       (print @viewport-scale)
       [[:.top-bar
         {:text-align :center
-         :background "rgba(255,255,255,0.90)"
          :position :fixed
          :top "0px"
+         :z-index 200
          :width "100%"
          :font-size (unit bar-text)
-         :height (unit bar-height)
-         :box-shadow "2px 2px 4px rgba(0,0,0,.5)"
          :font-height (unit bar-text)
          }
         ]
-       [:.top-bar>.elem
+       [:.top-bar>.title
         {
          :display :inline-block
          :height (unit bar-text)
@@ -222,36 +221,60 @@
          :color link-color
          }
         ]
-       [:.top-bar>.back {:float :left }]
-       [:.top-bar>.menu {:float :right}]
+       [:.left-topbutton {:float :left }]
+       [:.right-topbutton {:float :right}]
+       [:.topbutton
+        {
+         :background "rgba(255,255,255,0.95)"
+         :border-radius "20%"
+         :display :inline-block
+         :width (unit (* 2 bar-text))
+         :height (unit bar-text)
+         :padding (unit (- margin 0.1))
+         :margin (unit 0.1)
+         :box-shadow "1px 1px 3px rgba(0,0,0,.3)"}
+        ]
        [:.bar-clear {:height (unit bar-height)}]
-
-       ])
-
-
+       ])))
+; ### menu style
+(add-style 
+  (ratom/reaction
+    [[:.menu
+      {:position :fixed
+       :top 0
+       :left 0
+       :z-index 100
+       :width "100%"
+       :height "100%"
+       :background "rgba(255,255,255,.9)"
+       :box-shadow "2px 2px 4px rgba(0,0,0,.5)"
+       :transition "0.5s ease-in-out"
+       :overflow :hidden
+       }]
+     [:.hidden-menu
+      {:height "40px"
+       
+       }]]
     ))
 
 ; ## html
-(defonce is-cross (reagent/atom false))
+(defonce show-menu (reagent/atom true))
 (defn root-elem []
   [:div.root
    [:div.top-bar
-    [:a.back.elem.action "<"]
-    [:span.title.elem @width (name @viewport-scale)]
-    [:a.menu.elem.action {
-                     :on-click #(reset! is-cross (not @is-cross))
-                     } 
-     [(if @is-cross :div.burger.cross :div.burger) {:id "burger"} [:div] [:div] [:div]]
-     ]
-    ]
-   #_[:div.menu
-      [:ul
-       [:li "hello"]
-       [:li "world"]
-       [:li "bye"]
-       [:li "bye"] ]]
-   [:div.bar-clear]
+    [:a.left-topbutton.topbutton.action "<"]
+    [:a.right-topbutton.topbutton.action {:on-click #(reset! show-menu (not @show-menu))} 
+     [(if @show-menu :div.burger.cross :div.burger) {:id "burger"} [:div] [:div] [:div]]]
+    [:span.title @width (name @viewport-scale)]]
+   [(if @show-menu :div.menu :div.menu.hidden-menu)
+    [:div.bar-clear]
+    [:ul
+     [:li "hello"]
+     [:li "world"]
+     [:li "bye"]
+     [:li "bye"]]]
    [:div.content
+    [:div.bar-clear]
     [main]]]
   )
 (reagent/render-component [root-elem] js/document.body)
