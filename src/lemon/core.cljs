@@ -82,11 +82,6 @@
     (css @style)))
 
 ; ## Actual styles
-
-#_(add-style 
-    (ratom/reaction
-      [[:body {:background "cyan"}]]))
-
 (add-style 
   (ratom/reaction
     [["@font-face"
@@ -115,11 +110,11 @@
   )
 (defn front-page []
   [:div
+   [:h1 "hello"]
    (into [:div ]
          (map show-event @events)
          )
    [:div "event-count" (str (count (:events @app-state)))]
-   [:h1 "hello"]
    ])
 
 (defn main []
@@ -149,93 +144,82 @@
 (ratom/run! (print 'blah @unit))
 ; ## style
 ; ### hamburger-style
-(def burger-style (add-style
-                    (ratom/reaction
-                      (let [burger-size 1
-                            burger-unit (/ burger-size 6)
-                            ]
-                        [[:.burger 
-                          {:display :inline-block
-                           :position :relative
-                           :width (em burger-size)
-                           :height (em burger-size)
-                           }]
-                         [".burger>div"
-                          {:display :block
-                           :position :absolute
-                           :height (em burger-unit)
-                           :width (em (* 6 burger-unit))
-                           :background "#88f"
-                           :border-radius (em burger-unit)
-                           :left 0
-                           :transition ".3s ease-in-out"
-                           }]
-                         [".burger>div:nth-child(1)" {:top (em (* 0.5 burger-unit))}]
-                         [".burger>div:nth-child(2)" {:top (em (* 2.5 burger-unit))}]
-                         [".burger>div:nth-child(3)" {:top (em  (* 4.5 burger-unit))}]
-                         [".burger.cross>div"
-                          {:width (em (* 7 burger-unit))
-                           :top (em (* 2.5 burger-unit))
-                           :left (em (* -0.5 burger-unit))}]
-                         [".burger.cross>div:nth-child(1)" {:transform "rotate(135deg)"}]
-                         [".burger.cross>div:nth-child(2)" 
-                          {:left (em (* 2.5 burger-unit))
-                           :width (em 0)
-                           :transform "rotate(90deg)"
-                           }]
-                         [".burger.cross>div:nth-child(3)" {:transform "rotate(-135deg)"}]
-
-                         ]
-                        ))))
+(def burger-style 
+  (add-style
+    (ratom/reaction
+      (let [burger-size 1
+            burger-unit (/ burger-size 6)
+            ]
+        [[:.burger 
+          {:display :inline-block
+           :position :relative
+           :width (em burger-size)
+           :height (em burger-size)
+           }]
+         [".burger>div"
+          {:display :block
+           :position :absolute
+           :height (em burger-unit)
+           :width (em (* 6 burger-unit))
+           :background "#88f"
+           :border-radius (em burger-unit)
+           :left 0
+           :transition "0.4s ease-in-out"
+           }]
+         [".burger>div:nth-child(1)" {:top (em (* 0.5 burger-unit))}]
+         [".burger>div:nth-child(2)" {:top (em (* 2.5 burger-unit))}]
+         [".burger>div:nth-child(3)" {:top (em  (* 4.5 burger-unit))}]
+         [".burger.cross>div"
+          {:width (em (* 7 burger-unit))
+           :top (em (* 2.5 burger-unit))
+           :left (em (* -0.5 burger-unit))}]
+         [".burger.cross>div:nth-child(1)" {:transform "rotate(135deg)"}]
+         [".burger.cross>div:nth-child(2)" 
+          {:left (em (* 2.5 burger-unit))
+           :width (em 0)
+           :transform "rotate(90deg)"
+           }]
+         [".burger.cross>div:nth-child(3)" {:transform "rotate(-135deg)"}]]))))
 ; ### top-bar style
+(def bar-height 36)
 (add-style 
   (ratom/reaction
-    (let [unit #(px (* 36 %))
+    (let [unit #(px (* bar-height %))
           bar-height 1
           bar-text .5
-          margin (/ (- bar-height bar-text) 2)]
-      (print (unit 3))
-      (print @viewport-scale)
+          margin (/ (- bar-height bar-text) 2)
+          padding .15]
       [[:.top-bar
         {:text-align :center
-         :position :fixed
-         :top "0px"
-         :z-index 200
-         :width "100%"
-         :font-size (unit bar-text)
-         :font-height (unit bar-text)
-         }
-        ]
+         :margin-top (unit margin)
+         :font-size (unit bar-text)}]
        [:.top-bar>.title
-        {
-         :display :inline-block
+        {:display :inline-block
          :height (unit bar-text)
          :margin (unit 0)
-         :padding (unit margin)
-         :line-height (unit bar-text)
-         }
-        ]
-       [:.top-bar>.action
-        {
-         :width (unit bar-text)
-         :color link-color
-         }
-        ]
-       [:.left-topbutton {:float :left }]
-       [:.right-topbutton {:float :right}]
+         :padding [[(unit margin) 
+                    (unit (/ (- margin padding) 2))
+                    0]]
+         :line-height (unit bar-text) } ]
+       [:.top-bar>.topbutton>img
+        {:height (unit bar-text)}]
+       [:.float-left {:float :left }]
+       [:.float-right {:float :right}]
        [:.topbutton
-        {
-         :background "rgba(255,255,255,0.95)"
-         :border-radius "20%"
+        {:background "#fff"
+         :color link-color    
+         :border-radius (unit (/ 1 6))
          :display :inline-block
-         :width (unit (* 2 bar-text))
+         :cursor :pointer
          :height (unit bar-text)
-         :padding (unit (- margin 0.1))
-         :margin (unit 0.1)
-         :box-shadow "1px 1px 3px rgba(0,0,0,.3)"}
-        ]
-       [:.bar-clear {:height (unit bar-height)}]
-       ])))
+         :width (unit bar-text)
+         :padding (unit padding)
+         :margin [[(unit (- padding))
+                   (unit (/ (- margin padding) 2))
+                   (unit (/ (- margin padding) 2))
+                   (unit (- margin padding))]]
+         :box-shadow "1px 1px 4px rgba(0,0,0,.3)"}]
+       [:.bar-clear {:height (unit bar-height)}]])))
 ; ### menu style
 (add-style 
   (ratom/reaction
@@ -243,31 +227,26 @@
       {:position :fixed
        :top 0
        :left 0
-       :z-index 100
        :width "100%"
        :height "100%"
        :background "rgba(255,255,255,.9)"
-       :box-shadow "2px 2px 4px rgba(0,0,0,.5)"
-       :transition "0.5s ease-in-out"
+       :box-shadow "1px 1px 4px rgba(0,0,0,.3)" 
+       :transition "0.4s ease-in-out"
        :overflow :hidden
        }]
      [:.hidden-menu
-      {:height "40px"
-       
-       }]]
-    ))
-
+      {:height (px bar-height)}]]))
 ; ## html
 (defonce show-menu (reagent/atom true))
 (defn root-elem []
-  [:div.root
-   [:div.top-bar
-    [:a.left-topbutton.topbutton.action "<"]
-    [:a.right-topbutton.topbutton.action {:on-click #(reset! show-menu (not @show-menu))} 
-     [(if @show-menu :div.burger.cross :div.burger) {:id "burger"} [:div] [:div] [:div]]]
-    [:span.title @width (name @viewport-scale)]]
+  [:div
    [(if @show-menu :div.menu :div.menu.hidden-menu)
-    [:div.bar-clear]
+    [:div.top-bar
+     [:a.float-right.topbutton {:on-click #(reset! show-menu (not @show-menu))} 
+      [(if @show-menu :div.burger.cross :div.burger) {:id "burger"} [:div] [:div] [:div]]]
+     [:a.float-left.topbutton [:b "‹‹"]]
+     ;[:a.float-left.topbutton [:img {:src "solsort.svg"}]]
+     "Title" " foo " @width]
     [:ul
      [:li "hello"]
      [:li "world"]
@@ -275,12 +254,8 @@
      [:li "bye"]]]
    [:div.content
     [:div.bar-clear]
-    [main]]]
-  )
+    [main]]])
 (reagent/render-component [root-elem] js/document.body)
-
-(defn on-js-reload [])
-
 ; # Get data from server
 (defn load-events [server]
   (go 
@@ -295,3 +270,5 @@
   (testing "dummy description"
     (is  (= 1 2))))
 
+; # misc
+(defn on-js-reload [])
