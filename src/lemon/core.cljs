@@ -140,7 +140,7 @@
                        :medium 16
                        :large 24))))
 (def border (ratom/reaction (/ @unit 40)))
-(def link-color "#44f")
+(def link-color "#88f")
 (ratom/run! (print 'blah @unit))
 ; ## style
 ; ### hamburger-style
@@ -161,7 +161,7 @@
            :position :absolute
            :height (em burger-unit)
            :width (em (* 6 burger-unit))
-           :background "#88f"
+           :background link-color
            :border-radius (em burger-unit)
            :left 0
            :transition "0.4s ease-in-out"
@@ -199,6 +199,7 @@
          :margin (unit 0)
          :padding [[(unit margin) 
                     (unit (/ (- margin padding) 2))
+                    (unit (/ (- margin padding) 2))
                     0]]
          :line-height (unit bar-text) } ]
        [:.top-bar>.topbutton>img
@@ -218,7 +219,7 @@
                    (unit (/ (- margin padding) 2))
                    (unit (/ (- margin padding) 2))
                    (unit (- margin padding))]]
-         :box-shadow "1px 1px 4px rgba(0,0,0,.3)"}]
+         :box-shadow [["0px 0px 1.5px " "#00f"]]}]
        [:.bar-clear {:height (unit bar-height)}]])))
 ; ### menu style
 (add-style 
@@ -229,8 +230,8 @@
        :left 0
        :width "100%"
        :height "100%"
-       :background "rgba(255,255,255,.9)"
-       :box-shadow "1px 1px 4px rgba(0,0,0,.3)" 
+       :background "rgba(255,255,255,.92)"
+       :box-shadow "0px 2px 4px rgba(0,0,0,.3)" 
        :transition "0.4s ease-in-out"
        :overflow :hidden
        }]
