@@ -111,6 +111,11 @@
 (defn front-page []
   [:div
    [:h1 "hello"]
+   [:form {:action "http://localhost/db/_session" :method "POST"}
+    [:input {:name "name" :value "daemon"}]
+    [:input {:name "password" :value "daemon"}]
+    [:input {:type "submit"}]
+    ]
    (into [:div ]
          (map show-event @events)
          )
@@ -142,7 +147,6 @@
                        :large 24))))
 (def border (ratom/reaction (/ @unit 40)))
 (def link-color "#88f")
-(ratom/run! (print 'blah @unit))
 ; ## style
 ; ### hamburger-style
 (def burger-style 
@@ -274,3 +278,38 @@
 
 ; # misc
 (defn on-js-reload [])
+
+(go
+  (print (<! (ajaxText "http://localhost/db/")))
+  )
+(js/console.log "hello")
+
+; Daemon server
+
+(js/socket.removeAllListeners "http-request")
+(js/socket.on 
+  "http-request" 
+  (fn [o]
+    (js/console.log "http-request" o)
+    (js/socket.emit 
+      "http-response" 
+      #js {"url" (aget o "url")
+           "content" "hi from cljs"}) ))
+
+(js/socket.removeAllListeners "server-log")
+(js/socket.on 
+  "server-log"
+  (fn [o] (js/console.log "server-log" o)))
+
+(js/p2p.on
+  "ready"
+  (aset js/p2p "usePeerConnection" true)
+  (js/p2p.emit "hello" #js {:peerId js/navigator.userAgent})
+  )
+
+(js/p2p.emit "hello" #js {:peer js/navigator.userAgent})
+(js/p2p.removeAllListeners "hello")
+(js/p2p.on
+  "hello"
+  (fn [o] (print o))
+  )
