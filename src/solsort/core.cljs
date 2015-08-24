@@ -39,13 +39,12 @@
 (defn ajaxText "Do an ajax request and return the result as JSON" ; ## 
   [url]
   (let  [c  (chan)]
-    (goog.net.XhrIo/send
+    (goog.net.XhrIo.send
       url
-      (fn  [o]
-        (when
-          (and o  (.-target o))
-          (put! c  (.getResponseText (.-target o))))
-        (close! c)))
+      (fn [o]
+        (when (and o  (.-target o))
+          (put! c  (.getResponseText  (.-target o)))))
+      "GET" nil nil nil true)
     c))
 ;; # Style
 ;; ## Viewport
@@ -279,7 +278,7 @@
 (defn on-js-reload [])
 
 (go
-  (print (<! (ajaxText "http://localhost/db/")))
+  (print (<! (ajaxText "http://localhost/db/_session")))
   )
 (js/console.log "hello")
 
