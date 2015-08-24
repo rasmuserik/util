@@ -3,15 +3,6 @@ var p2pserver = require('socket.io-p2p-server').Server
 var io = require('socket.io')(server);
 io.use(p2pserver);
 
-//{{{1 Logging
-function log(str) {
-  t = Date.now();
-  var day = t.getUTCFullYear().slice(2) + (
-
-  console.log(Date.now() + " " + str + "\n");
-}
-
-//{{{1 keep track of daemons
 daemons = [];
 function daemon_emit(id, obj) {
   if(daemons.length) {
@@ -27,7 +18,6 @@ function add_daemon(socket) {
   });
 }
 
-//{{{1 handle connections
 io.on('connection', function(socket) {
   require('request')({url: "http://localhost/db/_session",
     headers: {cookie: socket.handshake.headers.cookie}}, 
@@ -35,19 +25,17 @@ io.on('connection', function(socket) {
       var username;
       try { username = JSON.parse(data).userCtx.name; } catch(e) {};
       if(username === "daemon") add_daemon(socket);
-      log("server: " + JSON.stringify({
-        type: "connect", 
+      daemon_emit("server-log", {
+        type: "socket-connect", 
         socket: socket.id,
-        headers: socket.handshake.headers,
-        user: username}));
+        timestamp: +Date.now(),
+        user: username});
     });
   socket.on("disconnect", function() {
-    log("server: ", { type: "disconnect", socket: socket.id});
+    daemon_emit("server-log", { type: "socket-disconnect", socket: socket.id, timestamp: +Date.now()});
   });
 });
 
-
-//{{{1 general webserver
 var reqs = {};
 function http_response(o) {
   while(reqs[o.url] && reqs[o.url].length) {
@@ -55,27 +43,30 @@ function http_response(o) {
     res.writeHead(o.statusCode || 200, o.headers || {});
     res.end(o.content || "", o.encoding || "utf8"); }
   reqs[o.url] = null; 
-  log("server: " + JSON.stringify({ type: "GET-response", url: o.url}));
+   daemon_emit("server-log", { type: "http-response", url: o.url, timestamp: +Date.now()});
 }
 server.on('request', function(req, res) {
   var url = req.url;
-  if(url.slice(0,10) === "/socket.io") {
-  } else if(url.slice(0,5) === "/log/") {
-    log(req.headers["x-forwarded-for"] + ": " + url.slice(5));
-  } else if(daemons.length && req.method === "GET") {
-    if(reqs[url]) {
-      reqs[url].push(res);
+  if(url.slice(0,10) !== "/socket.io") {
+    if(daemons.length && req.method === "GET") {
+      if(reqs[url]) {
+        reqs[url].push(res);
+      } else {
+        var daemon = daemon_emit("http-request", { url: url, headers: req.headers});
+        daemon_emit("server-log", {
+          type: "http-request",
+          url: url,
+          timestamp: +Date.now(),
+          headers: req.headers});
+        if(!daemon.http_listener) {
+          daemon.on("http-response", http_response);
+          daemon.http_listener = true; 
+        }
+        reqs[url] = [res]; 
+      } 
     } else {
-      var daemon = daemon_emit("http-request", { url: url});
-      log("server: " + JSON.stringify({ type: "GET-request", url: url, headers: req.headers}));
-      if(!daemon.http_listener) {
-        daemon.on("http-response", http_response);
-        daemon.http_listener = true; 
-      }
-      reqs[url] = [res]; 
-    } 
-  } else {
-    res.end();
+      res.end();
+    }
   }
 });
 
