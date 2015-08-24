@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">    
-    <link href="css/normalize.css" rel="stylesheet" type="text/css">
+    <link href="normalize.css" rel="stylesheet" type="text/css">
   </head>
   <body>
     <div id="app">
@@ -12,9 +12,10 @@
     <script src="http://localhost:1234/socket.io/socket.io.js"></script>
     <script src="socketiop2p.min.js"></script>
     <script>
-      var hostname = 
-        ((location.port == "3449") ? ("http://" + location.hostname) : "https://blog.solsort.com");
-      var socket = io.connect(hostname);
+      var solsort_server = "https://blog.solsort.com";
+      if(location.port == "3449") { solsort_server = "http://" + location.hostname; }
+      if(location.protocol === "file:") { solsort_server = "http://localhost:1234"; }
+      var socket = io.connect(solsort_server);
       var p2p = new P2P(socket);
     </script>
     <script src="solsort.js" type="text/javascript"></script>

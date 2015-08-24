@@ -39,7 +39,7 @@
 (defn ajaxText "Do an ajax request and return the result as JSON" ; ## 
   [url]
   (let  [c  (chan)]
-    (goog.net.XhrIo.send
+    (goog.net.XhrIo/send
       url
       (fn [o]
         (when (and o  (.-target o))
@@ -109,7 +109,7 @@
 (defn front-page []
   [:div
    [:h1 "hello"]
-   [:form {:action "http://localhost/db/_session" :method "POST"}
+   [:form {:action (str js/solsort_server "/db/_session") :method "POST"}
     [:input {:name "name" :value "daemon"}]
     [:input {:name "password" :value (js/location.hash.slice 1)}]
     [:input {:type "submit"}]
@@ -278,7 +278,7 @@
 (defn on-js-reload [])
 
 (go
-  (print (<! (ajaxText "http://localhost/db/_session")))
+  (print (<! (ajaxText (str js/solsort_server "/db/_session"))))
   )
 (js/console.log "hello")
 
