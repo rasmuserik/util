@@ -1,5 +1,3 @@
-# Do whatever you want with distributable package, ie. release etc.
-
 # Autogenerate README.md
 
 printf "

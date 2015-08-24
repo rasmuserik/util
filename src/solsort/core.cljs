@@ -1,26 +1,25 @@
-; # Lemon
-;
-; Lemon is the initial prototype of an app for tinkuy.
-; More notes/documentation to come here real soon.
-;
-; ## Backlog
-;
-; ## Build commands
-;
-; - `lein npm install` installs dependencies
-; - `lein figwheel` starts development server on [http://localhost:3449](http://localhost:3449/) with nrepl on port 7888.
-; - `lein clean` removes artifacts etc
-; - `lein kibit` and `lein bikeshed -m 1000` runs various style tests
-; - `lein cljsbuild once dist` builds minified version
-; - `lein gendoc` regenerate project README.md from literate source code
-; - TODO `lein cljsbuild test` builds and run unit-tests
-;
-; ## Random ideas
-;
-; - selemium tests
-;
-; # Dependency declarations
-(ns ^:figwheel-always lemon.core
+;; # solsort
+;;
+;; More notes/documentation to come here real soon.
+;;
+;; ## Backlog
+;;
+;; ## Build commands
+;;
+;; - `lein npm install` installs dependencies
+;; - `lein figwheel` starts development server on [http://localhost:3449](http://localhost:3449/) with nrepl on port 7888.
+;; - `lein clean` removes artifacts etc
+;; - `lein kibit` and `lein bikeshed -m 1000` runs various style tests
+;; - `lein cljsbuild once dist` builds minified version
+;; - `lein gendoc` regenerate project README.md from literate source code
+;; - TODO `lein cljsbuild test` builds and run unit-tests
+;;
+;; ## Random ideas
+;;
+;; - selemium tests
+;;
+;; # Dependency declarations
+(ns ^:figwheel-always solsort.core
   (:require-macros
     [reagent.ratom :as ratom]
     [cljs.core.async.macros :refer  [go alt!]])
@@ -36,7 +35,7 @@
 
 (enable-console-print!)
 
-; # Utility functions (to be merged into util)
+;; # Utility functions (to be merged into util)
 (defn ajaxText "Do an ajax request and return the result as JSON" ; ## 
   [url]
   (let  [c  (chan)]
@@ -48,9 +47,9 @@
           (put! c  (.getResponseText (.-target o))))
         (close! c)))
     c))
-; # Style
-; ## Viewport
-;
+;; # Style
+;; ## Viewport
+;;
 (defonce viewport 
   (reagent/atom {}))
 
@@ -61,12 +60,12 @@
 (js/window.addEventListener "resize" update-viewport)
 (update-viewport)
 
-; ## List of styles
-;
+;; ## List of styles
+;;
 (def styles (reagent/atom []))
 (defn add-style [f] (swap! styles conj f) f)
 
-; ## Reactive application of styles
+;; ## Reactive application of styles
 (def style
   (ratom/reaction
     (reduce into [] (map (fn [ratom] @ratom) @styles))))
@@ -81,7 +80,7 @@
     "innerHTML"
     (css @style)))
 
-; ## Actual styles
+;; ## Actual styles
 (add-style 
   (ratom/reaction
     [["@font-face"
@@ -92,16 +91,16 @@
              }]
      ]))
 
-; # App-state
+;; # App-state
 (defonce app-state
   (reagent/atom
     {:path ["index"]
      }))
 
-; # Reactions / data views
+;; # Reactions / data views
 (def events
   (ratom/reaction (:events @app-state)))
-; # Actual html
+;; # Actual html
 (defn show-event [event]
   [:span (str 
            (keys event)
@@ -128,8 +127,8 @@
     "index" (front-page))
   )
 
-; # Container etc.
-; ## Cursors
+;; # Container etc.
+;; ## Cursors
 (def show-menu (ratom/reaction (:show-menu @viewport)))
 (def width (ratom/reaction (or (:width @viewport) 320)))
 (def viewport-scale (ratom/reaction
@@ -147,8 +146,8 @@
                        :large 24))))
 (def border (ratom/reaction (/ @unit 40)))
 (def link-color "#88f")
-; ## style
-; ### hamburger-style
+;; ## style
+;; ### hamburger-style
 (def burger-style 
   (add-style
     (ratom/reaction
@@ -185,7 +184,7 @@
            :transform "rotate(90deg)"
            }]
          [".burger.cross>div:nth-child(3)" {:transform "rotate(-135deg)"}]]))))
-; ### top-bar style
+;; ### top-bar style
 (def bar-height 44)
 (add-style 
   (ratom/reaction
@@ -226,7 +225,7 @@
                    (unit (- margin padding))]]
          :box-shadow [["0px 0px 1.5px " "#00f"]]}]
        [:.bar-clear {:height (unit bar-height)}]])))
-; ### menu style
+;; ### menu style
 (add-style 
   (ratom/reaction
     [[:.menu
@@ -242,7 +241,7 @@
        }]
      [:.hidden-menu
       {:height (px bar-height)}]]))
-; ## html
+;; ## html
 (defonce show-menu (reagent/atom true))
 (defn root-elem []
   [:div
@@ -262,7 +261,7 @@
     [:div.bar-clear]
     [main]]])
 (reagent/render-component [root-elem] js/document.body)
-; # Get data from server
+;; # Get data from server
 (defn load-events [server]
   (go 
     (let [events (<! (ajaxText (str "http://" server "/events.json")))]
@@ -271,12 +270,12 @@
 ;(load-events "localhost:3000")
 ;(load-events "tinkuy.dk")
 
-; # test-test
+;; # test-test
 (deftest dummy-test
   (testing "dummy description"
     (is  (= 1 2))))
 
-; # misc
+;; # misc
 (defn on-js-reload [])
 
 (go
@@ -284,7 +283,7 @@
   )
 (js/console.log "hello")
 
-; Daemon server
+;; Daemon server
 
 (js/socket.removeAllListeners "http-request")
 (js/socket.on 
