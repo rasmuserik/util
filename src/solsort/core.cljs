@@ -284,21 +284,28 @@
 (js/console.log "hello")
 
 ;; Daemon server
-
 (js/socket.removeAllListeners "http-request")
+(js/socket.removeAllListeners "http-response-log")
+(js/socket.removeAllListeners "socket-connect")
+(js/socket.removeAllListeners "socket-disconnect")
 (js/socket.on 
-  "http-request" 
-  (fn [o]
-    (js/console.log "http-request" o)
-    (js/socket.emit 
-      "http-response" 
-      #js {"url" (aget o "url")
-           "content" "hi from cljs"}) ))
-
-(js/socket.removeAllListeners "server-log")
+  "http-request"
+  (fn [o] (js/console.log "http-request" o)
+    (js/socket.emit
+      "http-response"
+      #js {:url (aget o "url")
+           :key (aget o "key")
+           :content (str "Hello " (aget o "url"))})
+    ))
 (js/socket.on 
-  "server-log"
-  (fn [o] (js/console.log "server-log" o)))
+  "http-response-log"
+  (fn [o] (js/console.log "http-response" o)))
+(js/socket.on 
+  "socket-connect"
+  (fn [o] (js/console.log "connect" o)))
+(js/socket.on 
+  "socket-disconnect"
+  (fn [o] (js/console.log "discon" o)))
 
 (js/p2p.on
   "ready"
@@ -311,7 +318,7 @@
   "hello"
   (fn [o] (print o))
   )
-(go (loop [i 0]
+#_(go (loop [i 0]
      (js/p2p.emit "hello" #js {:peor (str js/navigator.userAgent)})
       (<! (timeout 1000))
       (recur (inc i))))
