@@ -13,7 +13,7 @@
     <script src="js/socketiop2p.min.js"></script>
     <script>
       var hostname = 
-        ((location.hostname === "localhost") ? "http://localhost" : "https://blog.solsort.com/");
+        ((location.port == "3449") ? ("http://" + location.hostname) : "https://blog.solsort.com");
       var socket = io.connect(hostname);
       var p2p = new P2P(socket);
     </script>

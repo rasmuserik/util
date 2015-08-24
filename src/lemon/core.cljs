@@ -113,7 +113,7 @@
    [:h1 "hello"]
    [:form {:action "http://localhost/db/_session" :method "POST"}
     [:input {:name "name" :value "daemon"}]
-    [:input {:name "password" :value "daemon"}]
+    [:input {:name "password" :value (js/location.hash.slice 1)}]
     [:input {:type "submit"}]
     ]
    (into [:div ]
@@ -304,12 +304,15 @@
 (js/p2p.on
   "ready"
   (aset js/p2p "usePeerConnection" true)
-  (js/p2p.emit "hello" #js {:peerId js/navigator.userAgent})
+  ;(js/p2p.emit "hello" #js {:peerId js/navigator.userAgent})
   )
 
-(js/p2p.emit "hello" #js {:peer js/navigator.userAgent})
 (js/p2p.removeAllListeners "hello")
 (js/p2p.on
   "hello"
   (fn [o] (print o))
   )
+(go (loop [i 0]
+     (js/p2p.emit "hello" #js {:peor (str js/navigator.userAgent)})
+      (<! (timeout 1000))
+      (recur (inc i))))
