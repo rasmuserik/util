@@ -23,7 +23,8 @@
   :source-paths ["src"]
 
   :clean-targets ^{:protect false} 
-  ["html/js/compiled" 
+  ["resources/public/out" 
+   "resources/public/solsort.js" 
    "target"
    ".lein.failures"
    "figwheel_server.log"
@@ -37,14 +38,14 @@
      :figwheel {:websocket-host ~(.getHostAddress (java.net.InetAddress/getLocalHost))
                 :on-jsload "solsort.core/on-js-reload" }
      :compiler {:main solsort.core
-                :asset-path "js/compiled/out"
-                :output-to "html/js/compiled/main.js"
-                :output-dir "html/js/compiled/out"
+                :asset-path "out"
+                :output-to "resources/public/solsort.js"
+                :output-dir "resources/public/out"
                 :source-map-timestamp true }}
 
     {:id "dist"
      :source-paths ["src"]
-     :compiler {:output-to "html/js/compiled/main.js"
+     :compiler {:output-to "resources/public/solsort.js"
                 :main solsort.core
                 :externs ~(into ["externs.js"]
                                 (map 
@@ -61,7 +62,7 @@
    ; https://github.com/cemerick/clojurescript.test/tree/master/resources/cemerick/cljs/test
    ; https://github.com/emezeske/lein-cljsbuild/blob/master/doc/TESTING.md
    ; :test-commands
-   ; {"unit-tests" ["phantomjs" :runner "html/js/compiled/main.js"]}
+   ; {"unit-tests" ["phantomjs" :runner "resources/public/solsort.js"]}
    }
 
   :figwheel {:nrepl-port 7888})
