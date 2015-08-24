@@ -1,12 +1,20 @@
-var server = require('http').createServer();
-var p2pserver = require('socket.io-p2p-server').Server
-var io = require('socket.io')(server);
-io.use(p2pserver);
+var app = require('express')();
+var server = require('http').Server(app);
 server.listen(1234);
 
 function randstr() { return Math.random().toString().slice(2); }
 
-//{{{1 socket server + login
+//{{{1 '/db' couchdb proxy
+var proxy = require('express-http-proxy');
+app.use('/db', proxy('localhost:5984', {
+  forwardPath: function(req, res) { return req.url; }
+}));
+
+//{{{1 '/socket.io' socket server + login
+var io = require('socket.io')(server);
+var p2pserver = require('socket.io-p2p-server').Server
+io.use(p2pserver);
+
 var daemon_room = randstr();
 io.on('connection', function(socket) {
   require('request')({url: "http://localhost/db/_session",
@@ -25,26 +33,19 @@ io.on('connection', function(socket) {
   });
 });
 
-//{{{1 HTTP-server
+//{{{1 '*' Forward http-requests to daemon
 var reqs = {};
-server.on('request', function(req, res) {
+app.get("*", function(req, res) {
   var url = req.url;
-  if(url.slice(0,10) !== "/socket.io") {
-    if(req.method === "GET") {
-      if(reqs[url]) {
-        reqs[url].res.push(res);
-      } else {
-        reqs[url] = {key: randstr(), res: [res]};
-        io.sockets.to(daemon_room).emit("http-request", 
-            {url: url, timestamp: +Date.now(), headers: req.headers, key: reqs[url].key });
-      } 
-    } else {
-      res.end();
-    }
-  }
+  if(reqs[url]) {
+    reqs[url].res.push(res);
+  } else {
+    reqs[url] = {key: randstr(), res: [res]};
+    io.sockets.to(daemon_room).emit("http-request", 
+        {url: url, timestamp: +Date.now(), headers: req.headers, key: reqs[url].key});
+  } 
 });
 function http_response(o) {
-  console.log("http-response", o);
   var req = (("object" === typeof o) && o.url && reqs[o.url]) || {key: randstr()};
   if(req.key === o.key) {
     while(req.res.length) {
