@@ -25,14 +25,10 @@ io.on('connection', function(socket) {
       var username;
       try { username = JSON.parse(data).userCtx.name; } catch(e) {};
       if(username === "daemon") add_daemon(socket);
-      daemon_emit("server-log", {
-        type: "socket-connect", 
-        socket: socket.id,
-        timestamp: +Date.now(),
-        user: username});
+      daemon_emit("socket-connect", { socket: socket.id, timestamp: +Date.now(), user: username});
     });
   socket.on("disconnect", function() {
-    daemon_emit("server-log", { type: "socket-disconnect", socket: socket.id, timestamp: +Date.now()});
+    daemon_emit("socket-disconnect", { socket: socket.id, timestamp: +Date.now()});
   });
 });
 
@@ -43,7 +39,7 @@ function http_response(o) {
     res.writeHead(o.statusCode || 200, o.headers || {});
     res.end(o.content || "", o.encoding || "utf8"); }
   reqs[o.url] = null; 
-   daemon_emit("server-log", { type: "http-response", url: o.url, timestamp: +Date.now()});
+   daemon_emit("http-response-log", { url: o.url, timestamp: +Date.now()});
 }
 server.on('request', function(req, res) {
   var url = req.url;
@@ -52,12 +48,7 @@ server.on('request', function(req, res) {
       if(reqs[url]) {
         reqs[url].push(res);
       } else {
-        var daemon = daemon_emit("http-request", { url: url, headers: req.headers});
-        daemon_emit("server-log", {
-          type: "http-request",
-          url: url,
-          timestamp: +Date.now(),
-          headers: req.headers});
+        var daemon = daemon_emit("http-request", { url: url, timestamp: +Date.now(), headers: req.headers });
         if(!daemon.http_listener) {
           daemon.on("http-response", http_response);
           daemon.http_listener = true; 
