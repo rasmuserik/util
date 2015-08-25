@@ -323,7 +323,8 @@
        :info (<! (jsonp (str "http://localhost/bibdata/info/" id))) })
 
     ))
-(go (let [lids (js/JSON.parse (<! (ajaxText (str js/solsort_server "/db/bib/info/lids.json"))))]
+
+#_(go (let [lids (js/JSON.parse (<! (ajaxText (str js/solsort_server "/db/bib/info/lids.json"))))]
       (loop [i (or (int (js/localStorage.getItem "i")) 0)
              ]
         (when (<= i (count lids))
