@@ -1,11 +1,22 @@
 var app = require('express')();
+var proxy = require('express-http-proxy');
 var server = require('http').Server(app);
 server.listen(1234);
 
 function randstr() { return Math.random().toString().slice(2); }
+//{{{ auth
+var authTokens = {};
+function authToken(cookies) {
+  var match = /AuthSession=([^;]*)/.exec(cookies);
+  return match && match[1];
+}
+//{{{1 '/db' elastic search proxy, only accessible for daemon
+app.use('/es', proxy('localhost:9200', {
+  filter: function(req, res) { return authTokens[authToken(req.headers.cookie)]; },
+  forwardPath: function(req, res) { return req.url; }
+}));
 
 //{{{1 '/db' couchdb proxy
-var proxy = require('express-http-proxy');
 app.use('/db', proxy('localhost:5984', {
   forwardPath: function(req, res) { return req.url; }
 }));
@@ -22,7 +33,10 @@ io.on('connection', function(socket) {
     function(_, _, data) {
       var username;
       try { username = JSON.parse(data).userCtx.name; } catch(e) {};
-      if(username === "daemon") socket.join(daemon_room);
+      if(username === "daemon") {
+        socket.join(daemon_room);
+        authTokens[authToken(socket.handshake.headers.cookie)] = true;
+      }
       io.sockets.to(daemon_room).emit("socket-connect", 
           {socket: socket.id, timestamp: +Date.now(), user: username});
       socket.on("http-response", http_response);
