@@ -4,3 +4,4 @@ resources/public/solsort.js
 .lein-*
 node_modules/
 target/
+.repl

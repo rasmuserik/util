@@ -27,6 +27,7 @@
   (:require
     [cljs.test :refer-macros  [deftest testing is]]
     [goog.net.XhrIo]
+    [goog.net.Jsonp]
     [garden.core :refer [css]]
     [garden.units :refer [px em]]
     [reagent.core :as reagent :refer []]
@@ -36,6 +37,33 @@
 (enable-console-print!)
 
 ;; # Utility functions (to be merged into util)
+(defn jsonp "Do an ajax request and return the result as JSON" ; ## 
+  [url]
+  (let  [c  (chan)
+         jsonp (goog.net.Jsonp. url)]
+    (.send jsonp nil #(put! c %) #(close! c))
+    c))
+(defn jsonp-hack 
+  [url]
+  (let [c (chan)]
+    (aset js/window "jsonpcallback" (fn [o] (put! c o)))
+    (.appendChild js/document.head 
+                  (let [elem (js/document.createElement "script")]
+                    (set! (.-src elem) (str url "?callback=jsonpcallback"))
+                    elem)) 
+    c
+    )
+  )
+(defn ajaxPUT "Do an ajax request and return the result as JSON" ; ## 
+  [url data]
+  (let  [c  (chan)]
+    (goog.net.XhrIo/send
+      url
+      (fn [o]
+        (when (and o  (.-target o))
+          (put! c  (.getResponseText  (.-target o)))))
+      "PUT" data nil nil true)
+    c))
 (defn ajaxText "Do an ajax request and return the result as JSON" ; ## 
   [url]
   (let  [c  (chan)]
@@ -279,8 +307,34 @@
 
 (go
   (print (<! (ajaxText (str js/solsort_server "/db/_session"))))
+  (js/console.log (clj->js { 
+                            :info (<! (jsonp "http://localhost/bib/info/50581438"))
+                            :related (<! (jsonp "http://localhost/bib/related/50581438"))
+                            :triples (<! (jsonp-hack "https://dev.vejlebib.dk/ting-visual-relation/get-ting-object/870970-basis:50581438"))}))
   )
 (js/console.log "hello")
+
+;; bibdata-process
+(defn get-triple [id]
+  (go
+    (clj->js 
+      { :stat(<! (jsonp (str "http://localhost/bib/info/" id)))
+       :related (<! (jsonp (str "http://localhost/bib/related/" id)))
+       :info (<! (jsonp (str "http://localhost/bibdata/info/" id))) })
+
+    ))
+(go (let [lids (js/JSON.parse (<! (ajaxText (str js/solsort_server "/db/bib/info/lids.json"))))]
+      (loop [i (or (int (js/localStorage.getItem "i")) 0)
+             ]
+        (when (<= i (count lids))
+          (let [lid (aget lids i)
+                data (<! (get-triple  (aget lids i)))
+                result (<! (ajaxPUT 
+                             (str js/solsort_server "/db/bib/" lid)
+                             (js/JSON.stringify data)))]
+                (aset js/document "title" (str i)) 
+                (js/localStorage.setItem "i" i)
+                (recur (inc i)))))))
 
 ;; Daemon server
 (js/socket.removeAllListeners "http-request")
@@ -318,6 +372,6 @@
   (fn [o] (print o))
   )
 #_(go (loop [i 0]
-     (js/p2p.emit "hello" #js {:peor (str js/navigator.userAgent)})
-      (<! (timeout 1000))
-      (recur (inc i))))
+        (js/p2p.emit "hello" #js {:peor (str js/navigator.userAgent)})
+        (<! (timeout 1000))
+        (recur (inc i))))
