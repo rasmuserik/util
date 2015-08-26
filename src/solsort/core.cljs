@@ -18,361 +18,185 @@
 ;;
 ;; - selemium tests
 ;;
-;; # Dependency declarations
-(ns ^:figwheel-always solsort.core
+;; # core / definition / dependencies
+(ns solsort.core
   (:require-macros
     [reagent.ratom :as ratom]
-    [cljs.core.async.macros :refer  [go alt!]])
+    [cljs.core.async.macros :refer  [go go-loop alt!]])
 
   (:require
+    [cljs.core.async.impl.channels :refer  [ManyToManyChannel]]
+    [cljs.core.async :refer  [>! <! chan put! take! timeout close! pipe]]
     [cljs.test :refer-macros  [deftest testing is]]
-    [goog.net.XhrIo]
+    [clojure.string :as string :refer  [split]]
+    [clojure.string :refer  [join]]
+    [cognitect.transit :as transit]
+    [garden.core :refer  [css]]
+    [garden.units :refer  [px em]]
     [goog.net.Jsonp]
-    [garden.core :refer [css]]
-    [garden.units :refer [px em]]
-    [reagent.core :as reagent :refer []]
-    [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
-    [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
+    [goog.net.XhrIo]
+    [reagent.core :as reagent :refer  []]))
+
 
 (enable-console-print!)
 
-;; # Utility functions (to be merged into util)
-(defn jsonp "Do an ajax request and return the result as JSON" ; ## 
-  [url]
-  (let  [c  (chan)
-         jsonp (goog.net.Jsonp. url)]
-    (.send jsonp nil #(put! c %) #(close! c))
-    c))
-(defn jsonp-hack 
-  [url]
-  (let [c (chan)]
-    (aset js/window "jsonpcallback" (fn [o] (put! c o)))
-    (.appendChild js/document.head 
-                  (let [elem (js/document.createElement "script")]
-                    (set! (.-src elem) (str url "?callback=jsonpcallback"))
-                    elem)) 
-    c
-    )
-  )
-(defn ajaxPUT "Do an ajax request and return the result as JSON" ; ## 
-  [url data]
-  (let  [c  (chan)]
-    (goog.net.XhrIo/send
-      url
-      (fn [o]
-        (when (and o  (.-target o))
-          (put! c  (.getResponseText  (.-target o)))))
-      "PUT" data nil nil true)
-    c))
-(defn ajaxText "Do an ajax request and return the result as JSON" ; ## 
-  [url]
-  (let  [c  (chan)]
-    (goog.net.XhrIo/send
-      url
-      (fn [o]
-        (when (and o  (.-target o))
-          (put! c  (.getResponseText  (.-target o)))))
-      "GET" nil nil nil true)
-    c))
-;; # Style
-;; ## Viewport
-;;
-(defonce viewport 
-  (reagent/atom {}))
-
-(defn update-viewport []
-  (swap! viewport assoc :width js/window.innerWidth)
-  (swap! viewport assoc :height js/window.innerHeight))
-
-(js/window.addEventListener "resize" update-viewport)
-(update-viewport)
-
-;; ## List of styles
-;;
-(def styles (reagent/atom []))
-(defn add-style [f] (swap! styles conj f) f)
-
-;; ## Reactive application of styles
-(def style
-  (ratom/reaction
-    (reduce into [] (map (fn [ratom] @ratom) @styles))))
-
-(ratom/run!
-  (aset
-    (or (js/document.getElementById "solsort-style")
-        (let [elem (js/document.createElement "style")]
-          (aset elem "id"  "solsort-style")
-          (js/document.head.appendChild elem)
-          elem))
-    "innerHTML"
-    (css @style)))
-
-;; ## Actual styles
-(add-style 
-  (ratom/reaction
-    [["@font-face"
-      {:font-family "Ubuntu"
-       :font-weight 400
-       :src "url(fonts/latin/ubuntu-regular.ttf)format(truetype)"}]
-     [:body {:font-family ["ubuntu", "sans-serif"]
-             }]
-     ]))
-
-;; # App-state
-(defonce app-state
-  (reagent/atom
-    {:path ["index"]
-     }))
-
-;; # Reactions / data views
-(def events
-  (ratom/reaction (:events @app-state)))
-;; # Actual html
-(defn show-event [event]
-  [:span (str 
-           (keys event)
-           (event "startdate")
-           )]
-  )
-(defn front-page []
-  [:div
-   [:h1 "hello"]
-   [:form {:action (str js/solsort_server "/db/_session") :method "POST"}
-    [:input {:name "name" :value "daemon"}]
-    [:input {:name "password" :value (js/location.hash.slice 1)}]
-    [:input {:type "submit"}]
-    ]
-   (into [:div ]
-         (map show-event @events)
-         )
-   [:div "event-count" (str (count (:events @app-state)))]
-   [:div (str (range 1000))]
-   ])
-
-(defn main []
-  (case (first (:path @app-state))
-    "index" (front-page))
-  )
-
-;; # Container etc.
-;; ## Cursors
-(def show-menu (ratom/reaction (:show-menu @viewport)))
-(def width (ratom/reaction (or (:width @viewport) 320)))
-(def viewport-scale (ratom/reaction
-                      (cond
-                        (< @width 640) :small
-                        (< @width 960) :medium
-                        :else :large
-                        )
-                      ))
-(def unit 
-  (ratom/reaction (/ @width
-                     (case @viewport-scale
-                       :small 8
-                       :medium 16
-                       :large 24))))
-(def border (ratom/reaction (/ @unit 40)))
-(def link-color "#88f")
-;; ## style
-;; ### hamburger-style
-(def burger-style 
-  (add-style
-    (ratom/reaction
-      (let [burger-size 1
-            burger-unit (/ burger-size 6)
-            ]
-        [[:.burger 
-          {:display :inline-block
-           :position :relative
-           :width (em burger-size)
-           :height (em burger-size)
-           }]
-         [".burger>div"
-          {:display :block
-           :position :absolute
-           :height (em burger-unit)
-           :width (em (* 6 burger-unit))
-           :background link-color
-           :border-radius (em burger-unit)
-           :left 0
-           :transition "0.4s ease-in-out"
-           }]
-         [".burger>div:nth-child(1)" {:top (em (* 0.5 burger-unit))}]
-         [".burger>div:nth-child(2)" {:top (em (* 2.5 burger-unit))}]
-         [".burger>div:nth-child(3)" {:top (em  (* 4.5 burger-unit))}]
-         [".burger.cross>div"
-          {:width (em (* 7 burger-unit))
-           :top (em (* 2.5 burger-unit))
-           :left (em (* -0.5 burger-unit))}]
-         [".burger.cross>div:nth-child(1)" {:transform "rotate(135deg)"}]
-         [".burger.cross>div:nth-child(2)" 
-          {:left (em (* 2.5 burger-unit))
-           :width (em 0)
-           :transform "rotate(90deg)"
-           }]
-         [".burger.cross>div:nth-child(3)" {:transform "rotate(-135deg)"}]]))))
-;; ### top-bar style
-(def bar-height 44)
-(add-style 
-  (ratom/reaction
-    (let [unit #(px (* bar-height %))
-          bar-height 1
-          bar-text .5
-          margin (/ (- bar-height bar-text) 2)
-          padding .15]
-      [[:.top-bar
-        {:text-align :center
-         :margin-top (unit margin)
-         :font-size (unit bar-text)}]
-       [:.top-bar>.title
-        {:display :inline-block
-         :height (unit bar-text)
-         :margin (unit 0)
-         :padding [[(unit margin) 
-                    (unit (/ (- margin padding) 2))
-                    (unit (/ (- margin padding) 2))
-                    0]]
-         :line-height (unit bar-text) } ]
-       [:.top-bar>.topbutton>img
-        {:height (unit bar-text)}]
-       [:.float-left {:float :left }]
-       [:.float-right {:float :right}]
-       [:.topbutton
-        {:background "#fff"
-         :color link-color    
-         :border-radius (unit (/ 1 6))
-         :display :inline-block
-         :cursor :pointer
-         :height (unit bar-text)
-         :width (unit bar-text)
-         :padding (unit padding)
-         :margin [[(unit (- padding))
-                   (unit (/ (- margin padding) 2))
-                   (unit (/ (- margin padding) 2))
-                   (unit (- margin padding))]]
-         :box-shadow [["0px 0px 1.5px " "#00f"]]}]
-       [:.bar-clear {:height (unit bar-height)}]])))
-;; ### menu style
-(add-style 
-  (ratom/reaction
-    [[:.menu
-      {:position :fixed
-       :top 0
-       :left 0
-       :width "100%"
-       :height "100%"
-       :background "rgba(255,255,255,.92)"
-       :box-shadow "0px 2px 4px rgba(0,0,0,.3)" 
-       :transition "0.4s ease-in-out"
-       :overflow :hidden
-       }]
-     [:.hidden-menu
-      {:height (px bar-height)}]]))
-;; ## html
-(defonce show-menu (reagent/atom true))
-(defn root-elem []
-  [:div
-   [(if @show-menu :div.menu :div.menu.hidden-menu)
-    [:div.top-bar
-     [:a.float-right.topbutton {:on-click #(reset! show-menu (not @show-menu))} 
-      [(if @show-menu :div.burger.cross :div.burger) {:id "burger"} [:div] [:div] [:div]]]
-     [:a.float-left.topbutton [:b "‹‹"]]
-     ;[:a.float-left.topbutton [:img {:src "solsort.svg"}]]
-     "Title" " foo " @width]
-    [:ul
-     [:li "hello"]
-     [:li "world"]
-     [:li "bye"]
-     [:li "bye"]]]
-   [:div.content
-    [:div.bar-clear]
-    [main]]])
-(reagent/render-component [root-elem] js/document.body)
-;; # Get data from server
-(defn load-events [server]
-  (go 
-    (let [events (<! (ajaxText (str "http://" server "/events.json")))]
-      (when events
-        (swap! app-state assoc :events (js->clj (js/JSON.parse events)))))))
-;(load-events "localhost:3000")
-;(load-events "tinkuy.dk")
-
-;; # test-test
-(deftest dummy-test
-  (testing "dummy description"
-    (is  (= 1 2))))
-
-;; # misc
+;; # state
+(defonce state (reagent/atom {}))
 (defn on-js-reload [])
 
-(go
-  (print (<! (ajaxText (str js/solsort_server "/db/_session"))))
-  (js/console.log (clj->js { 
-                            :info (<! (jsonp "http://localhost/bib/info/50581438"))
-                            :related (<! (jsonp "http://localhost/bib/related/50581438"))
-                            :triples (<! (jsonp-hack "https://dev.vejlebib.dk/ting-visual-relation/get-ting-object/870970-basis:50581438"))}))
-  )
-(js/console.log "hello")
+;; # logger
+(defn log [& args] (apply print 'log args))
+;; # router
+(defonce routes (atom {}))
+(defn route [id f] 
+  (swap! routes assoc id f)
+  (print 'route id (keys @routes)))
+(def route-re #"([^/.?]*)(.*)")
+(defn get-route [path] 
+  (let [app (nth  (re-matches route-re path) 1)
+        f (@routes app)
+        f (or f (:default @routes))]
+    (print app)
+    f))
 
-;; bibdata-process
-(defn get-triple [id]
+(when (= "#solsort:" (.slice js/location.hash 0 9)) 
+  (go 
+    (< (timeout 0))
+    (print 'route-result ((or (get-route (.slice js/location.hash 9)) #())))
+    ))
+
+;; # css
+(defn css-name [id]
+  (clojure.string/replace (name id) #"[A-Z]" #(str "-" (.toLowerCase %1))))
+#_(testcase 'css-name
+            #(= (css-name :FooBar) "-foo-bar"))
+(defn handle-rule [[k v]]
+  (str (css-name k) ":" (if (number? v) (str v "px") (name v))))
+(defn handle-block [[id rules]]
+  (str (name id) "{" (join ";" (map handle-rule (seq rules))) "}"))
+(defn clj->css [o]
+  (join (map str (seq o))) (join (map handle-block (seq o))))
+(defn js->css [o] (clj->css (js->clj o)))
+
+#_(testcase 'clj->css
+            #(= (clj->css {:h1 {:fontWeight :normal :fontSize 14} :.div {:background :blue}})
+                "h1{font-weight:normal;font-size:14px}.div{background:blue}"))
+
+(def default-style
+  (atom { "@font-face" {:fontFamily "Ubuntu"
+                        :fontWeight "400"
+                        :src "url(/font/ubuntu-latin1.ttf)format(truetype)"}
+         :.container {:margin "5%" }
+         :.button {:margin 5 :padding 5 :borderRadius 5 :border "1px solid black"}
+         :body {:margin 0 :padding 0 :fontFamily "Ubuntu, sans-serif"}
+         :div {:margin 0 :padding 0} }))
+
+(route "style"
+       #(go (clj->js {:http-headers {:Content-Type "text/css"}
+                      :content (clj->css @default-style)})))
+; # util
+;; ## js-json
+(defn parse-json-or-nil [str]
+  (try
+    (js/JSON.parse str)
+    (catch :default _ nil)))
+
+(defn jsextend [target source]
+  (let [ks (js/Object.keys source)]
+    (while (pos? (.-length ks))
+      (let [k (.pop ks)] (aset target k (aget source k)))))
+  target)
+
+;; ## async channels
+(defn chan? [c] (instance? ManyToManyChannel c))
+
+(defn go<!-seq [cs]
   (go
-    (clj->js 
-      { :stat(<! (jsonp (str "http://localhost/bib/info/" id)))
-       :related (<! (jsonp (str "http://localhost/bib/related/" id)))
-       :info (<! (jsonp (str "http://localhost/bibdata/info/" id))) })
+    (loop [acc []
+           cs cs]
+      (if (first cs)
+        (recur (conj acc (<! (first cs)))
+               (rest cs))
+        acc))))
 
-    ))
+(defn print-channel [c]
+  (go (loop [msg (<! c)]
+        (when msg (print msg) (recur (<! c))))))
 
-#_(go (let [lids (js/JSON.parse (<! (ajaxText (str js/solsort_server "/db/bib/info/lids.json"))))]
-      (loop [i (or (int (js/localStorage.getItem "i")) 0)
-             ]
-        (when (<= i (count lids))
-          (let [lid (aget lids i)
-                data (<! (get-triple  (aget lids i)))
-                result (<! (ajaxPUT 
-                             (str js/solsort_server "/db/bib/" lid)
-                             (js/JSON.stringify data)))]
-                (aset js/document "title" (str i)) 
-                (js/localStorage.setItem "i" i)
-                (recur (inc i)))))))
 
-;; Daemon server
-(js/socket.removeAllListeners "http-request")
-(js/socket.removeAllListeners "http-response-log")
-(js/socket.removeAllListeners "socket-connect")
-(js/socket.removeAllListeners "socket-disconnect")
-(js/socket.on 
-  "http-request"
-  (fn [o] (js/console.log "http-request" o)
-    (js/socket.emit
-      "http-response"
-      #js {:url (aget o "url")
-           :key (aget o "key")
-           :content (str "Hello " (aget o "url"))})
-    ))
-(js/socket.on 
-  "http-response-log"
-  (fn [o] (js/console.log "http-response" o)))
-(js/socket.on 
-  "socket-connect"
-  (fn [o] (js/console.log "connect" o)))
-(js/socket.on 
-  "socket-disconnect"
-  (fn [o] (js/console.log "discon" o)))
+;; ## transducers
+(defn by-first [xf]
+  (let [prev-key (atom nil)
+        values (atom '())]
+    (fn
+      ([result]
+       (when (pos? (count @values))
+         (xf result [@prev-key @values])
+         (reset! values '()))
+       (xf result))
+      ([result input]
+       (if (= (first input) @prev-key)
+         (swap! values conj (rest input))
+         (do
+           (if (pos? (count @values)) (xf result [@prev-key @values]))
+           (reset! prev-key (first input))
+           (reset! values (list (rest input)))))))))
 
-(js/p2p.on
-  "ready"
-  (aset js/p2p "usePeerConnection" true)
-  ;(js/p2p.emit "hello" #js {:peerId js/navigator.userAgent})
-  )
+(defn transducer-status [& s]
+  (fn [xf]
+    (let [prev-time (atom 0)
+          cnt (atom 0)]
+      (fn
+        ([result]
+         (apply log (concat s (list 'done)))
+         (xf result))
+        ([result input]
+         (swap! cnt inc)
+         (when (< 60000 (- (.now js/Date) @prev-time))
+           (reset! prev-time (.now js/Date))
+           (apply log (concat s (list @cnt))))
+         (xf result input))))))
 
-(js/p2p.removeAllListeners "hello")
-(js/p2p.on
-  "hello"
-  (fn [o] (print o))
-  )
-#_(go (loop [i 0]
-        (js/p2p.emit "hello" #js {:peor (str js/navigator.userAgent)})
-        (<! (timeout 1000))
-        (recur (inc i))))
+(defn transducer-accumulate [initial]
+  (fn [xf]
+    (let [acc (atom initial)]
+      (fn
+        ([result]
+         (when @acc
+           (xf result @acc)
+           (reset! acc nil))
+         (xf result))
+        ([result input]
+         (swap! acc conj input))))))
+
+(def group-lines-by-first
+  (comp
+    by-first
+    (map (fn [[k v]] [k (map (fn [[s]] s) v)]))))
+
+; string
+(defn parse-path [path] (.split (.slice path 1) #"[/.]"))
+
+(defn canonize-string [s]
+  (.replace (.trim (.toLowerCase s)) (js/RegExp. "(%[0-9a-fA-F][0-9a-fA-F]|[^a-z0-9])+", "g") "-"))
+(defn swap-trim  [[a b]] [(string/trim b) (string/trim a)])
+
+
+;; ## integers / colors
+(defn hex-color [n] (str "#" (.slice (.toString (bit-or 0x1000000 (bit-and 0xffffff n)) 16) 1)))
+
+;; ## unique id
+(def -unique-id-counter  (atom 0))
+(defn unique-id  []  (str "id"  (swap! -unique-id-counter inc)))
+
+;; ## transit
+;(def -writer  (transit/writer :json))
+;(def -reader  (transit/reader :json))
+
+;; ## functions
+(defn run-once [f]
+  (let [do-run (atom true)]
+    (fn [& args]
+      (when @do-run
+        (reset! do-run false)
+        (apply f args)))))

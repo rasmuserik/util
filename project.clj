@@ -7,6 +7,7 @@
   [[org.clojure/clojure "1.7.0"]
    [org.clojure/clojurescript "1.7.107"]
    [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+   [com.cognitect/transit-cljs "0.8.220"]
    [cljsjs/pouchdb "3.5.0-0"]
    [reagent "0.5.0"]
    [garden "1.2.5"]
@@ -14,6 +15,7 @@
 
   :plugins
   [[lein-cljsbuild "1.0.6"]
+   [lein-ancient "0.6.7"]
    [michaelblume/lein-marginalia "0.9.0"]
    [lein-figwheel "0.3.7"]
    [lein-kibit "0.1.2"]
@@ -29,7 +31,8 @@
    ".lein.failures"
    "figwheel_server.log"
    "docs"
-   "node_modules"]
+  ; "node_modules"
+   ]
 
   :cljsbuild 
   {:builds 
@@ -37,7 +40,7 @@
      :source-paths ["src"]
      :figwheel {:websocket-host ~(.getHostAddress (java.net.InetAddress/getLocalHost))
                 :on-jsload "solsort.core/on-js-reload" }
-     :compiler {:main solsort.core
+     :compiler {:main solsort.main
                 :asset-path "out"
                 :output-to "resources/public/solsort.js"
                 :output-dir "resources/public/out"
@@ -46,8 +49,8 @@
     {:id "dist"
      :source-paths ["src"]
      :compiler {:output-to "resources/public/solsort.js"
-                :main solsort.core
-                :externs ~(into ["externs.js"]
+                :main solsort.main
+                :externs ~(into ["misc/externs.js"]
                                 (map 
                                   #(str "node_modules/nodejs-externs/externs/" % ".js")
                                   ["assert" "buffer" "child_process" "cluster" "core"
