@@ -12,6 +12,7 @@
 ;; - `lein kibit` and `lein bikeshed -m 1000` runs various style tests
 ;; - `lein cljsbuild once dist` builds minified version
 ;; - `lein gendoc` regenerate project README.md from literate source code
+;; - `lein ancient` check if dependencies are up to date
 ;; - TODO `lein cljsbuild test` builds and run unit-tests
 ;;
 ;; ## Random ideas

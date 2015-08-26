@@ -1,6 +1,7 @@
 (ns solsort.main
   (:require
     [solsort.bib]
-    [solsort.lemon]
+    [solsort.experiments]
     [solsort.index]
+    [solsort.lemon]
     [solsort.rasmuserik]))
