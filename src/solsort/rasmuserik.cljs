@@ -1,7 +1,8 @@
 (ns ^:figwheel-load solsort.rasmuserik
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
   (:require
-    [solsort.core :refer [route log]]
+    [solsort.core :refer [route log state]]
+    [reagent.core :as reagent :refer  []]
     [cljs.core.async :refer [>! <! chan put! take! timeout close! pipe]]))
 
 
@@ -88,6 +89,7 @@
 
 (route "rasmuserik"
        (fn []
+        (reagent/render-component  [html] js/document.body)
          {:type "html"
           :offline true
           :title "Rasmus Erik - solsort.com"

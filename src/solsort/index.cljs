@@ -1,6 +1,7 @@
 (ns solsort.index
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
   (:require
+    [reagent.core :as reagent :refer  []]
     [solsort.core :refer [route log canonize-string hex-color]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close! pipe]]))
 
@@ -79,7 +80,10 @@
    ])
 
 
-(route "index" (fn [] {:offline true :type "html" :title "solsort.com" :html (home-html)}))
+(route "index" 
+       (fn [] 
+         (reagent/render-component  [home-html] js/document.body)
+         {:offline true :type "html" :title "solsort.com" :html (home-html)}))
 
 ; state: unfinished|alpha|beta|done
 (add-entry "Rasmus Erik Voel Jensen"
