@@ -39,7 +39,7 @@
    [{:id "dev"
      :source-paths ["src"]
      :figwheel {:websocket-host ~(.getHostAddress (java.net.InetAddress/getLocalHost))
-                :on-jsload "solsort.core/on-js-reload" }
+                :on-jsload "solsort.main/on-js-reload" }
      :compiler {:main solsort.main
                 :asset-path "out"
                 :output-to "resources/public/solsort.js"

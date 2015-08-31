@@ -43,28 +43,28 @@
 
 ;; # state
 (defonce state (reagent/atom {}))
-(defn on-js-reload [])
 
 ;; # logger
 (defn log [& args] (apply print 'log args))
+
 ;; # router
 (defonce routes (atom {}))
 (defn route [id f] 
-  (swap! routes assoc id f)
-  (print 'route id (keys @routes)))
+  (swap! routes assoc id f))
 (def route-re #"([^/.?]*)(.*)")
 (defn get-route [path] 
   (let [app (nth  (re-matches route-re path) 1)
         f (@routes app)
         f (or f (:default @routes))]
-    (print app)
     f))
 
-(when (= "#solsort:" (.slice js/location.hash 0 9)) 
-  (go 
-    (< (timeout 0))
-    (print 'route-result ((or (get-route (.slice js/location.hash 9)) #())))
-    ))
+(defn dispatch-route []
+  (log 'dispatch-route)
+  (when (= "#solsort:" (.slice js/location.hash 0 9)) 
+    (go 
+      (< (timeout 0))
+      ((or  (get-route  (.slice js/location.hash 9)) #()))
+      )))
 
 ;; # css
 (defn css-name [id]

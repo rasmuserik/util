@@ -104,11 +104,14 @@
 (defonce app-state
   (reagent/atom
     {:path ["index"]
+     :title "hello"
      }))
+(swap! app-state assoc :title "hullo")
 
 ;; # Reactions / data views
 (def events
   (ratom/reaction (:events @app-state)))
+
 ;; # Actual html
 (defn show-event [event]
   [:span (str 
@@ -116,9 +119,10 @@
            (event "startdate")
            )]
   )
+(def title (ratom/reaction (:title @app-state)))
 (defn front-page []
   [:div
-   [:h1 "hello"]
+   [:h1 @title]
    [:form {:action (str js/solsort_server "/db/_session") :method "POST"}
     [:input {:name "name" :value "daemon"}]
     [:input {:name "password" :value (js/location.hash.slice 1)}]
@@ -260,7 +264,7 @@
       [(if @show-menu :div.burger.cross :div.burger) {:id "burger"} [:div] [:div] [:div]]]
      [:a.float-left.topbutton [:b "‹‹"]]
      ;[:a.float-left.topbutton [:img {:src "solsort.svg"}]]
-     "Title" " foo " @width]
+     "Tutle" " foo " @width]
     [:ul
      [:li "hello"]
      [:li "world"]
@@ -270,7 +274,9 @@
     [:div.bar-clear]
     [main]]])
 
-(route "lemon" #(reagent/render-component [root-elem] js/document.body)) ; #
+(route "lemon" (fn []
+                 (log 'lemon-route)
+                 (reagent/render-component [root-elem] js/document.body))) ; #
 ;; # Get data from server
 (defn load-events [server]
   (go 
