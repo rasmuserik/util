@@ -7,7 +7,7 @@
     [cljs.test :refer-macros  [deftest testing is]]
     [goog.net.XhrIo]
     [goog.net.Jsonp]
-    [solsort.core :refer [route log state]]
+    [solsort.core :refer [route log state ajax]]
     [garden.core :refer [css]]
     [garden.units :refer [px em]]
     [reagent.core :as reagent :refer []]
@@ -35,26 +35,6 @@
     c
     )
   )
-(defn ajaxPUT "Do an ajax request and return the result as JSON" ; ## 
-  [url data]
-  (let  [c  (chan)]
-    (goog.net.XhrIo/send
-      url
-      (fn [o]
-        (when (and o  (.-target o))
-          (put! c  (.getResponseText  (.-target o)))))
-      "PUT" data nil nil true)
-    c))
-(defn ajaxText "Do an ajax request and return the result as JSON" ; ## 
-  [url]
-  (let  [c  (chan)]
-    (goog.net.XhrIo/send
-      url
-      (fn [o]
-        (when (and o  (.-target o))
-          (put! c  (.getResponseText  (.-target o)))))
-      "GET" nil nil nil true)
-    c))
 ;; # Style
 ;; ## Viewport
 ;;
@@ -273,7 +253,7 @@
 ;; # Get data from server
 (defn load-events [server]
   (go 
-    (let [events (<! (ajaxText (str "http://" server "/events.json")))]
+    (let [events (<! (ajax (str "http://" server "/events.json") :result "text"))]
       (when events
         (swap! state assoc :events (js->clj (js/JSON.parse events)))))))
 ;(load-events "localhost:3000")
@@ -285,10 +265,8 @@
     (is  (= 1 2))))
 
 ;; # misc
-(defn on-js-reload [])
-
 (go
-  (print (<! (ajaxText (str js/solsort_server "/db/_session"))))
+  (print (<! (ajax (str js/solsort_server "/db/_session") :result "text")))
   (js/console.log (clj->js { 
                             :info (<! (jsonp "http://localhost/bib/info/50581438"))
                             :related (<! (jsonp "http://localhost/bib/related/50581438"))
@@ -306,15 +284,16 @@
 
     ))
 
-#_(go (let [lids (js/JSON.parse (<! (ajaxText (str js/solsort_server "/db/bib/info/lids.json"))))]
+#_(go (let [lids (js/JSON.parse (<! (ajax (str js/solsort_server "/db/bib/info/lids.json") :result "text")))]
       (loop [i (or (int (js/localStorage.getItem "i")) 0)
              ]
         (when (<= i (count lids))
           (let [lid (aget lids i)
                 data (<! (get-triple  (aget lids i)))
-                result (<! (ajaxPUT 
+                result (<! (ajax
                              (str js/solsort_server "/db/bib/" lid)
-                             (js/JSON.stringify data)))]
+                             :method "PUT"
+                             :data (js/JSON.stringify data)))]
                 (aset js/document "title" (str i)) 
                 (js/localStorage.setItem "i" i)
                 (recur (inc i)))))))

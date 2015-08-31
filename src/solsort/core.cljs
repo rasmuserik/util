@@ -36,10 +36,11 @@
     [goog.net.XhrIo]
     [reagent.core :as reagent :refer  []]))
 
-
 (enable-console-print!)
 
-;; # state
+;; # re-frame
+
+;; remove this:
 (defonce state 
   (reagent/atom 
     {:path ["lemon"] 
@@ -51,6 +52,50 @@
 ;; # logger
 (defn log [& args] (apply print 'log args))
 
+;; # ajax
+
+(defn ajax [url & {:keys [method data headers timeout credentials result]
+                   :or {method "GET"
+                        data nil
+                        headers #js {}
+                        timeout 0
+                        credentials true
+                        result "js->clj"
+                        }}]
+  (let [c (chan)
+        data-is-json (not (contains?
+                          [nil js/window.ArrayBuffer js/window.ArrayBufferView js/window.Blob] 
+                          (type data))) 
+        data (if data-is-json (js/JSON.stringify (clj->js data)) data)]
+    (when data-is-json
+      (aset headers "Content-Type" "application/json"))
+    (goog.net.XhrIo/send
+      url
+      (fn [o]
+        (try
+          (let [res (.getResponseText (.-target o))
+                res (case (name result)
+                      ("text") res
+                      ("json") (js/JSON.parse res)
+                      ("js->clj") (js->clj (js/JSON.parse res)))]
+            (put! c res))
+          (catch :default e
+            (js/console.log e)
+            (close! c))))
+      method data headers timeout credentials)
+    c))
+
+(defonce gargs (atom {}))
+(go 
+  (log 'here @state)
+  (log (<! (ajax "http://localhost:1234/db/")))
+  (log (<! (ajax "http://localhost:1234/db/_session"
+                 :method "POST"
+                 :data {:name (@gargs "user") :password (@gargs "password")}
+                 )))
+  (log (type nil))
+  )
+
 ;; # router
 (defonce routes (atom {}))
 (defn route [id f] 
@@ -61,7 +106,6 @@
   (let [path (nth (re-matches route-re adr) 1)
         args (.split (.slice adr (inc (.-length path))) "&")
         path (.split path #"[./]")
-        _ (log 'args args)
         args (map #(let [i (.indexOf % "=")] 
                      (if (= -1 i) 
                        [% true] 
@@ -69,24 +113,24 @@
                         (.slice % (inc i)) ]))
                   args) 
         args (into {} args) ]
+    (reset! gargs args)
     {:path path :args args}) )
 
 (defn get-route-fn [path] 
-        (or  (@routes (first path)) (:default @routes) #{}))
+  (or  (@routes (first path)) (:default @routes) #{}))
 
 (defn dispatch-route []
   (let [adr (or 
-               (and (= "#solsort:"  (.slice js/location.hash 0 9)) 
-                    (.slice js/location.hash 9))
-               (and (or (= js/location.port 1234)
-                        (= js/location.hostname "solsort.com")
-                        (= js/location.hostname "blog.solsort.com")
-                        (= js/location.hostname "localhost"))
-                    (js/location.pathname)))
+              (and (= "#solsort:"  (.slice js/location.hash 0 9)) 
+                   (.slice js/location.hash 9))
+              (and (or (= js/location.port 1234)
+                       (= js/location.hostname "solsort.com")
+                       (= js/location.hostname "blog.solsort.com")
+                       (= js/location.hostname "localhost"))
+                   (js/location.pathname)))
         route (and adr (parse-route adr))] 
-  (log 'route route)
-  (when route
-    ((get-route-fn (:path route))))))
+    (when route
+      ((get-route-fn (:path route))))))
 
 ;; # css
 (defn css-name [id]
