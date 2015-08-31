@@ -32,8 +32,6 @@
     [clojure.string :as string :refer  [split]]
     [clojure.string :refer  [join]]
     [cognitect.transit :as transit]
-    [garden.core :refer  [css]]
-    [garden.units :refer  [px em]]
     [goog.net.Jsonp]
     [goog.net.XhrIo]
     [reagent.core :as reagent :refer  []]))
@@ -42,7 +40,13 @@
 (enable-console-print!)
 
 ;; # state
-(defonce state (reagent/atom {}))
+(defonce state 
+  (reagent/atom 
+    {:path ["lemon"] 
+     :args {}    
+     :viewport 
+     {:width js/window.innerWidth
+      :height js/window.innerHeight }}))
 
 ;; # logger
 (defn log [& args] (apply print 'log args))
@@ -51,20 +55,38 @@
 (defonce routes (atom {}))
 (defn route [id f] 
   (swap! routes assoc id f))
-(def route-re #"([^/.?]*)(.*)")
-(defn get-route [path] 
-  (let [app (nth  (re-matches route-re path) 1)
-        f (@routes app)
-        f (or f (:default @routes))]
-    f))
+(def route-re #"([^?]*)(.*)")
+
+(defn parse-route [adr]
+  (let [path (nth (re-matches route-re adr) 1)
+        args (.split (.slice adr (inc (.-length path))) "&")
+        path (.split path #"[./]")
+        _ (log 'args args)
+        args (map #(let [i (.indexOf % "=")] 
+                     (if (= -1 i) 
+                       [% true] 
+                       [(.slice % 0 i)
+                        (.slice % (inc i)) ]))
+                  args) 
+        args (into {} args) ]
+    {:path path :args args}) )
+
+(defn get-route-fn [path] 
+        (or  (@routes (first path)) (:default @routes) #{}))
 
 (defn dispatch-route []
-  (log 'dispatch-route)
-  (when (= "#solsort:" (.slice js/location.hash 0 9)) 
-    (go 
-      (< (timeout 0))
-      ((or  (get-route  (.slice js/location.hash 9)) #()))
-      )))
+  (let [adr (or 
+               (and (= "#solsort:"  (.slice js/location.hash 0 9)) 
+                    (.slice js/location.hash 9))
+               (and (or (= js/location.port 1234)
+                        (= js/location.hostname "solsort.com")
+                        (= js/location.hostname "blog.solsort.com")
+                        (= js/location.hostname "localhost"))
+                    (js/location.pathname)))
+        route (and adr (parse-route adr))] 
+  (log 'route route)
+  (when route
+    ((get-route-fn (:path route))))))
 
 ;; # css
 (defn css-name [id]

@@ -7,7 +7,7 @@
     [cljs.test :refer-macros  [deftest testing is]]
     [goog.net.XhrIo]
     [goog.net.Jsonp]
-    [solsort.core :refer [route log]]
+    [solsort.core :refer [route log state]]
     [garden.core :refer [css]]
     [garden.units :refer [px em]]
     [reagent.core :as reagent :refer []]
@@ -100,17 +100,9 @@
              }]
      ]))
 
-;; # App-state
-(defonce app-state
-  (reagent/atom
-    {:path ["index"]
-     :title "hello"
-     }))
-(swap! app-state assoc :title "hullo")
-
 ;; # Reactions / data views
 (def events
-  (ratom/reaction (:events @app-state)))
+  (ratom/reaction (:events @state)))
 
 ;; # Actual html
 (defn show-event [event]
@@ -119,7 +111,7 @@
            (event "startdate")
            )]
   )
-(def title (ratom/reaction (:title @app-state)))
+(def title (ratom/reaction (:title @state)))
 (defn front-page []
   [:div
    [:h1 @title]
@@ -131,13 +123,14 @@
    (into [:div ]
          (map show-event @events)
          )
-   [:div "event-count" (str (count (:events @app-state)))]
+   [:div "event-count" (str (count (:events @state)))]
    [:div (str (range 1000))]
    ])
 
 (defn main []
-  (case (first (:path @app-state))
-    "index" (front-page))
+  (log "hore" (:path @state))
+  (case (first (:path @state))
+    "lemon" (front-page))
   )
 
 ;; # Container etc.
@@ -282,7 +275,7 @@
   (go 
     (let [events (<! (ajaxText (str "http://" server "/events.json")))]
       (when events
-        (swap! app-state assoc :events (js->clj (js/JSON.parse events)))))))
+        (swap! state assoc :events (js->clj (js/JSON.parse events)))))))
 ;(load-events "localhost:3000")
 ;(load-events "tinkuy.dk")
 
