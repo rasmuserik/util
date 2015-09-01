@@ -35,7 +35,8 @@
 
      [:h1 {:style {:marginBottom 10}} "Rasmus\u00a0Erik Voel\u00a0Jensen"]
      [:div {:style {:fontSize "100%"}}
-      [:a {:href "/" :style {:fontSize "130%" :marginBottom 10}} "solsort.com"] "\u00a0ApS" [:br][:br]
+      [:a {:href "/" :style {:fontSize "130%" :marginBottom 10}} "solsort.com"]
+      "\u00a0ApS" [:br][:br]
       "Tingskrivervej\u00a021,\u00a03tv \u00a0 2400\u00a0København\u00a0NV \u00a0 \u00a0" [:br]
       "+45\u00a060703081 \u00a0 hej@solsort.com"
       ]]]
@@ -55,7 +56,8 @@
        ", with all the aspects of that"]]
      [:h2 "Experience"]
      [:div  {:style {:marginBottom 60}}
-      "Work as developer and project manager • Conference talks • Taught/created university level courses • Master degree in Computer Science"]]
+      "Work as developer and project manager • Conference talks •"
+      " Taught/created university level courses • Master degree in Computer Science"]]
     [:div {:style {:display :inline-block
                    :width 320
                    :verticalAlign :top
@@ -80,10 +82,12 @@
        ]]
      [:h2 "Experience"]
      [:div {:style {:marginBottom 60}}
-      "Toastmasters • photography • kbhff • mythology/religion/mysticism/energy • events • nature • massage • couchsurfing • music/jam • mensa • højskole"]]
+      "Toastmasters • photography • kbhff • mythology/religion/mysticism/energy • events • "
+      "nature • massage • couchsurfing • music/jam • mensa • højskole"]]
     ]
    [:div {:style {:fontSize small-size}}
-    "I very rarely use  social media (linkedin/facebook/twitter/...) so catch me in real life instead :)"
+    "I very rarely use  social media (linkedin/facebook/twitter/...) so catch me "
+    "in real life instead :)"
     [:br] "Updated Summer 2015"]]
   )
 

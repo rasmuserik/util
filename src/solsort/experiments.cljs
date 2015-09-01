@@ -16,7 +16,7 @@
 
 (def ra (reagent/atom {}))
 
-(def re (ratom/run! 
+(def re (ratom/run!
           (do
             (print 'here @ra)
             (:hi @ra)

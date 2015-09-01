@@ -1,6 +1,6 @@
 (ns solsort.core
   (:require-macros
-    [reagent.ratom :as ratom :refer reaction]
+    [reagent.ratom :as ratom :refer [reaction]]
     [cljs.core.async.macros :refer  [go go-loop alt!]])
 
   (:require
@@ -20,12 +20,19 @@
 ;; # App
 ;; ## Design
 ;;
-;; We try to follow [iOS Human Interface Guidelines](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/MobileHIG/), but with a crossplatform focus. Secondary we accomodate [Android Material Design](http://developer.android.com/design/) where possible.
+;; We try to follow [iOS Human Interface Guidelines](
+;; https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/MobileHIG/),
+;; but with a crossplatform focus. Secondary we accomodate
+;; [Android Material Design](http://developer.android.com/design/) where possible.
 ;; The iOS guidelines are required get into the apple app-store.
 ;;
-;; Common patterns are abstract, such that they can be implemented in a native way on different platforms.
+;; Common patterns are abstract, such that they can be implemented in a native way
+;; on different platforms.
 ;;
-;; We keep a database of creative commons icons, which are used within the app (when no platform icon is available). https://thenounproject.com/ is good source for this, though check that the icon follows the design guidelines, and include the license info when loading it into the database.
+;; We keep a database of creative commons icons, which are used within the app
+;; (when no platform icon is available). https://thenounproject.com/ is good source for this,
+;; though check that the icon follows the design guidelines, and include the license info
+;; when loading it into the database.
 ;;
 ;; ## App-state subscriptions
 ;;
@@ -39,8 +46,10 @@
 ;; - viewport
 ;;   - `:title` view title
 ;;   - `:navigate-back` back-button with `:event` and optional `:title`
-;;   - `:actions` sequence view-specific actions with `:icon`, `:title`, `:active` and `:event`, similar to iOS Toolbar or Android Actions
-;;   - `:views ` sequence of views with `:icon`, `:title`, `:active` and `:event`, similar to iOS Tabbar or Android Navigation
+;;   - `:actions` sequence view-specific actions with `:icon`, `:title`, `:active` and `:event`,
+;;     similar to iOS Toolbar or Android Actions
+;;   - `:views ` sequence of views with `:icon`, `:title`, `:active` and `:event`,
+;;     similar to iOS Tabbar or Android Navigation
 ;;   - `:width` `:height` width and height of the viewport including bars
 ;;   - `:scrollX` `:scrollY` scroll position within the viewport
 ;;   - `:transition` NOT IMPLEMENTED
@@ -48,28 +57,34 @@
 ;;   - `:done` static application content is ready to be send, - defaults to true
 ;; - `:pid` - an id of the current process, - this is the target of an event dispatch
 ;;
-(re-frame/register-sub 
+(re-frame/register-sub
   :pid
   (fn [db _]
     (reaction (:pid @db))))
 ;; ## Events and dispatch
 ;;
-;; We might have different states due to parallel async static content generation. This means that async event handlers need to have a `dispatch` function supplied, for emitting events in current content. So app-handlers is `app-db, event, dispatch-function -> app-db` instead of `app-db, event -> app-db`. `solsort.core/handle` just accepts one of these functions, and wrap custom middleware. Similarly `solsort.core/dispatch` can be called instead of `re-frame.core/dispatch` during reactions, and automatically dispatches to the app-db of the current reaction.
+;; We might have different states due to parallel async static content generation. This means
+;; that async event handlers need to have a `dispatch` function supplied, for emitting events
+;; in current content. So app-handlers is `app-db, event, dispatch-function -> app-db` instead
+;; of `app-db, event -> app-db`. `solsort.core/handle` just accepts one of these functions, and
+;; wrap custom middleware. Similarly `solsort.core/dispatch` can be called instead of
+;; `re-frame.core/dispatch` during reactions, and automatically dispatches to the app-db of the
+;; current reaction.
 ;;
 
-(defn -dispatch-fn [db]
+(defn -create-dispatch-fn [db]
   (let [pid (:pid db)]
     (fn [event-id & args]
       (apply re-frame/dispatch event-id pid args))))
 
-(defn register-handler 
+(defn register-handler
   ; TODO and middleware removing pid, and optionally swapping db
-  ([event-id f] 
-   (re-frame/register-handler event-id 
-                              (fn [db event] (f db event (-dispatch-fn db)))))
-  ([event-id middleware f] 
-   (re-frame/register-handler event-id middleware 
-                              (fn [db event] (f db event (-dispatch-fn db)))))
+  ([event-id f]
+   (re-frame/register-handler event-id
+                              (fn [db event] (f db event (-create-dispatch-fn db)))))
+  ([event-id middleware f]
+   (re-frame/register-handler event-id middleware
+                              (fn [db event] (f db event (-create-dispatch-fn db)))))
   )
 (defn dispatch [event-id & args]
   (apply re-frame/dispatch event-id @(re-frame/subscribe [:pid]) args))
@@ -82,27 +97,28 @@
 ;; - central key-value store - with abstracted-api (currently backed by couchdb)
 ;;
 ;; ## Authentication
-;; 
+;;
 ;; "Databases" are databases in couchdb/pouchdb and indexes in elasticsearch
 ;;
 ;; A "list of users" is either a list of users or "all".
-;; 
+;;
 ;; Every database has three lists of users:
 ;;
 ;; - Readers, whom are allowed to read/query the database
 ;; - Writers, whom are allowed to write to the database
 ;; - Owners, whom are allowed to administer the database, including updating the userlist
 ;;
-;; The "daemon" user, is the only one capable of creating new databases, and is also implicit in th the list of owners of all databases
-;; 
+;; The "daemon" user, is the only one capable of creating new databases, and is also implicit
+;; in the list of owners of all databases
+;;
 ;; # re-frame - this section is replaced by "App" above.
 
 ;; remove this:
-(defonce state 
-  (reagent/atom 
-    {:path ["lemon"] 
-     :args {}    
-     :viewport 
+(defonce state
+  (reagent/atom
+    {:path ["lemon"]
+     :args {}
+     :viewport
      {:width js/window.innerWidth
       :height js/window.innerHeight }}))
 
@@ -121,8 +137,8 @@
                         }}]
   (let [c (chan)
         data-is-json (not (contains?
-                            [nil js/window.ArrayBuffer js/window.ArrayBufferView js/window.Blob] 
-                            (type data))) 
+                            [nil js/window.ArrayBuffer js/window.ArrayBufferView js/window.Blob]
+                            (type data)))
         data (if data-is-json (js/JSON.stringify (clj->js data)) data)]
     (when data-is-json
       (aset headers "Content-Type" "application/json"))
@@ -143,7 +159,7 @@
     c))
 
 (defonce gargs (atom {}))
-(go 
+(go
   (log 'here @state)
   (log (<! (ajax "http://localhost:1234/db/")))
   (log (<! (ajax "http://localhost:1234/db/_session"
@@ -155,7 +171,7 @@
 
 ;; # router
 (defonce routes (atom {}))
-(defn route [id f] 
+(defn route [id f]
   (swap! routes assoc id f))
 (def route-re #"([^?]*)(.*)")
 
@@ -163,29 +179,29 @@
   (let [path (nth (re-matches route-re adr) 1)
         args (.split (.slice adr (inc (.-length path))) "&")
         path (.split path #"[./]")
-        args (map #(let [i (.indexOf % "=")] 
-                     (if (= -1 i) 
-                       [% true] 
+        args (map #(let [i (.indexOf % "=")]
+                     (if (= -1 i)
+                       [% true]
                        [(.slice % 0 i)
                         (.slice % (inc i)) ]))
-                  args) 
+                  args)
         args (into {} args) ]
     (reset! gargs args)
     {:path path :args args}) )
 
-(defn get-route-fn [path] 
+(defn get-route-fn [path]
   (or  (@routes (first path)) (:default @routes) #{}))
 
 (defn dispatch-route []
-  (let [adr (or 
-              (and (= "#solsort:"  (.slice js/location.hash 0 9)) 
+  (let [adr (or
+              (and (= "#solsort:"  (.slice js/location.hash 0 9))
                    (.slice js/location.hash 9))
               (and (or (= js/location.port 1234)
                        (= js/location.hostname "solsort.com")
                        (= js/location.hostname "blog.solsort.com")
                        (= js/location.hostname "localhost"))
                    (js/location.pathname)))
-        route (and adr (parse-route adr))] 
+        route (and adr (parse-route adr))]
     (when route
       ((get-route-fn (:path route))))))
 
@@ -302,7 +318,8 @@
 (defn parse-path [path] (.split (.slice path 1) #"[/.]"))
 
 (defn canonize-string [s]
-  (.replace (.trim (.toLowerCase s)) (js/RegExp. "(%[0-9a-fA-F][0-9a-fA-F]|[^a-z0-9])+", "g") "-"))
+  (.replace (.trim (.toLowerCase s))
+            (js/RegExp. "(%[0-9a-fA-F][0-9a-fA-F]|[^a-z0-9])+", "g") "-"))
 (defn swap-trim  [[a b]] [(string/trim b) (string/trim a)])
 
 

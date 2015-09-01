@@ -18,27 +18,27 @@
 (js/console.log "in-lemon")
 
 ;; # Utility functions (to be merged into util)
-(defn jsonp "Do an ajax request and return the result as JSON" ; ## 
+(defn jsonp "Do an ajax request and return the result as JSON" ; ##
   [url]
   (let  [c  (chan)
          jsonp (goog.net.Jsonp. url)]
     (.send jsonp nil #(put! c %) #(close! c))
     c))
-(defn jsonp-hack 
+(defn jsonp-hack
   [url]
   (let [c (chan)]
     (aset js/window "jsonpcallback" (fn [o] (put! c o)))
-    (.appendChild js/document.head 
+    (.appendChild js/document.head
                   (let [elem (js/document.createElement "script")]
                     (set! (.-src elem) (str url "?callback=jsonpcallback"))
-                    elem)) 
+                    elem))
     c
     )
   )
 ;; # Style
 ;; ## Viewport
 ;;
-(defonce viewport 
+(defonce viewport
   (reagent/atom {}))
 
 (defn update-viewport []
@@ -66,11 +66,11 @@
           (js/document.head.appendChild elem)
           elem))
     "innerHTML" (css @style)
-    
+
     ))
 
 ;; ## Actual styles
-(add-style 
+(add-style
   (ratom/reaction
     [["@font-face"
       {:font-family "Ubuntu"
@@ -86,7 +86,7 @@
 
 ;; # Actual html
 (defn show-event [event]
-  [:span (str 
+  [:span (str
            (keys event)
            (event "startdate")
            )]
@@ -124,7 +124,7 @@
                         :else :large
                         )
                       ))
-(def unit 
+(def unit
   (ratom/reaction (/ @width
                      (case @viewport-scale
                        :small 8
@@ -134,13 +134,13 @@
 (def link-color "#88f")
 ;; ## style
 ;; ### hamburger-style
-(def burger-style 
+(def burger-style
   (add-style
     (ratom/reaction
       (let [burger-size 1
             burger-unit (/ burger-size 6)
             ]
-        [[:.burger 
+        [[:.burger
           {:display :inline-block
            :position :relative
            :width (em burger-size)
@@ -164,7 +164,7 @@
            :top (em (* 2.5 burger-unit))
            :left (em (* -0.5 burger-unit))}]
          [".burger.cross>div:nth-child(1)" {:transform "rotate(135deg)"}]
-         [".burger.cross>div:nth-child(2)" 
+         [".burger.cross>div:nth-child(2)"
           {:left (em (* 2.5 burger-unit))
            :width (em 0)
            :transform "rotate(90deg)"
@@ -172,7 +172,7 @@
          [".burger.cross>div:nth-child(3)" {:transform "rotate(-135deg)"}]]))))
 ;; ### top-bar style
 (def bar-height 44)
-(add-style 
+(add-style
   (ratom/reaction
     (let [unit #(px (* bar-height %))
           bar-height 1
@@ -187,7 +187,7 @@
         {:display :inline-block
          :height (unit bar-text)
          :margin (unit 0)
-         :padding [[(unit margin) 
+         :padding [[(unit margin)
                     (unit (/ (- margin padding) 2))
                     (unit (/ (- margin padding) 2))
                     0]]
@@ -198,7 +198,7 @@
        [:.float-right {:float :right}]
        [:.topbutton
         {:background "#fff"
-         :color link-color    
+         :color link-color
          :border-radius (unit (/ 1 6))
          :display :inline-block
          :cursor :pointer
@@ -212,7 +212,7 @@
          :box-shadow [["0px 0px 1.5px " "#00f"]]}]
        [:.bar-clear {:height (unit bar-height)}]])))
 ;; ### menu style
-(add-style 
+(add-style
   (ratom/reaction
     [[:.menu
       {:position :fixed
@@ -221,7 +221,7 @@
        :width "100%"
        :height "100%"
        :background "rgba(255,255,255,.92)"
-       :box-shadow "0px 2px 4px rgba(0,0,0,.3)" 
+       :box-shadow "0px 2px 4px rgba(0,0,0,.3)"
        :transition "0.4s ease-in-out"
        :overflow :hidden
        }]
@@ -233,7 +233,7 @@
   [:div
    [(if @show-menu :div.menu :div.menu.hidden-menu)
     [:div.top-bar
-     [:a.float-right.topbutton {:on-click #(reset! show-menu (not @show-menu))} 
+     [:a.float-right.topbutton {:on-click #(reset! show-menu (not @show-menu))}
       [(if @show-menu :div.burger.cross :div.burger) {:id "burger"} [:div] [:div] [:div]]]
      [:a.float-left.topbutton [:b "‹‹"]]
      ;[:a.float-left.topbutton [:img {:src "solsort.svg"}]]
@@ -252,7 +252,7 @@
                  (reagent/render-component [root-elem] js/document.body))) ; #
 ;; # Get data from server
 (defn load-events [server]
-  (go 
+  (go
     (let [events (<! (ajax (str "http://" server "/events.json") :result "text"))]
       (when events
         (swap! state assoc :events (js->clj (js/JSON.parse events)))))))
@@ -267,43 +267,45 @@
 ;; # misc
 (go
   (print (<! (ajax (str js/solsort_server "/db/_session") :result "text")))
-  (js/console.log (clj->js { 
-                            :info (<! (jsonp "http://localhost/bib/info/50581438"))
-                            :related (<! (jsonp "http://localhost/bib/related/50581438"))
-                            :triples (<! (jsonp-hack "https://dev.vejlebib.dk/ting-visual-relation/get-ting-object/870970-basis:50581438"))}))
+  (js/console.log
+    (clj->js
+      {:info (<! (jsonp "http://localhost/bib/info/50581438"))
+       :related (<! (jsonp "http://localhost/bib/related/50581438"))
+       :triples (<! (jsonp-hack "https://dev.vejlebib.dk/ting-visual-relation/get-ting-object/870970-basis:50581438"))}))
   )
 (js/console.log "hello")
 
 ;; bibdata-process
 (defn get-triple [id]
   (go
-    (clj->js 
+    (clj->js
       { :stat(<! (jsonp (str "http://localhost/bib/info/" id)))
        :related (<! (jsonp (str "http://localhost/bib/related/" id)))
        :info (<! (jsonp (str "http://localhost/bibdata/info/" id))) })
 
     ))
 
-#_(go (let [lids (js/JSON.parse (<! (ajax (str js/solsort_server "/db/bib/info/lids.json") :result "text")))]
-      (loop [i (or (int (js/localStorage.getItem "i")) 0)
-             ]
-        (when (<= i (count lids))
-          (let [lid (aget lids i)
-                data (<! (get-triple  (aget lids i)))
-                result (<! (ajax
-                             (str js/solsort_server "/db/bib/" lid)
-                             :method "PUT"
-                             :data (js/JSON.stringify data)))]
-                (aset js/document "title" (str i)) 
-                (js/localStorage.setItem "i" i)
-                (recur (inc i)))))))
+#_(go (let [lids (js/JSON.parse (<! (ajax (str js/solsort_server "/db/bib/info/lids.json")
+                                          :result "text")))]
+        (loop [i (or (int (js/localStorage.getItem "i")) 0)
+               ]
+          (when (<= i (count lids))
+            (let [lid (aget lids i)
+                  data (<! (get-triple  (aget lids i)))
+                  result (<! (ajax
+                               (str js/solsort_server "/db/bib/" lid)
+                               :method "PUT"
+                               :data (js/JSON.stringify data)))]
+              (aset js/document "title" (str i))
+              (js/localStorage.setItem "i" i)
+              (recur (inc i)))))))
 
 ;; Daemon server
 (js/socket.removeAllListeners "http-request")
 (js/socket.removeAllListeners "http-response-log")
 (js/socket.removeAllListeners "socket-connect")
 (js/socket.removeAllListeners "socket-disconnect")
-(js/socket.on 
+(js/socket.on
   "http-request"
   (fn [o] (js/console.log "http-request" o)
     (js/socket.emit
@@ -312,13 +314,13 @@
            :key (aget o "key")
            :content (str "Hello " (aget o "url"))})
     ))
-(js/socket.on 
+(js/socket.on
   "http-response-log"
   (fn [o] (js/console.log "http-response" o)))
-(js/socket.on 
+(js/socket.on
   "socket-connect"
   (fn [o] (js/console.log "connect" o)))
-(js/socket.on 
+(js/socket.on
   "socket-disconnect"
   (fn [o] (js/console.log "discon" o)))
 

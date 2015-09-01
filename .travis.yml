@@ -5,6 +5,6 @@ before_script:
   - lein2 classpath
   - lein2 cljsbuild once dist
 script:
-  - lein bikeshed -m 1000
+  - lein bikeshed -m 100
   - lein kibit
   - lein cljsbuild test
