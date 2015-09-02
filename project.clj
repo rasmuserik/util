@@ -10,7 +10,6 @@
    [com.cognitect/transit-cljs "0.8.220"]
    [cljsjs/pouchdb "3.5.0-0"]
    [reagent "0.5.0"]
-   [garden "1.2.5"]
    [re-frame "0.4.1"]]
 
   :plugins

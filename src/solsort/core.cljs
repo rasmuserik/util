@@ -10,7 +10,7 @@
     [clojure.string :as string :refer  [split]]
     [clojure.string :refer  [join]]
     [cognitect.transit :as transit]
-    [re-frame.core :as re-frame]
+    [re-frame.core :as re-frame :refer [register-sub subscribe]]
     [goog.net.Jsonp]
     [goog.net.XhrIo]
     [reagent.core :as reagent :refer  []]))
@@ -19,6 +19,11 @@
 
 (def is-figwheel (some? js/window.figwheel))
 (when is-figwheel (js/setTimeout #(run-tests) 0))
+
+;; # forward declarations
+(declare app)
+;; # logger
+(defn log [& args] (apply print 'log args))
 
 ;; # DBs
 ;;
@@ -44,8 +49,41 @@
 ;; in the list of owners of all databases
 ;;
 ;; # re-frame - this section is replaced by "App" above.
+;; ## Event/dispatch-mechanism
+;;
+;; We might have different states due to parallel async static content generation. This means
+;; that async event handlers need to have a `dispatch` function supplied, for emitting events
+;; in current content. So app-handlers is `app-db, event, dispatch-function -> app-db` instead
+;; of `app-db, event -> app-db`. `solsort.core/handle` just accepts one of these functions, and
+;; wrap custom middleware. Similarly `solsort.core/dispatch` can be called instead of
+;; `re-frame.core/dispatch` during reactions, and automatically dispatches to the app-db of the
+;; current reaction.
+;;
 
-;; remove this:
+(defn -create-dispatch-fn [db]
+  (let [pid (or (:pid db) "pid")]
+    (fn [event-id & args]
+      (re-frame/dispatch (into [event-id pid] args)))))
+
+(defn register-handler
+  ; TODO and middleware removing pid, and optionally swapping db
+  ([event-id f]
+   (re-frame/register-handler event-id
+                              (fn [db [event pid & args]] (f db args (-create-dispatch-fn db)))))
+  ([event-id middleware f]
+   (re-frame/register-handler event-id middleware
+                              (fn [db [event pid & args]] (f db args (-create-dispatch-fn db)))))
+  )
+(defn dispatch [[event-id & args]]
+  (re-frame/dispatch (into  [event-id @(subscribe [:pid])] args)))
+(defn dispatch-sync [[event-id & args]]
+  (re-frame/dispatch-sync (into  [event-id @(subscribe [:pid])] args)))
+
+
+;; ## update-viewport
+(defonce resize-listener (js/window.addEventListener "resize" #(dispatch [:update-viewport])))
+
+;; TODO remove this:
 (defonce state
   (reagent/atom
     {:path ["lemon"]
@@ -53,9 +91,6 @@
      :viewport
      {:width js/window.innerWidth
       :height js/window.innerHeight }}))
-
-;; # logger
-(defn log [& args] (apply print 'log args))
 
 ;; # ajax
 
@@ -96,76 +131,14 @@
             :method "POST"
             :data {:name (@gargs "user") :password (@gargs "password")})))
 
-;; # router
-(defonce routes (atom {}))
-(defn route [id f]
-  (swap! routes assoc id f))
-(def route-re #"([^?]*)(.*)")
+;; # meta-functions
+(defn run-once [f]
+  (let [do-run (atom true)]
+    (fn [& args]
+      (when @do-run
+        (reset! do-run false)
+        (apply f args)))))
 
-(defn parse-route [adr]
-  (let [path (nth (re-matches route-re adr) 1)
-        args (.split (.slice adr (inc (.-length path))) "&")
-        path (.split path #"[./]")
-        args (map #(let [i (.indexOf % "=")]
-                     (if (= -1 i)
-                       [% true]
-                       [(.slice % 0 i)
-                        (.slice % (inc i)) ]))
-                  args)
-        args (into {} args) ]
-    (reset! gargs args)
-    {:path path :args args}) )
-
-(defn get-route-fn [path]
-  (or  (@routes (first path)) (:default @routes) #{}))
-
-(defn dispatch-route []
-  (let [adr (or
-              (and (= "#solsort:"  (.slice js/location.hash 0 9))
-                   (.slice js/location.hash 9))
-              (and (or (= js/location.port 1234)
-                       (= js/location.hostname "solsort.com")
-                       (= js/location.hostname "blog.solsort.com")
-                       (= js/location.hostname "localhost"))
-                   (js/location.pathname)))
-        route (and adr (parse-route adr))]
-    (when route
-      ((get-route-fn (:path route))))))
-
-;; # css
-(defn css-name [id]
-  (clojure.string/replace (name id) #"[A-Z]" #(str "-" (.toLowerCase %1))))
-#_(testcase 'css-name
-            #(= (css-name :FooBar) "-foo-bar"))
-(defn handle-rule [[k v]]
-  (str (css-name k) ":" (if (number? v) (str v "px") (name v))))
-(defn handle-block [[id rules]]
-  (str (name id) "{" (join ";" (map handle-rule (seq rules))) "}"))
-(defn clj->css [o]
-  (join (map str (seq o))) (join (map handle-block (seq o))))
-(defn js->css [o] (clj->css (js->clj o)))
-
-(testing "css"
-    (is (= (clj->css {:h1 {:fontWeight :normal :fontSize 14} :.div {:background :blue}})
-           "h1{font-weight:normal;font-size:14px}.div{background:blue}")))
-    (is (= (clj->css [[:h1 {:fontWeight :normal :fontSize 14}] 
-                      [:.div {:background :blue}]
-                      ["h1" {:background :red}]
-                      ])
-           "h1{font-weight:normal;font-size:14px}.div{background:blue}h1{background:red}")) 
-
-(def default-style
-  (atom { "@font-face" {:fontFamily "Ubuntu"
-                        :fontWeight "400"
-                        :src "url(/font/ubuntu-latin1.ttf)format(truetype)"}
-         :.container {:margin "5%" }
-         :.button {:margin 5 :padding 5 :borderRadius 5 :border "1px solid black"}
-         :body {:margin 0 :padding 0 :fontFamily "Ubuntu, sans-serif"}
-         :div {:margin 0 :padding 0} }))
-
-(route "style"
-       #(go (clj->js {:http-headers {:Content-Type "text/css"}
-                      :content (clj->css @default-style)})))
 ;; # util
 ;; ## js-json
 (defn parse-json-or-nil [str]
@@ -179,8 +152,10 @@
       (let [k (.pop ks)] (aset target k (aget source k)))))
   target)
 
-;; ## async channels
+;; ## tests
 (defn chan? [c] (instance? ManyToManyChannel c))
+(defn function? [c] (instance? js/Function c))
+;; ## async channels
 
 (defn go<!-seq [cs]
   (go
@@ -266,20 +241,122 @@
 ;(def -writer  (transit/writer :json))
 ;(def -reader  (transit/reader :json))
 
-;; ## functions
-(defn run-once [f]
-  (let [do-run (atom true)]
-    (fn [& args]
-      (when @do-run
-        (reset! do-run false)
-        (apply f args)))))
+;; # router
+(defonce routes (atom {}))
+(defn route [id f]
+  (swap! routes assoc id f))
+(def route-re #"([^?]*)(.*)")
 
+(defn parse-route [adr]
+  (let [path (nth (re-matches route-re adr) 1)
+        args (.split (.slice adr (inc (.-length path))) "&")
+        path (.split path #"[./]")
+        args (map #(let [i (.indexOf % "=")]
+                     (if (= -1 i)
+                       [% true]
+                       [(.slice % 0 i)
+                        (.slice % (inc i)) ]))
+                  args)
+        args (into {} args) ]
+    (reset! gargs args)
+    {:path path :args args}) )
+
+(defn get-route []
+  (or  (@routes @(subscribe [:app])) (:default @routes) #{}))
+
+(defn main-app [content type]
+    (let [content (if (satisfies? IAtom content) @content content)]
+    (case type
+      (:app) [app content]
+      (do
+        (log 'unsupported-app-type (:type content))
+        [:h1 "unsupported app type"]))))
+
+(defn dispatch-route []
+  (let [adr (or
+              (and (= "#solsort:"  (.slice js/location.hash 0 9))
+                   (.slice js/location.hash 9))
+              (and (or (= js/location.port 1234)
+                       (= js/location.hostname "solsort.com")
+                       (= js/location.hostname "blog.solsort.com")
+                       (= js/location.hostname "localhost"))
+                   (js/location.pathname)))
+        route (and adr (parse-route adr))]
+    (dispatch-sync [:update-viewport])
+    (dispatch-sync [:route route])
+    (go
+    (let  [elem  (js/document.getElementById "solsort-app")
+           content (get-route)
+            content (if (function? content) (content) content)
+          content (if (chan? content) (<! content) content)
+        type (:type (if (satisfies? IAtom content) @content content))
+           ]
+      (when elem
+        (reagent/render-component  [main-app content type] elem))))))
+
+;; # css
+(defn css-name [id]
+  (clojure.string/replace (name id) #"[A-Z]" #(str "-" (.toLowerCase %1))))
+#_(testcase 'css-name
+            #(= (css-name :FooBar) "-foo-bar"))
+(defn handle-rule [[k v]]
+  (str (css-name k) ":" (if (number? v) (str v "px") (name v))))
+(defn handle-block [[id rules]]
+  (str (name id) "{" (join ";" (map handle-rule (seq rules))) "}"))
+(defn clj->css [o]
+  (join (map str (seq o))) (join (map handle-block (seq o))))
+(defn js->css [o] (clj->css (js->clj o)))
+
+(testing "css"
+  (is (= (clj->css {:h1 {:fontWeight :normal :fontSize 14} :.div {:background :blue}})
+         "h1{font-weight:normal;font-size:14px}.div{background:blue}")))
+(is (= (clj->css [[:h1 {:fontWeight :normal :fontSize 14}] 
+                  [:.div {:background :blue}]
+                  ["h1" {:background :red}]
+                  ])
+       "h1{font-weight:normal;font-size:14px}.div{background:blue}h1{background:red}")) 
+
+(def default-style
+  (atom { "@font-face" {:fontFamily "Ubuntu"
+                        :fontWeight "400"
+                        :src "url(/font/ubuntu-latin1.ttf)format(truetype)"}
+         :.container {:margin "5%" }
+         :.button {:margin 5 :padding 5 :borderRadius 5 :border "1px solid black"}
+         :body {:margin 0 :padding 0 :fontFamily "Ubuntu, sans-serif"}
+         :div {:margin 0 :padding 0} }))
+
+(route "style"
+       #(go (clj->js {:http-headers {:Content-Type "text/css"}
+                      :content (clj->css @default-style)})))
+;; # Subscriptions
+(register-sub :pid (fn [db _] (reaction (:pid @db))))
+get-in
+(register-sub :view-dimensions 
+              (fn [db _] (reaction 
+                           [(get-in @db [:viewport :width])
+                            (get-in @db [:viewport :height])])))
+(register-sub :width (fn [db _] (reaction (get-in @db [:viewport :width]))))    
+(register-sub :height (fn [db _] (reaction (get-in @db [:viewport :height]))))    
+(register-sub :app (fn [db _] (reaction (first (:path @db)))))
+(register-sub :render-html5 (fn [db _] (reaction true)))
+(register-sub 'db (fn [db _] (reaction @db)))
+#_(js/console.log (clj->js @(subscribe ['db]))) ; debug
+;; # Event handler
+(register-handler 
+  :route 
+  (fn [db [route] _] 
+    (into db route)))
+(register-handler 
+  :update-viewport
+  (fn [db _ _]
+    (-> db (assoc-in [:viewport :width] js/window.innerWidth)
+        (assoc-in [:viewport :height] js/window.innerHeight))))
 ;; # Components
 (defn style [o]
   [:style {"dangerouslySetInnerHTML"
            #js {:__html (clj->css o)}}])
 ;; # App
-;; ## Design
+;; ## Notes
 ;;
 ;; We try to follow [iOS Human Interface Guidelines](
 ;; https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/MobileHIG/),
@@ -295,8 +372,7 @@
 ;; though check that the icon follows the design guidelines, and include the license info
 ;; when loading it into the database.
 ;;
-;; ## App-state subscriptions
-;;
+;; Data-notes
 ;; - `:type` - the type of the application
 ;;   - `:static` - static html or data, generated in parallel
 ;;   - `:html5` - standard html5 app
@@ -319,48 +395,84 @@
 ;;   - `:done` static application content is ready to be send, - defaults to true
 ;; - `:pid` - an id of the current process, - this is the target of an event dispatch
 ;;
-(re-frame/register-sub
-  :pid (fn [db _] (reaction (:pid @db))))
-;; ## Event handlers
-(register-handler
-  :set-title
-  (fn [db event dispatch]
-    (assoc db :title (first event))
-    )
-  )
-;; ## Event/dispatch-mechanism
-;;
-;; We might have different states due to parallel async static content generation. This means
-;; that async event handlers need to have a `dispatch` function supplied, for emitting events
-;; in current content. So app-handlers is `app-db, event, dispatch-function -> app-db` instead
-;; of `app-db, event -> app-db`. `solsort.core/handle` just accepts one of these functions, and
-;; wrap custom middleware. Similarly `solsort.core/dispatch` can be called instead of
-;; `re-frame.core/dispatch` during reactions, and automatically dispatches to the app-db of the
-;; current reaction.
-;;
 
-(defn -create-dispatch-fn [db]
-  (let [pid (:pid db)]
-    (fn [event-id & args]
-      (apply re-frame/dispatch event-id pid args))))
-
-(defn register-handler
-  ; TODO and middleware removing pid, and optionally swapping db
-  ([event-id f]
-   (re-frame/register-handler event-id
-                              (fn [db event] (f db event (-create-dispatch-fn db)))))
-  ([event-id middleware f]
-   (re-frame/register-handler event-id middleware
-                              (fn [db event] (f db event (-create-dispatch-fn db)))))
-  )
-(defn dispatch [event-id & args]
-  (apply re-frame/dispatch event-id @(re-frame/subscribe [:pid]) args))
-
-;; ## Appstyle
 ;; ## Actual app component
-;;
-(defn app [& {:keys [title navigate-back actions views content]
-              :or {title "solsort" }}]
-  (aset js/document "title" title)
-  [:h1 "hello app"])
+(def bar-height 30)
+(def bar-shadow "0px 1px 4px rgba(0,0,0,.4)")
+(def bar-color "rgba(255,244,233,0.9)")
+(defn icon [id]
+  [:span "[" id "]"])
+(def app-style ; ###
+  (ratom/reaction
+    {:h1 {:background "red"}
+     :.solsort-app {:background :blue}
+     :.float-right {:float :right}
+     :.float-left {:float :left}
 
+     :.bar 
+     {:width "100%"
+      :text-align :center
+      :display :inline-block
+      :background bar-color
+      :box-shadow bar-shadow
+      :line-height bar-height  
+      :height bar-height
+      :position :fixed  }
+
+     :.topheight {}
+     :.barheight {:height bar-height}
+     :.botbar { :top  (- @(subscribe [:height]) bar-height) }}))
+(defn app [o] ; ###
+  (let [title (:title o)
+        navigate-back (:navigate-back o)
+        actions (:actions o)
+        views (:views o)
+        content (:html o) ]
+    (aset js/document "title" title)
+    [:div {:style {:position "absolute"
+                   :width "100%" }}
+     (solsort.core/style @app-style)
+
+     [:div.topbar.bar 
+      [:span.middle title]
+      (when navigate-back
+        [:span.float-left 
+         {:on-click #(dispatch (:event navigate-back))} 
+         [icon (:icon navigate-back)]
+         " " (:title navigate-back)])
+
+      (when actions
+        (into 
+          [:span.float-right]
+          (map 
+            (fn [a] [:span.barbutton 
+                  {:on-click #(dispatch (:event a))}
+                  " " [icon (:icon a)] " "])
+            actions)))]
+     (when views
+        (into 
+      [:div.botbar.bar]
+          (map 
+            (fn [a] [:span.barbutton 
+                  {:on-click #(dispatch (:event a))}
+                  " " [icon (:icon a)] " "])
+            views)))
+    [:div.barheight]
+     [:h1 title]
+     [:div (str @(subscribe [:view-dimensions]))]
+     content
+     (when views [:div.barheight])]))
+
+;; ## Sample app
+(route 
+  "hello" 
+  (fn []  
+    (atom {:type :app
+     :title "Hello-app"
+     :navigate-back {:event ['home] :title "Home" :icon "home"}
+     :actions [ {:event ['copy] :icon "copy"}
+               {:event ['paste] :icon "paste"} ]
+     :views [ {:event ['view-left] :icon "left"}
+             {:event ['view-right] :icon "right"} ]
+     :html
+     [:div "hi" (str (range 1000))]})))

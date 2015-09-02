@@ -8,12 +8,14 @@
     [goog.net.XhrIo]
     [goog.net.Jsonp]
     [solsort.core :refer [route log state ajax]]
-    [garden.core :refer [css]]
-    [garden.units :refer [px em]]
+    ;[garden.core :refer [css]]
+    ;[garden.units :refer [px em]]
     [reagent.core :as reagent :refer []]
     [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
 
+#_
+(
 (enable-console-print!)
 (js/console.log "in-lemon")
 
@@ -231,7 +233,7 @@
 
 (route "lemon" (fn []
                  (log 'lemon-route)
-                 (reagent/render-component [root-elem] js/document.body))) ; #
+                 (reagent/render-component [root-elem] js/document.body))) ; ##
 ;; # Get data from server
 (defn load-events [server]
   (go
@@ -285,3 +287,4 @@
         (js/p2p.emit "hello" #js {:peor (str js/navigator.userAgent)})
         (<! (timeout 1000))
         (recur (inc i))))
+) ; #

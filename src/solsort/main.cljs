@@ -27,6 +27,7 @@
 ;;
 (ns ^:figwheel-always solsort.main
   (:require
+    [reagent.core :as reagent]
     [solsort.core :refer [dispatch-route log]]
     [solsort.bib]
     [solsort.experiments]
@@ -34,6 +35,6 @@
     [solsort.lemon]
     [solsort.rasmuserik]))
 
-(defn on-js-reload [] 
-  (dispatch-route))
-(js/setTimeout #(dispatch-route) 0)
+(defn main []
+  (dispatch-route) )
+(js/setTimeout main 0)

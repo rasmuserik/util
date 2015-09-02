@@ -35,6 +35,7 @@ This just loads all components and apps, and dispatches the route based on the a
     
     (ns ^:figwheel-always solsort.main
       (:require
+        [reagent.core :as reagent]
         [solsort.core :refer [dispatch-route log]]
         [solsort.bib]
         [solsort.experiments]
@@ -42,6 +43,6 @@ This just loads all components and apps, and dispatches the route based on the a
         [solsort.lemon]
         [solsort.rasmuserik]))
     
-    (defn on-js-reload [] 
-      (dispatch-route))
-    (js/setTimeout #(dispatch-route) 0)
+    (defn main []
+      (dispatch-route) )
+    (js/setTimeout main 0)
