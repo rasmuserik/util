@@ -237,7 +237,7 @@
       [(if @show-menu :div.burger.cross :div.burger) {:id "burger"} [:div] [:div] [:div]]]
      [:a.float-left.topbutton [:b "‹‹"]]
      ;[:a.float-left.topbutton [:img {:src "solsort.svg"}]]
-     "Tutle" " foo " @width]
+     "Lemon" " hello " @width]
     [:ul
      [:li "hello"]
      [:li "world"]

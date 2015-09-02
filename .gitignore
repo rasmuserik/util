@@ -5,3 +5,4 @@ resources/public/solsort.js
 node_modules/
 target/
 .repl
+docs

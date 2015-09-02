@@ -39,10 +39,11 @@
 ;; - `:type` - the type of the application
 ;;   - `:static` - static html or data, generated in parallel
 ;;   - `:html5` - standard html5 app
-;;   - `:cordova` - additional apis available
-;;   - `:extension` - NOT IMPLEMENTED browser extension mozilla/chrom/opera, WebExtensions API
-;;   - `:ios` - NOT IMPLEMENTED react-native
-;;   - `:android` - NOT IMPLEMENTED react-native
+;;   - `:nwjs` - nwjs for daemons and desktop apps
+;;   - `:cordova` - LATER additional apis available
+;;   - `:extension` - LATER browser extension mozilla/chrom/opera, WebExtensions API
+;;   - `:ios` - LATER react-native
+;;   - `:android` - LATER react-native
 ;; - viewport
 ;;   - `:title` view title
 ;;   - `:navigate-back` back-button with `:event` and optional `:title`

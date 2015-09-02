@@ -14,7 +14,8 @@ More notes/documentation to come here real soon.
 ## Build commands
 
 - `lein npm install` installs dependencies
-- `lein figwheel` starts development server on [http://localhost:3449](http://localhost:3449/) with nrepl on port 7888.
+- `lein figwheel` starts development server on
+  [http://localhost:3449](http://localhost:3449/) with nrepl on port 7888.
 - `lein clean` removes artifacts etc
 - `lein kibit` and `lein bikeshed -m 1000` runs various style tests
 - `lein cljsbuild once dist` builds minified version
