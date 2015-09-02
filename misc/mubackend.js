@@ -33,6 +33,7 @@ io.on('connection', function(socket) {
     function(_, _, data) {
       var username;
       try { username = JSON.parse(data).userCtx.name; } catch(e) {};
+      console.log('connect', username);
       if(username === "daemon") {
         socket.join(daemon_room);
         authTokens[authToken(socket.handshake.headers.cookie)] = true;

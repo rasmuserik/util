@@ -22,8 +22,11 @@
 
 ;; # forward declarations
 (declare app)
+(declare dispatch)
 ;; # logger
-(defn log [& args] (apply print 'log args))
+(defn log [& args] 
+  (apply print 'log args)
+  (dispatch [:log (conj args (js/Date.))]))
 
 ;; # DBs
 ;;
@@ -330,7 +333,7 @@
                       :content (clj->css @default-style)})))
 ;; # Subscriptions
 (register-sub :pid (fn [db _] (reaction (:pid @db))))
-get-in
+(register-sub :log (fn [db _] (reaction (:log @db))))
 (register-sub :view-dimensions
               (fn [db _] (reaction
                            [(get-in @db [:viewport :width])
@@ -343,9 +346,13 @@ get-in
 #_(js/console.log (clj->js @(subscribe ['db]))) ; debug
 ;; # Event handler
 (register-handler
-  :route
-  (fn [db [route] _]
-    (into db route)))
+  :route (fn [db [route] _] (into db route)))
+(register-handler
+  :log (fn [db [entry] _] 
+         (let [q (or (:log db) cljs.core/PersistentQueue.EMPTY)
+               q (if (<= 30 (count q)) (pop q) q)
+               q (conj q entry)]
+           (assoc db :log q))))
 (register-handler
   :update-viewport
   (fn [db _ _]
@@ -460,8 +467,6 @@ get-in
                     " " [icon (:icon a)] " "])
            views)))
      [:div.barheight]
-     [:h1 title]
-     [:div (str @(subscribe [:view-dimensions]))]
      content
      (when views [:div.barheight])]))
 
@@ -469,12 +474,64 @@ get-in
 (route
   "hello"
   (fn []
-    (atom {:type :app
+    (reaction {:type :app
            :title "Hello-app"
            :navigate-back {:event ['home] :title "Home" :icon "home"}
-           :actions [ {:event ['copy] :icon "copy"}
+           :actions [ {:event [:hello] :icon "hello"}
                      {:event ['paste] :icon "paste"} ]
            :views [ {:event ['view-left] :icon "left"}
                    {:event ['view-right] :icon "right"} ]
            :html
-           [:div "hi" (str (range 1000))]})))
+           [:div
+            (map (fn [e] [:div (str (rest e))]) (reverse @(subscribe [:log])))
+            (str (range 1000))]})))
+;; # Net
+
+(js/socket.removeAllListeners "http-request")
+(js/socket.removeAllListeners "http-response-log")
+(js/socket.removeAllListeners "socket-connect")
+(js/socket.removeAllListeners "socket-disconnect")
+(js/socket.on
+  "http-request"
+  (fn [o] (log "http-request" o)
+    (js/socket.emit
+      "http-response"
+      #js {:url (aget o "url")
+           :key (aget o "key")
+           :content (str "Hello " (aget o "url"))})
+    ))
+(js/socket.on
+  "http-response-log"
+  (fn [o] (log "http-response" o)))
+(js/socket.on
+  "socket-connect"
+  (fn [o] (log "connect" o)))
+(js/socket.on
+  "socket-disconnect"
+  (fn [o] (log "discon" o)))
+
+(js/p2p.on
+  "ready"
+  ;(aset js/p2p "usePeerConnection" true)
+  (log 'p2p-ready)
+  ;(js/p2p.emit "hello" #js {:peerId js/navigator.userAgent})
+  )
+(.emit (js/p2p.to "1v_TiJezUICF5ZRSAAAK") "hello" "hi")
+
+(js/p2p.removeAllListeners "hello")
+(js/p2p.on
+  "hello"
+  (fn [o] (log o))
+  )
+
+(register-handler
+  :hello
+  (fn [db o _]
+    (log 'hello-here)
+    db
+    )
+  )
+(go (loop [i 0]
+        (<! (timeout 1000))
+        (js/p2p.emit "hello" (clj->js [i (str js/navigator.userAgent)]))
+        (when (< i 3) (recur (inc i)))))
