@@ -265,7 +265,7 @@
   (or  (@routes @(subscribe [:app])) (:default @routes) #{}))
 
 (defn main-app [content type]
-    (let [content (if (satisfies? IAtom content) @content content)]
+  (let [content (if (satisfies? IAtom content) @content content)]
     (case type
       (:app) [app content]
       (do
@@ -285,14 +285,14 @@
     (dispatch-sync [:update-viewport])
     (dispatch-sync [:route route])
     (go
-    (let  [elem  (js/document.getElementById "solsort-app")
-           content (get-route)
-            content (if (function? content) (content) content)
-          content (if (chan? content) (<! content) content)
-        type (:type (if (satisfies? IAtom content) @content content))
-           ]
-      (when elem
-        (reagent/render-component  [main-app content type] elem))))))
+      (let  [elem  (js/document.getElementById "solsort-app")
+             content (get-route)
+             content (if (function? content) (content) content)
+             content (if (chan? content) (<! content) content)
+             type (:type (if (satisfies? IAtom content) @content content))
+             ]
+        (when elem
+          (reagent/render-component  [main-app content type] elem))))))
 
 ;; # css
 (defn css-name [id]
@@ -446,18 +446,18 @@ get-in
           [:span.float-right]
           (map 
             (fn [a] [:span.barbutton 
-                  {:on-click #(dispatch (:event a))}
-                  " " [icon (:icon a)] " "])
+                     {:on-click #(dispatch (:event a))}
+                     " " [icon (:icon a)] " "])
             actions)))]
      (when views
-        (into 
-      [:div.botbar.bar]
-          (map 
-            (fn [a] [:span.barbutton 
-                  {:on-click #(dispatch (:event a))}
-                  " " [icon (:icon a)] " "])
-            views)))
-    [:div.barheight]
+       (into 
+         [:div.botbar.bar]
+         (map 
+           (fn [a] [:span.barbutton 
+                    {:on-click #(dispatch (:event a))}
+                    " " [icon (:icon a)] " "])
+           views)))
+     [:div.barheight]
      [:h1 title]
      [:div (str @(subscribe [:view-dimensions]))]
      content
@@ -468,11 +468,11 @@ get-in
   "hello" 
   (fn []  
     (atom {:type :app
-     :title "Hello-app"
-     :navigate-back {:event ['home] :title "Home" :icon "home"}
-     :actions [ {:event ['copy] :icon "copy"}
-               {:event ['paste] :icon "paste"} ]
-     :views [ {:event ['view-left] :icon "left"}
-             {:event ['view-right] :icon "right"} ]
-     :html
-     [:div "hi" (str (range 1000))]})))
+           :title "Hello-app"
+           :navigate-back {:event ['home] :title "Home" :icon "home"}
+           :actions [ {:event ['copy] :icon "copy"}
+                     {:event ['paste] :icon "paste"} ]
+           :views [ {:event ['view-left] :icon "left"}
+                   {:event ['view-right] :icon "right"} ]
+           :html
+           [:div "hi" (str (range 1000))]})))
