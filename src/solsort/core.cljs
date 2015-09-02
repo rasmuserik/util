@@ -397,9 +397,10 @@ get-in
 ;;
 
 ;; ## Actual app component
-(def bar-height 30)
-(def bar-shadow "0px 1px 4px rgba(0,0,0,.4)")
-(def bar-color "rgba(255,244,233,0.9)")
+(def bar-height 48)
+(def bar-shadow "0px 0.5px 1.5px rgba(0,0,0,.5)")
+(def bar-color "rgba(250,240,230,0.9)")
+;(def bar-color "#f7f7f7")
 (defn icon [id]
   [:span "[" id "]"])
 (def app-style ; ###
@@ -414,6 +415,7 @@ get-in
       :text-align :center
       :display :inline-block
       :background bar-color
+      :font-size (* .4 bar-height)
       :box-shadow bar-shadow
       :line-height bar-height
       :height bar-height
@@ -421,7 +423,7 @@ get-in
 
      :.topheight {}
      :.barheight {:height bar-height}
-     :.botbar { :top  (- @(subscribe [:height]) bar-height) }}))
+     :.botbar { :bottom 0 }}))
 (defn app [o] ; ###
   (let [title (:title o)
         navigate-back (:navigate-back o)
