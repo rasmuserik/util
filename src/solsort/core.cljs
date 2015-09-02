@@ -339,6 +339,7 @@
        #(go (clj->js {:http-headers {:Content-Type "text/css"}
                       :content (clj->css @default-style)})))
 ;; # Subscriptions
+(register-sub :online (fn [db _] (reaction (:online @db))))
 (register-sub :pid (fn [db _] (reaction (:pid @db))))
 (register-sub :log (fn [db _] (reaction (:log @db))))
 (register-sub :view-dimensions
@@ -354,6 +355,8 @@
 ;; # Event handler
 (register-handler :error (fn [db [e] _] (log 'error (.-message e) e) db))
 (register-handler :route (fn [db [route] _] (into db route)))
+(register-handler :connect (fn [db [] _] (assoc db :online true)))
+(register-handler :disconnect (fn [db [] _] (assoc db :online false)))
 (register-handler
   :log (fn [db [& entry] _]
          (let [q (or (:log db) cljs.core/PersistentQueue.EMPTY)
@@ -499,6 +502,12 @@
             (str (range 1000))]})))
 ;; # Net
 
+(defn emit [msgid pid & args]
+  ; pid: local-pid as dispatch w/pid, :daemon emit to random daemon, otherwise pid
+  ; -> (dispatch (str "net-" (name msgid)) sender-pid args) on recepient
+  )
+
+;; ## Experiments
 (js/socket.removeAllListeners "http-request")
 (js/socket.removeAllListeners "http-response-log")
 (js/socket.removeAllListeners "socket-connect")
