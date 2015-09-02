@@ -20,7 +20,7 @@
   (let  [c  (chan)
          jsonp (goog.net.Jsonp. url)]
     (.send jsonp nil #(put! c %) #(close! c))
-    c))          
+    c))
 (defn jsonp-hack
   [url]
   (let [c (chan)]
@@ -35,24 +35,25 @@
 
 (go
   (print (<! (ajax (str js/solsort_server "/db/_session") :result "text")))
-  (js/console.log 
-    (clj->js      
+  (js/console.log
+    (clj->js
       {:info (<! (jsonp "http://localhost/bib/info/50581438"))
        :related (<! (jsonp "http://localhost/bib/related/50581438"))
-       :triples (<! (jsonp-hack "https://dev.vejlebib.dk/ting-visual-relation/get-ting-object/870970-basis:50581438"))}))
-  ) 
+       :triples (<! (jsonp-hack (str "https://dev.vejlebib.dk/ting-visual-relation"
+                                "/get-ting-object/870970-basis:50581438")))}))
+  )
 (js/console.log "hello")
 
 ;; bibdata-process
 (defn get-triple [id]
   (go
-    (clj->js     
+    (clj->js
       { :stat(<! (jsonp (str "http://localhost/bib/info/" id)))
        :related (<! (jsonp (str "http://localhost/bib/related/" id)))
        :info (<! (jsonp (str "http://localhost/bibdata/info/" id))) })
 
     ))
-  
+
 #_(go (let [lids (js/JSON.parse (<! (ajax (str js/solsort_server "/db/bib/info/lids.json")
                                           :result "text")))]
         (loop [i (or (int (js/localStorage.getItem "i")) 0)
@@ -67,5 +68,3 @@
               (aset js/document "title" (str i))
               (js/localStorage.setItem "i" i)
               (recur (inc i)))))))
-
-

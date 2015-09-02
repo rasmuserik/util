@@ -18,7 +18,7 @@
 (enable-console-print!)
 
 (def is-figwheel (some? js/window.figwheel))
-(when is-figwheel (js/setTimeout #(run-tests) 0))
+(when is-figwheel (js/setTimeout #(run-tests nil) 0))
 
 ;; # forward declarations
 (declare app)
@@ -310,11 +310,11 @@
 (testing "css"
   (is (= (clj->css {:h1 {:fontWeight :normal :fontSize 14} :.div {:background :blue}})
          "h1{font-weight:normal;font-size:14px}.div{background:blue}")))
-(is (= (clj->css [[:h1 {:fontWeight :normal :fontSize 14}] 
+(is (= (clj->css [[:h1 {:fontWeight :normal :fontSize 14}]
                   [:.div {:background :blue}]
                   ["h1" {:background :red}]
                   ])
-       "h1{font-weight:normal;font-size:14px}.div{background:blue}h1{background:red}")) 
+       "h1{font-weight:normal;font-size:14px}.div{background:blue}h1{background:red}"))
 
 (def default-style
   (atom { "@font-face" {:fontFamily "Ubuntu"
@@ -331,22 +331,22 @@
 ;; # Subscriptions
 (register-sub :pid (fn [db _] (reaction (:pid @db))))
 get-in
-(register-sub :view-dimensions 
-              (fn [db _] (reaction 
+(register-sub :view-dimensions
+              (fn [db _] (reaction
                            [(get-in @db [:viewport :width])
                             (get-in @db [:viewport :height])])))
-(register-sub :width (fn [db _] (reaction (get-in @db [:viewport :width]))))    
-(register-sub :height (fn [db _] (reaction (get-in @db [:viewport :height]))))    
+(register-sub :width (fn [db _] (reaction (get-in @db [:viewport :width]))))
+(register-sub :height (fn [db _] (reaction (get-in @db [:viewport :height]))))
 (register-sub :app (fn [db _] (reaction (first (:path @db)))))
 (register-sub :render-html5 (fn [db _] (reaction true)))
 (register-sub 'db (fn [db _] (reaction @db)))
 #_(js/console.log (clj->js @(subscribe ['db]))) ; debug
 ;; # Event handler
-(register-handler 
-  :route 
-  (fn [db [route] _] 
+(register-handler
+  :route
+  (fn [db [route] _]
     (into db route)))
-(register-handler 
+(register-handler
   :update-viewport
   (fn [db _ _]
     (-> db (assoc-in [:viewport :width] js/window.innerWidth)
@@ -409,13 +409,13 @@ get-in
      :.float-right {:float :right}
      :.float-left {:float :left}
 
-     :.bar 
+     :.bar
      {:width "100%"
       :text-align :center
       :display :inline-block
       :background bar-color
       :box-shadow bar-shadow
-      :line-height bar-height  
+      :line-height bar-height
       :height bar-height
       :position :fixed  }
 
@@ -433,27 +433,27 @@ get-in
                    :width "100%" }}
      (solsort.core/style @app-style)
 
-     [:div.topbar.bar 
+     [:div.topbar.bar
       [:span.middle title]
       (when navigate-back
-        [:span.float-left 
-         {:on-click #(dispatch (:event navigate-back))} 
+        [:span.float-left
+         {:on-click #(dispatch (:event navigate-back))}
          [icon (:icon navigate-back)]
          " " (:title navigate-back)])
 
       (when actions
-        (into 
+        (into
           [:span.float-right]
-          (map 
-            (fn [a] [:span.barbutton 
+          (map
+            (fn [a] [:span.barbutton
                      {:on-click #(dispatch (:event a))}
                      " " [icon (:icon a)] " "])
             actions)))]
      (when views
-       (into 
+       (into
          [:div.botbar.bar]
-         (map 
-           (fn [a] [:span.barbutton 
+         (map
+           (fn [a] [:span.barbutton
                     {:on-click #(dispatch (:event a))}
                     " " [icon (:icon a)] " "])
            views)))
@@ -464,9 +464,9 @@ get-in
      (when views [:div.barheight])]))
 
 ;; ## Sample app
-(route 
-  "hello" 
-  (fn []  
+(route
+  "hello"
+  (fn []
     (atom {:type :app
            :title "Hello-app"
            :navigate-back {:event ['home] :title "Home" :icon "home"}
