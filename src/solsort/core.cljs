@@ -23,10 +23,18 @@
 ;; # forward declarations
 (declare app)
 (declare dispatch)
+;; # Init
+(defonce initialised
+  (do
+    (js/window.addEventListener "error" #(dispatch [:error %]))
+    (js/React.initializeTouchEvents true)
+    (js/window.addEventListener "resize" #(dispatch [:update-viewport]))
+    )
+  )
 ;; # logger
-(defn log [& args] 
+(defn log [& args]
   (apply print 'log args)
-  (dispatch [:log (conj args (js/Date.))]))
+  (dispatch (into  [:log] args)))
 
 ;; # DBs
 ;;
@@ -84,7 +92,6 @@
 
 
 ;; ## update-viewport
-(defonce resize-listener (js/window.addEventListener "resize" #(dispatch [:update-viewport])))
 
 ;; TODO remove this:
 (defonce state
@@ -345,10 +352,10 @@
 (register-sub 'db (fn [db _] (reaction @db)))
 #_(js/console.log (clj->js @(subscribe ['db]))) ; debug
 ;; # Event handler
+(register-handler :error (fn [db [e] _] (log 'error (.-message e) e) db))
+(register-handler :route (fn [db [route] _] (into db route)))
 (register-handler
-  :route (fn [db [route] _] (into db route)))
-(register-handler
-  :log (fn [db [entry] _] 
+  :log (fn [db [& entry] _]
          (let [q (or (:log db) cljs.core/PersistentQueue.EMPTY)
                q (if (<= 30 (count q)) (pop q) q)
                q (conj q entry)]
@@ -446,7 +453,10 @@
       [:span.middle title]
       (when navigate-back
         [:span.float-left
-         {:on-click #(dispatch (:event navigate-back))}
+         {:on-click #(dispatch (:event navigate-back))
+          :on-touch-start (fn []  (dispatch (:event navigate-back)) false)
+
+          }
          [icon (:icon navigate-back)]
          " " (:title navigate-back)])
 
@@ -455,7 +465,8 @@
           [:span.float-right]
           (map
             (fn [a] [:span.barbutton
-                     {:on-click #(dispatch (:event a))}
+                     {:on-click #(dispatch (:event a))
+                      :on-touch-start (fn [] (dispatch (:event a)) false)}
                      " " [icon (:icon a)] " "])
             actions)))]
      (when views
@@ -463,7 +474,8 @@
          [:div.botbar.bar]
          (map
            (fn [a] [:span.barbutton
-                    {:on-click #(dispatch (:event a))}
+                    {:on-click #(dispatch (:event a))
+                     :on-touch-start (fn [] (dispatch (:event a)) false)}
                     " " [icon (:icon a)] " "])
            views)))
      [:div.barheight]
@@ -475,15 +487,15 @@
   "hello"
   (fn []
     (reaction {:type :app
-           :title "Hello-app"
+           :title "solsort"
            :navigate-back {:event ['home] :title "Home" :icon "home"}
-           :actions [ {:event [:hello] :icon "hello"}
+           :actions [ {:event [:log "pressed hello"] :icon "hello"}
                      {:event ['paste] :icon "paste"} ]
            :views [ {:event ['view-left] :icon "left"}
                    {:event ['view-right] :icon "right"} ]
            :html
            [:div
-            (map (fn [e] [:div (str (rest e))]) (reverse @(subscribe [:log])))
+            (map (fn [e] [:div {:key (unique-id)} (.slice (str e) 1 -1)]) (reverse @(subscribe [:log])))
             (str (range 1000))]})))
 ;; # Net
 
@@ -516,7 +528,6 @@
   (log 'p2p-ready)
   ;(js/p2p.emit "hello" #js {:peerId js/navigator.userAgent})
   )
-(.emit (js/p2p.to "1v_TiJezUICF5ZRSAAAK") "hello" "hi")
 
 (js/p2p.removeAllListeners "hello")
 (js/p2p.on
@@ -524,14 +535,12 @@
   (fn [o] (log o))
   )
 
-(register-handler
-  :hello
-  (fn [db o _]
-    (log 'hello-here)
-    db
-    )
-  )
 (go (loop [i 0]
-        (<! (timeout 1000))
+        (<! (timeout 5000))
         (js/p2p.emit "hello" (clj->js [i (str js/navigator.userAgent)]))
         (when (< i 3) (recur (inc i)))))
+
+;; # Server
+(when (and (some? js/window.require)
+           (some? (js/window.require "express")))
+  (log 'SERVER))
