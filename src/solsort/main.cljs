@@ -34,5 +34,6 @@
     [solsort.lemon]
     [solsort.rasmuserik]))
 
-(defn on-js-reload [] (dispatch-route))
-(js/setTimeout dispatch-route 0)
+(defn on-js-reload [] 
+  (dispatch-route))
+(js/setTimeout #(dispatch-route) 0)

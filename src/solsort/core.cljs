@@ -6,7 +6,7 @@
   (:require
     [cljs.core.async.impl.channels :refer  [ManyToManyChannel]]
     [cljs.core.async :refer  [>! <! chan put! take! timeout close! pipe]]
-    [cljs.test :refer-macros  [deftest testing is]]
+    [cljs.test :refer-macros  [deftest testing is run-tests]]
     [clojure.string :as string :refer  [split]]
     [clojure.string :refer  [join]]
     [cognitect.transit :as transit]
@@ -17,78 +17,9 @@
 
 (enable-console-print!)
 
-;; # App
-;; ## Design
-;;
-;; We try to follow [iOS Human Interface Guidelines](
-;; https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/MobileHIG/),
-;; but with a crossplatform focus. Secondary we accomodate
-;; [Android Material Design](http://developer.android.com/design/) where possible.
-;; The iOS guidelines are required get into the apple app-store.
-;;
-;; Common patterns are abstract, such that they can be implemented in a native way
-;; on different platforms.
-;;
-;; We keep a database of creative commons icons, which are used within the app
-;; (when no platform icon is available). https://thenounproject.com/ is good source for this,
-;; though check that the icon follows the design guidelines, and include the license info
-;; when loading it into the database.
-;;
-;; ## App-state subscriptions
-;;
-;; - `:type` - the type of the application
-;;   - `:static` - static html or data, generated in parallel
-;;   - `:html5` - standard html5 app
-;;   - `:nwjs` - nwjs for daemons and desktop apps
-;;   - `:cordova` - LATER additional apis available
-;;   - `:extension` - LATER browser extension mozilla/chrom/opera, WebExtensions API
-;;   - `:ios` - LATER react-native
-;;   - `:android` - LATER react-native
-;; - viewport
-;;   - `:title` view title
-;;   - `:navigate-back` back-button with `:event` and optional `:title`
-;;   - `:actions` sequence view-specific actions with `:icon`, `:title`, `:active` and `:event`,
-;;     similar to iOS Toolbar or Android Actions
-;;   - `:views ` sequence of views with `:icon`, `:title`, `:active` and `:event`,
-;;     similar to iOS Tabbar or Android Navigation
-;;   - `:width` `:height` width and height of the viewport including bars
-;;   - `:scrollX` `:scrollY` scroll position within the viewport
-;;   - `:transition` NOT IMPLEMENTED
-;;   - `:style` stylesheet as map of style maps
-;;   - `:done` static application content is ready to be send, - defaults to true
-;; - `:pid` - an id of the current process, - this is the target of an event dispatch
-;;
-(re-frame/register-sub
-  :pid
-  (fn [db _]
-    (reaction (:pid @db))))
-;; ## Events and dispatch
-;;
-;; We might have different states due to parallel async static content generation. This means
-;; that async event handlers need to have a `dispatch` function supplied, for emitting events
-;; in current content. So app-handlers is `app-db, event, dispatch-function -> app-db` instead
-;; of `app-db, event -> app-db`. `solsort.core/handle` just accepts one of these functions, and
-;; wrap custom middleware. Similarly `solsort.core/dispatch` can be called instead of
-;; `re-frame.core/dispatch` during reactions, and automatically dispatches to the app-db of the
-;; current reaction.
-;;
+(def is-figwheel (some? js/window.figwheel))
+(when is-figwheel (js/setTimeout #(run-tests) 0))
 
-(defn -create-dispatch-fn [db]
-  (let [pid (:pid db)]
-    (fn [event-id & args]
-      (apply re-frame/dispatch event-id pid args))))
-
-(defn register-handler
-  ; TODO and middleware removing pid, and optionally swapping db
-  ([event-id f]
-   (re-frame/register-handler event-id
-                              (fn [db event] (f db event (-create-dispatch-fn db)))))
-  ([event-id middleware f]
-   (re-frame/register-handler event-id middleware
-                              (fn [db event] (f db event (-create-dispatch-fn db)))))
-  )
-(defn dispatch [event-id & args]
-  (apply re-frame/dispatch event-id @(re-frame/subscribe [:pid]) args))
 ;; # DBs
 ;;
 ;; We have 3 need kinds of databases
@@ -161,14 +92,9 @@
 
 (defonce gargs (atom {}))
 (go
-  (log 'here @state)
-  (log (<! (ajax "http://localhost:1234/db/")))
-  (log (<! (ajax "http://localhost:1234/db/_session"
-                 :method "POST"
-                 :data {:name (@gargs "user") :password (@gargs "password")}
-                 )))
-  (log (type nil))
-  )
+  (<! (ajax "http://localhost:1234/db/_session"
+            :method "POST"
+            :data {:name (@gargs "user") :password (@gargs "password")})))
 
 ;; # router
 (defonce routes (atom {}))
@@ -219,9 +145,14 @@
   (join (map str (seq o))) (join (map handle-block (seq o))))
 (defn js->css [o] (clj->css (js->clj o)))
 
-#_(testcase 'clj->css
-            #(= (clj->css {:h1 {:fontWeight :normal :fontSize 14} :.div {:background :blue}})
-                "h1{font-weight:normal;font-size:14px}.div{background:blue}"))
+(testing "css"
+    (is (= (clj->css {:h1 {:fontWeight :normal :fontSize 14} :.div {:background :blue}})
+           "h1{font-weight:normal;font-size:14px}.div{background:blue}")))
+    (is (= (clj->css [[:h1 {:fontWeight :normal :fontSize 14}] 
+                      [:.div {:background :blue}]
+                      ["h1" {:background :red}]
+                      ])
+           "h1{font-weight:normal;font-size:14px}.div{background:blue}h1{background:red}")) 
 
 (def default-style
   (atom { "@font-face" {:fontFamily "Ubuntu"
@@ -235,7 +166,7 @@
 (route "style"
        #(go (clj->js {:http-headers {:Content-Type "text/css"}
                       :content (clj->css @default-style)})))
-; # util
+;; # util
 ;; ## js-json
 (defn parse-json-or-nil [str]
   (try
@@ -342,3 +273,94 @@
       (when @do-run
         (reset! do-run false)
         (apply f args)))))
+
+;; # Components
+(defn style [o]
+  [:style {"dangerouslySetInnerHTML"
+           #js {:__html (clj->css o)}}])
+;; # App
+;; ## Design
+;;
+;; We try to follow [iOS Human Interface Guidelines](
+;; https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/MobileHIG/),
+;; but with a crossplatform focus. Secondary we accomodate
+;; [Android Material Design](http://developer.android.com/design/) where possible.
+;; The iOS guidelines are required get into the apple app-store.
+;;
+;; Common patterns are abstract, such that they can be implemented in a native way
+;; on different platforms.
+;;
+;; We keep a database of creative commons icons, which are used within the app
+;; (when no platform icon is available). https://thenounproject.com/ is good source for this,
+;; though check that the icon follows the design guidelines, and include the license info
+;; when loading it into the database.
+;;
+;; ## App-state subscriptions
+;;
+;; - `:type` - the type of the application
+;;   - `:static` - static html or data, generated in parallel
+;;   - `:html5` - standard html5 app
+;;   - `:nwjs` - nwjs for daemons and desktop apps
+;;   - `:cordova` - LATER additional apis available
+;;   - `:extension` - LATER browser extension mozilla/chrom/opera, WebExtensions API
+;;   - `:ios` - LATER react-native
+;;   - `:android` - LATER react-native
+;; - viewport
+;;   - `:title` view title
+;;   - `:navigate-back` back-button with `:event` and optional `:title`
+;;   - `:actions` sequence view-specific actions with `:icon`, `:title`, `:active` and `:event`,
+;;     similar to iOS Toolbar or Android Actions
+;;   - `:views ` sequence of views with `:icon`, `:title`, `:active` and `:event`,
+;;     similar to iOS Tabbar or Android Navigation
+;;   - `:width` `:height` width and height of the viewport including bars
+;;   - `:scrollX` `:scrollY` scroll position within the viewport
+;;   - `:transition` NOT IMPLEMENTED
+;;   - `:style` stylesheet as map of style maps
+;;   - `:done` static application content is ready to be send, - defaults to true
+;; - `:pid` - an id of the current process, - this is the target of an event dispatch
+;;
+(re-frame/register-sub
+  :pid (fn [db _] (reaction (:pid @db))))
+;; ## Event handlers
+(register-handler
+  :set-title
+  (fn [db event dispatch]
+    (assoc db :title (first event))
+    )
+  )
+;; ## Event/dispatch-mechanism
+;;
+;; We might have different states due to parallel async static content generation. This means
+;; that async event handlers need to have a `dispatch` function supplied, for emitting events
+;; in current content. So app-handlers is `app-db, event, dispatch-function -> app-db` instead
+;; of `app-db, event -> app-db`. `solsort.core/handle` just accepts one of these functions, and
+;; wrap custom middleware. Similarly `solsort.core/dispatch` can be called instead of
+;; `re-frame.core/dispatch` during reactions, and automatically dispatches to the app-db of the
+;; current reaction.
+;;
+
+(defn -create-dispatch-fn [db]
+  (let [pid (:pid db)]
+    (fn [event-id & args]
+      (apply re-frame/dispatch event-id pid args))))
+
+(defn register-handler
+  ; TODO and middleware removing pid, and optionally swapping db
+  ([event-id f]
+   (re-frame/register-handler event-id
+                              (fn [db event] (f db event (-create-dispatch-fn db)))))
+  ([event-id middleware f]
+   (re-frame/register-handler event-id middleware
+                              (fn [db event] (f db event (-create-dispatch-fn db)))))
+  )
+(defn dispatch [event-id & args]
+  (apply re-frame/dispatch event-id @(re-frame/subscribe [:pid]) args))
+
+;; ## Appstyle
+;; ## Actual app component
+;;
+(defn app [& {:keys [title navigate-back actions views content]
+              :or {title "solsort" }}]
+  (aset js/document "title" title)
+  [:h1 "hello app"])
+
