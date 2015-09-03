@@ -25,7 +25,6 @@
   (defonce p2p-server (aget (js/require "socket.io-p2p-server") "Server")) 
 
 
-  (log (type @daemons))
   (def request (js/require "request"))
   (defn auth-token [cookies] (second (re-find #"AuthSession=([^;]*)" (or cookies ""))))
   (defn new-socket-connection [socket]
@@ -66,11 +65,12 @@
       nil)))
 
 ;; # Network api
-
-(defn emit [msgid pid & args]
-  ; pid: local-pid as dispatch w/pid, :daemon emit to random daemon, otherwise pid
-  ; -> (dispatch (str "net-" (name msgid)) sender-pid args) on recepient
-  )
+; TODO
+(defn sub
+  ([chan-id subscribe-key] (chan)) ; TODO
+  ([chan-id] (sub chan-id nil))) 
+(defn id [] (unique-id)) ; might be optimised for routing later on
+(defn pub! [chan-id msg] ) ; put! to named channel, goes to an arbitrary subscriber
 
 ;; ## Experiments
 (js/socket.removeAllListeners "http-request")
@@ -110,7 +110,7 @@
   )
 
 (go (loop [i 0]
-        (<! (timeout 5000))
-        (js/p2p.emit "hello" (clj->js [i (str js/navigator.userAgent)]))
-        (when (< i 3) (recur (inc i)))))
+      (<! (timeout 5000))
+      (js/p2p.emit "hello" (clj->js [i (str js/navigator.userAgent)]))
+      (when (< i 3) (recur (inc i)))))
 
