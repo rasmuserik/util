@@ -65,7 +65,7 @@
       (log "started server")
       nil)))
 
-;; # Net
+;; # Network api
 
 (defn emit [msgid pid & args]
   ; pid: local-pid as dispatch w/pid, :daemon emit to random daemon, otherwise pid
