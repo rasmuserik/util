@@ -40,8 +40,10 @@ This just loads all components and apps, and dispatches the route based on the a
         [solsort.bib]
         [solsort.experiments]
         [solsort.index]
-        [solsort.lemon]
-        [solsort.rasmuserik]))
+        [solsort.net]
+        [solsort.rasmuserik]
+        [solsort.server]
+        ))
     
     (defn main []
       (dispatch-route) )

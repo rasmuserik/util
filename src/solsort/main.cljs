@@ -32,9 +32,8 @@
     [solsort.bib]
     [solsort.experiments]
     [solsort.index]
-    [solsort.lemon]
+    [solsort.net]
     [solsort.rasmuserik]
-    [solsort.server]
     ))
 
 (defn main []

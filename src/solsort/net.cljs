@@ -1,4 +1,4 @@
-(ns solsort.server
+(ns solsort.net
   (:require-macros
     [reagent.ratom :as ratom]
     [cljs.core.async.macros :refer  [go alt!]])
@@ -64,3 +64,53 @@
       (.listen server 1234)
       (log "started server")
       nil)))
+
+;; # Net
+
+(defn emit [msgid pid & args]
+  ; pid: local-pid as dispatch w/pid, :daemon emit to random daemon, otherwise pid
+  ; -> (dispatch (str "net-" (name msgid)) sender-pid args) on recepient
+  )
+
+;; ## Experiments
+(js/socket.removeAllListeners "http-request")
+(js/socket.removeAllListeners "http-response-log")
+(js/socket.removeAllListeners "socket-connect")
+(js/socket.removeAllListeners "socket-disconnect")
+(js/socket.on
+  "http-request"
+  (fn [o] (log "http-request" o)
+    (js/socket.emit
+      "http-response"
+      #js {:url (aget o "url")
+           :key (aget o "key")
+           :content (str "Hello " (aget o "url"))})
+    ))
+(js/socket.on
+  "http-response-log"
+  (fn [o] (log "http-response" o)))
+(js/socket.on
+  "socket-connect"
+  (fn [o] (log "connect" o)))
+(js/socket.on
+  "socket-disconnect"
+  (fn [o] (log "discon" o)))
+
+(js/p2p.on
+  "ready"
+  ;(aset js/p2p "usePeerConnection" true)
+  (log 'p2p-ready)
+  ;(js/p2p.emit "hello" #js {:peerId js/navigator.userAgent})
+  )
+
+(js/p2p.removeAllListeners "hello")
+(js/p2p.on
+  "hello"
+  (fn [o] (log o))
+  )
+
+(go (loop [i 0]
+        (<! (timeout 5000))
+        (js/p2p.emit "hello" (clj->js [i (str js/navigator.userAgent)]))
+        (when (< i 3) (recur (inc i)))))
+
