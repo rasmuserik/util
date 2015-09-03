@@ -132,7 +132,7 @@
           (catch :default e
             (js/console.log e)
             (close! c))))
-      method data headers timeout credentials)
+      method data (clj->js headers) timeout credentials)
     c))
 
 (defonce gargs (atom {}))
@@ -549,7 +549,3 @@
         (js/p2p.emit "hello" (clj->js [i (str js/navigator.userAgent)]))
         (when (< i 3) (recur (inc i)))))
 
-;; # Server
-(when (and (some? js/window.require)
-           (some? (js/window.require "express")))
-  (log 'SERVER))

@@ -33,7 +33,9 @@
     [solsort.experiments]
     [solsort.index]
     [solsort.lemon]
-    [solsort.rasmuserik]))
+    [solsort.rasmuserik]
+    [solsort.server]
+    ))
 
 (defn main []
   (dispatch-route) )
