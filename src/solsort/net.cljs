@@ -1,16 +1,19 @@
 (ns solsort.net
   (:require-macros
-    [reagent.ratom :as ratom]
     [cljs.core.async.macros :refer  [go alt!]])
 
   (:require
     [cljs.test :refer-macros  [deftest testing is run-tests]]
+    [reagent.ratom :refer-macros [reaction]]
     [goog.net.XhrIo]
-    [solsort.core :refer [ajax route log unique-id]]
-    [reagent.core :as reagent :refer []]
-    [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
-    [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
+    [solsort.util :refer [log unique-id]]
+    [cljs.core.async :refer [>! <! chan put! take! timeout close!]]
+    [re-frame.core :refer [register-handler register-sub]]))
 
+(register-sub :online (fn [db _] (reaction (:online @db))))
+(register-handler :connect (fn [db [] _] (assoc db :online true)))
+(register-handler :disconnect (fn [db [] _] (assoc db :online false)))
+;; # Server
 (when (and (some? js/window.require)
            (some? (js/window.require "express")))
   (log "Running server")
@@ -114,3 +117,35 @@
       (js/p2p.emit "hello" (clj->js [i (str js/navigator.userAgent)]))
       (when (< i 3) (recur (inc i)))))
 
+;; # ajax
+
+(defn ajax [url & {:keys [method data headers timeout credentials result]
+                   :or {method "GET"
+                        data nil
+                        headers #js {}
+                        timeout 0
+                        credentials true
+                        result "js->clj"
+                        }}]
+  (let [c (chan)
+        data-is-json (not (contains?
+                            [nil js/window.ArrayBuffer js/window.ArrayBufferView js/window.Blob]
+                            (type data)))
+        data (if data-is-json (js/JSON.stringify (clj->js data)) data)]
+    (when data-is-json
+      (aset headers "Content-Type" "application/json"))
+    (goog.net.XhrIo/send
+      url
+      (fn [o]
+        (try
+          (let [res (.getResponseText (.-target o))
+                res (case (name result)
+                      ("text") res
+                      ("json") (js/JSON.parse res)
+                      ("js->clj") (js->clj (js/JSON.parse res)))]
+            (put! c res))
+          (catch :default e
+            (js/console.log e)
+            (close! c))))
+      method data (clj->js headers) timeout credentials)
+    c))

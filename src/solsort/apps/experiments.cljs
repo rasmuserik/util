@@ -1,14 +1,15 @@
 (ns solsort.apps.experiments
   (:require-macros
-    [reagent.ratom :as ratom]
+    [reagent.ratom :as ratom :refer [reaction]]
     [cljs.core.async.macros :refer  [go alt!]])
 
   (:require
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [goog.net.XhrIo]
     [goog.net.Jsonp]
-    [solsort.core :refer [route log]]
+    [solsort.core :refer [route log unique-id]]
     [reagent.core :as reagent :refer []]
+    [re-frame.core :as re-frame :refer [subscribe]]
     [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
 
@@ -29,3 +30,19 @@
 (swap! ra assoc :hi "foo")
 (print 'b)
 (print 'c @re)
+
+;; # Sample app
+(route
+  "hello"
+  (fn []
+    (reaction {:type :app
+           :title "solsort"
+           :navigate-back {:event ['home] :title "Home" :icon "home"}
+           :actions [ {:event [:log "pressed hello"] :icon "hello"}
+                     {:event ['paste] :icon "paste"} ]
+           :views [ {:event ['view-left] :icon "left"}
+                   {:event ['view-right] :icon "right"} ]
+           :html
+           [:div
+            (map (fn [e] [:div {:key (unique-id)} (.slice (str e) 1 -1)]) (reverse @(subscribe [:log])))
+            (str (range 1000))]})))

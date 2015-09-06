@@ -31,11 +31,10 @@
     [solsort.apps.bib]
     [solsort.apps.experiments]
     [solsort.apps.index]
+    [solsort.apps.lemon]
     [solsort.apps.rasmuserik]
-    [solsort.core :refer [dispatch-route log]]
-    [solsort.net]
+    [solsort.core :refer [dispatch-route]]
     ))
 
-(defn main []
-  (dispatch-route) )
-(js/setTimeout main 0)
+(defn on-js-reload [] (dispatch-route) )
+(js/setTimeout dispatch-route 0)
