@@ -13,8 +13,8 @@
     [solsort.net :as net :refer [ajax]]))
 
 
-;; # subscriptions/handlers
-
+(defn db-url [& args] (apply str "http://localhost:1234/db/" args))
+;; # login
 (defn get-user-password [db]
   (if (and js/window.process js/process.env)
     [js/process.env.SOLSORT_USER js/process.env.SOLSORT_PASSWORD]
@@ -28,12 +28,12 @@
   (fn [db _]
     (let [[user password] @(subscribe [:db-login])]
       (go 
-        (<! (ajax "http://localhost:1234/db/_session"
+        (<! (ajax (db-url "_session")
                        :method "POST"
                        :data {:name user :password password}))
         (dispatch 
           [:login-result 
-           (get-in (<! (ajax "http://localhost:1234/db/_session"))
+           (get-in (<! (ajax (db-url "_session")))
                    ["userCtx" "name"])])  
         ))
     db))
