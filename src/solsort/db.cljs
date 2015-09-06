@@ -9,18 +9,35 @@
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [clojure.string :as string :refer  [split]]
     [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch dispatch-sync]]
-    [solsort.util :as util :refer [function? chan? unique-id]]
-    [solsort.net :as net :refer [ajax]]
-    [reagent.core :as reagent :refer  []]))
+    [solsort.util :as util :refer [function? chan? unique-id log]]
+    [solsort.net :as net :refer [ajax]]))
 
 
-;; # DB-login
-#_(defonce gargs (atom {}))
-#_(go
-  (<! (ajax "http://localhost:1234/db/_session"
-            :method "POST"
-            :data {:name (@gargs "user") :password (@gargs "password")})))
+;; # subscriptions/handlers
 
+(defn get-user-password [db]
+  (if (and js/window.process js/process.env)
+    [js/process.env.SOLSORT_USER js/process.env.SOLSORT_PASSWORD]
+  (let [args (or (:args db {}))]
+    [(get args "user") (get args "password")])))
+(register-sub :db-login (fn [db] (reaction (get-user-password @db))))
+
+(register-handler :login-result (fn [db [_ user]] (log 'welcome user) (assoc db :user user)))
+(register-handler 
+  :login
+  (fn [db _]
+    (let [[user password] @(subscribe [:db-login])]
+      (go 
+        (<! (ajax "http://localhost:1234/db/_session"
+                       :method "POST"
+                       :data {:name user :password password}))
+        (dispatch 
+          [:login-result 
+           (get-in (<! (ajax "http://localhost:1234/db/_session"))
+                   ["userCtx" "name"])])  
+        ))
+    db))
+(dispatch [:login])
 ;; # DBs
 ;;
 ;; We have 3 need kinds of databases
