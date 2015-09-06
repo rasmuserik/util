@@ -28,12 +28,12 @@
 (ns ^:figwheel-always solsort.main
   (:require
     [reagent.core :as reagent]
+    [solsort.apps.bib]
+    [solsort.apps.experiments]
+    [solsort.apps.index]
+    [solsort.apps.rasmuserik]
     [solsort.core :refer [dispatch-route log]]
-    [solsort.bib]
-    [solsort.experiments]
-    [solsort.index]
     [solsort.net]
-    [solsort.rasmuserik]
     ))
 
 (defn main []

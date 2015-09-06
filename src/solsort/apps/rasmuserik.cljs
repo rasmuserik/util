@@ -1,4 +1,4 @@
-(ns ^:figwheel-load solsort.rasmuserik
+(ns ^:figwheel-load solsort.apps.rasmuserik
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
   (:require
     [solsort.core :refer [route log state]]

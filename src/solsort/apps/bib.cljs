@@ -1,4 +1,4 @@
-(ns solsort.bib
+(ns solsort.apps.bib
   (:require-macros
     [reagent.ratom :as ratom]
     [cljs.core.async.macros :refer  [go alt!]])

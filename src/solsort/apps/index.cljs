@@ -1,4 +1,4 @@
-(ns solsort.index
+(ns solsort.apps.index
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
   (:require
     [reagent.core :as reagent :refer  []]

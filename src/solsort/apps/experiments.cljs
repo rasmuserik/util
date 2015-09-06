@@ -1,4 +1,4 @@
-(ns solsort.experiments
+(ns solsort.apps.experiments
   (:require-macros
     [reagent.ratom :as ratom]
     [cljs.core.async.macros :refer  [go alt!]])
