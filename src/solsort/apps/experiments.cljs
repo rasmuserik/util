@@ -7,7 +7,7 @@
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [goog.net.XhrIo]
     [goog.net.Jsonp]
-    [solsort.core :refer [route log unique-id]]
+    [solsort.util :refer [route log unique-id]]
     [reagent.core :as reagent :refer []]
     [re-frame.core :as re-frame :refer [subscribe]]
     [cljs.core.async.impl.channels :refer [ManyToManyChannel]]

@@ -2,7 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
   (:require
     [reagent.core :as reagent :refer  []]
-    [solsort.core :refer [route log canonize-string hex-color]]
+    [solsort.util :refer [route log canonize-string hex-color]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close! pipe]]))
 
 

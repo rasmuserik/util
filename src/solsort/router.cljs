@@ -8,7 +8,7 @@
     [cljs.core.async :refer  [>! <! chan put! take! timeout close! pipe]]
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch dispatch-sync]]
-    [solsort.util :as util :refer [function? chan? log]]
+    [solsort.misc :as misc :refer [function? chan? log]]
     [solsort.ui :as ui]
     [solsort.style :as style]
     [reagent.core :as reagent :refer  []]))

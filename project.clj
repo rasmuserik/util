@@ -1,7 +1,7 @@
-(defproject solsort "0.0.1-SNAPSHOT"
-  :description "Solsort apps"
-  :url "https://github.com/rasmuserik/solsort-new"
-  :license {:name "Several licenses" :url "https://github.com/rasmuserik/solsort-new"}
+(defproject solsort/util "0.0.2-SNAPSHOT"
+  :description "Solsort utility-functions"
+  :url "https://github.com/rasmuserik/solsort-util"
+  :license {:name "Several licenses" :url "https://github.com/rasmuserik/solsort-util"}
 
   :dependencies
   [[org.clojure/clojure "1.7.0"]
@@ -29,6 +29,7 @@
    "target"
    ".lein.failures"
    "figwheel_server.log"
+   "pom.xml"
    "docs"
   ; "node_modules"
    ]

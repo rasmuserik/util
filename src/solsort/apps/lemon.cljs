@@ -7,7 +7,7 @@
     [cljs.test :refer-macros  [deftest testing is]]
     [goog.net.XhrIo]
     [goog.net.Jsonp]
-    [solsort.core :refer [route log ajax]]
+    [solsort.util :refer [route log ajax]]
     ;[garden.core :refer [css]]
     ;[garden.units :refer [px em]]
     [reagent.core :as reagent :refer []]

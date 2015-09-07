@@ -1,7 +1,7 @@
 (ns ^:figwheel-load solsort.apps.rasmuserik
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
   (:require
-    [solsort.core :refer [route log]]
+    [solsort.util :refer [route log]]
     [reagent.core :as reagent :refer  []]
     [cljs.core.async :refer [>! <! chan put! take! timeout close! pipe]]))
 

@@ -6,7 +6,7 @@
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [reagent.ratom :refer-macros [reaction]]
     [goog.net.XhrIo]
-    [solsort.util :refer [log unique-id]]
+    [solsort.misc :refer [log unique-id]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]
     [re-frame.core :refer [register-handler register-sub]]))
 

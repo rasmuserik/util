@@ -7,7 +7,7 @@
     [cljs.test :refer-macros  [deftest testing is]]
     [goog.net.XhrIo]
     [goog.net.Jsonp]
-    [solsort.core :refer [route log ajax]]
+    [solsort.util :refer [route log ajax]]
     [reagent.core :as reagent :refer []]
     [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))

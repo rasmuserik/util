@@ -9,7 +9,7 @@
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [clojure.string :as string :refer  [split]]
     [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch dispatch-sync]]
-    [solsort.util :as util :refer [function? chan? unique-id log]]
+    [solsort.misc :as misc :refer [function? chan? unique-id log]]
     [solsort.net :as net :refer [ajax]]))
 
 

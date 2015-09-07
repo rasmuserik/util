@@ -33,7 +33,7 @@
     [solsort.apps.index]
     [solsort.apps.lemon]
     [solsort.apps.rasmuserik]
-    [solsort.core :refer [dispatch-route]]
+    [solsort.util :refer [dispatch-route]]
     ))
 
 (defn on-js-reload [] (dispatch-route) )
