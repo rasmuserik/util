@@ -63,7 +63,7 @@
                        (= js/location.hostname "solsort.com")
                        (= js/location.hostname "blog.solsort.com")
                        (= js/location.hostname "localhost"))
-                   (js/location.pathname)))
+                   js/location.pathname))
         route (and adr (parse-route adr))
         ]
     (dispatch-sync [:update-viewport])
