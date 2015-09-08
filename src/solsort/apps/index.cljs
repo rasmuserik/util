@@ -84,7 +84,7 @@
    ])
 
 
-(route :default
+(route :default :html
        (fn []
          (reagent/render-component  [home-html] js/document.body)
          {:offline true :type "html" :title "solsort.com" :html (home-html)}))

@@ -91,7 +91,7 @@
     [:br] "Updated Summer 2015"]]
   )
 
-(route "rasmuserik"
+(route "rasmuserik" :html
        (fn []
         (reagent/render-component  [html] js/document.body)
          {:type "html"

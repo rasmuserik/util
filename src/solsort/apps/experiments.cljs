@@ -33,7 +33,7 @@
 
 ;; # Sample app
 (route
-  "hello"
+  "hello" :app
   (fn []
     (reaction {:type :app
            :title "solsort"

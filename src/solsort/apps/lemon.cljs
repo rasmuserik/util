@@ -231,7 +231,8 @@
     [:div.bar-clear]
     [main]]])
 
-(route "lemon" (fn []
+(route "lemon" :app 
+       (fn []
                  (log 'lemon-route)
                  (reagent/render-component [root-elem] js/document.body))) ; ##
 ;; # Get data from server

@@ -24,7 +24,9 @@
 
 ;; # router
 (defonce routes (atom {}))
-(defn route [id f]
+(defonce route-types (atom {}))
+(defn route [id t f]
+  (swap! route-types assoc id t) 
   (swap! routes assoc id f))
 (def route-re #"([^?]*)(.*)")
 
