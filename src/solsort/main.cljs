@@ -33,8 +33,5 @@
     [solsort.apps.index]
     [solsort.apps.lemon]
     [solsort.apps.rasmuserik]
-    [solsort.util :refer [dispatch-route]]
+    [solsort.util]
     ))
-
-(defn on-js-reload [] (dispatch-route) )
-(js/setTimeout dispatch-route 0)

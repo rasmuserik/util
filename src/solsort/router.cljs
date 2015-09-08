@@ -54,7 +54,7 @@
         (log 'unsupported-app-type (:type content))
         [:h1 "unsupported app type"]))))
 
-(defn dispatch-route []
+(defn start []
   (let [adr (or
               (and (= "#solsort:"  (.slice js/location.hash 0 9))
                    (.slice js/location.hash 9))

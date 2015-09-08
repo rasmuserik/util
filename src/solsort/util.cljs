@@ -8,6 +8,8 @@
     [solsort.router :as router]
     ))
 
+(js/setTimeout router/start 0)
+
 (def log misc/log)
 (def canonize-string misc/canonize-string)
 (def hex-color misc/hex-color)
@@ -16,6 +18,6 @@
 (def app ui/app)
 
 (def route router/route)
-(def dispatch-route router/dispatch-route)
+(def start router/start)
 
 (def ajax net/ajax)

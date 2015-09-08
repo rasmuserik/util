@@ -76,6 +76,7 @@
 (defn pub! [chan-id msg] ) ; put! to named channel, goes to an arbitrary subscriber
 
 ;; ## Experiments
+(when js/window.socket
 (js/socket.removeAllListeners "http-request")
 (js/socket.removeAllListeners "http-response-log")
 (js/socket.removeAllListeners "socket-connect")
@@ -115,7 +116,7 @@
 (go (loop [i 0]
       (<! (timeout 5000))
       (js/p2p.emit "hello" (clj->js [i (str js/navigator.userAgent)]))
-      (when (< i 3) (recur (inc i)))))
+      (when (< i 3) (recur (inc i))))))
 
 ;; # ajax
 
