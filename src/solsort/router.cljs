@@ -24,9 +24,8 @@
 
 ;; # router
 (defonce routes (atom {}))
-(defonce route-types (atom {}))
-(defn route [id t f]
-  (swap! route-types assoc id t) 
+(defn route [id & {:keys (html app json f)
+                   :or {f (or html app json)}}]
   (swap! routes assoc id f))
 (def route-re #"([^?]*)(.*)")
 
