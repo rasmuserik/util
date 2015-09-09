@@ -67,6 +67,28 @@
       (log "started server")
       nil)))
 
+
+;; # Client connection
+(def is-dev (or
+    (= "file:" js/location.protocol)
+    (contains? #{"3449" "3000"} js/location.port)))
+(def hostname (if (= "" js/location.hostname) "localhost" js/location.hostname))
+(def socket-path (if is-dev 
+                   (str "http://" hostname ":1234/socket.io/")
+                   (str js/location.protocol "//blog.solsort.com/socket.io/")))
+(defn load-js [url]
+  (let [c (chan)
+        elem (js/document.createElement "script")]
+    (js/document.head.appendChild elem)
+    (aset elem "onload" (fn [] (put! c true)))
+    (aset elem "src" url)
+    c))
+(defn socket-connect []
+  (go
+    (when-not (some? js/window.io)
+        (<! (load-js (str socket-path "socket.io.js"))))
+    ))
+(socket-connect)
 ;; # Network api
 ; TODO
 (defn sub
@@ -77,46 +99,46 @@
 
 ;; ## Experiments
 (when js/window.socket
-(js/socket.removeAllListeners "http-request")
-(js/socket.removeAllListeners "http-response-log")
-(js/socket.removeAllListeners "socket-connect")
-(js/socket.removeAllListeners "socket-disconnect")
-(js/socket.on
-  "http-request"
-  (fn [o] (log "http-request" o)
-    (js/socket.emit
-      "http-response"
-      #js {:url (aget o "url")
-           :key (aget o "key")
-           :content (str "Hello " (aget o "url"))})
-    ))
-(js/socket.on
-  "http-response-log"
-  (fn [o] (log "http-response" o)))
-(js/socket.on
-  "socket-connect"
-  (fn [o] (log "connect" o)))
-(js/socket.on
-  "socket-disconnect"
-  (fn [o] (log "discon" o)))
+  (js/socket.removeAllListeners "http-request")
+  (js/socket.removeAllListeners "http-response-log")
+  (js/socket.removeAllListeners "socket-connect")
+  (js/socket.removeAllListeners "socket-disconnect")
+  (js/socket.on
+    "http-request"
+    (fn [o] (log "http-request" o)
+      (js/socket.emit
+        "http-response"
+        #js {:url (aget o "url")
+             :key (aget o "key")
+             :content (str "Hello " (aget o "url"))})
+      ))
+  (js/socket.on
+    "http-response-log"
+    (fn [o] (log "http-response" o)))
+  (js/socket.on
+    "socket-connect"
+    (fn [o] (log "connect" o)))
+  (js/socket.on
+    "socket-disconnect"
+    (fn [o] (log "discon" o)))
 
-(js/p2p.on
-  "ready"
-  ;(aset js/p2p "usePeerConnection" true)
-  (log 'p2p-ready)
-  ;(js/p2p.emit "hello" #js {:peerId js/navigator.userAgent})
-  )
+  (js/p2p.on
+    "ready"
+    ;(aset js/p2p "usePeerConnection" true)
+    (log 'p2p-ready)
+    ;(js/p2p.emit "hello" #js {:peerId js/navigator.userAgent})
+    )
 
-(js/p2p.removeAllListeners "hello")
-(js/p2p.on
-  "hello"
-  (fn [o] (log o))
-  )
+  (js/p2p.removeAllListeners "hello")
+  (js/p2p.on
+    "hello"
+    (fn [o] (log o))
+    )
 
-(go (loop [i 0]
-      (<! (timeout 5000))
-      (js/p2p.emit "hello" (clj->js [i (str js/navigator.userAgent)]))
-      (when (< i 3) (recur (inc i))))))
+  (go (loop [i 0]
+        (<! (timeout 5000))
+        (js/p2p.emit "hello" (clj->js [i (str js/navigator.userAgent)]))
+        (when (< i 3) (recur (inc i))))))
 
 ;; # ajax
 
