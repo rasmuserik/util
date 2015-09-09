@@ -10,6 +10,7 @@
 
 (js/setTimeout router/start 0)
 
+(def host net/host)
 (def log misc/log)
 (def canonize-string misc/canonize-string)
 (def hex-color misc/hex-color)

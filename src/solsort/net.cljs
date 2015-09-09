@@ -72,10 +72,11 @@
 (def is-dev (or
     (= "file:" js/location.protocol)
     (contains? #{"3449" "3000"} js/location.port)))
-(def hostname (if (= "" js/location.hostname) "localhost" js/location.hostname))
-(def socket-path (if is-dev 
-                   (str "http://" hostname ":1234/socket.io/")
-                   (str js/location.protocol "//blog.solsort.com/socket.io/")))
+(def location-hostname (if (= "" js/location.hostname) "localhost" js/location.hostname))
+(def host (if is-dev 
+                   (str "http://" host ":1234/")
+                   (str js/location.protocol "//blog.solsort.com/")))
+(def socket-path (str host "/socket.io/"))
 (defn load-js [url]
   (let [c (chan)
         elem (js/document.createElement "script")]
