@@ -43,7 +43,7 @@
     {:path path :args args}) )
 
 (defn get-route []
-  (or  (@routes @(subscribe [:app])) (:default @routes) #{}))
+  (or  (@routes @(subscribe [:app])) (:default @routes) #{:disabled true}))
 
 (keys @routes)
 
@@ -75,7 +75,7 @@
              content (if (chan? content) (<! content) content)
              type (:type (if (satisfies? IAtom content) @content content))
              ]
-        (when elem
+        (when (and elem (not (:disabled content)))
           (reagent/render-component  [main-app content type] elem))))))
 
 ;; # routes
