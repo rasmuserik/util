@@ -74,16 +74,20 @@
     (contains? #{"3449" "3000"} js/location.port)))
 (def location-hostname (if (= "" js/location.hostname) "localhost" js/location.hostname))
 (def host (if is-dev 
-                   (str "http://" host ":1234/")
+                   (str "http://" location-hostname ":1234/")
                    (str js/location.protocol "//blog.solsort.com/")))
-(def socket-path (str host "/socket.io/"))
-(defn load-js [url]
+(def socket-path (str host "socket.io/"))
+
+(defn load-js 
+  "Load a JavaScript file, and emit true on returned channel when done"
+  [url]
   (let [c (chan)
         elem (js/document.createElement "script")]
     (js/document.head.appendChild elem)
     (aset elem "onload" (fn [] (put! c true)))
     (aset elem "src" url)
     c))
+
 (defn socket-connect []
   (go
     (when-not (some? js/window.io)

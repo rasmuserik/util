@@ -7,7 +7,7 @@
     [cljs.test :refer-macros  [deftest testing is]]
     [goog.net.XhrIo]
     [goog.net.Jsonp]
-    [solsort.util :refer [route log ajax]]
+    [solsort.util :refer [route log ajax host]]
     ;[garden.core :refer [css]]
     ;[garden.units :refer [px em]]
     [reagent.core :as reagent :refer []]
@@ -79,7 +79,7 @@
 (defn front-page []
   [:div
    [:h1 @title]
-   [:form {:action (str js/solsort_server "/db/_session") :method "POST"}
+   [:form {:action (str host "db/_session") :method "POST"}
     [:input {:name "name" :value "daemon"}]
     [:input {:name "password" :value (js/location.hash.slice 1)}]
     [:input {:type "submit"}]

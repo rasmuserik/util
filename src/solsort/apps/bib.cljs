@@ -7,7 +7,7 @@
     [cljs.test :refer-macros  [deftest testing is]]
     [goog.net.XhrIo]
     [goog.net.Jsonp]
-    [solsort.util :refer [route log ajax]]
+    [solsort.util :refer [route log ajax host]]
     [reagent.core :as reagent :refer []]
     [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
@@ -34,7 +34,7 @@
   )
 
 (go
-  (print (<! (ajax (str js/solsort_server "/db/_session") :result "text")))
+  (print (<! (ajax (str host "db/_session") :result "text")))
   (js/console.log
     (clj->js
       {:info (<! (jsonp "http://localhost/bib/info/50581438"))
@@ -54,7 +54,7 @@
 
     ))
 
-#_(go (let [lids (js/JSON.parse (<! (ajax (str js/solsort_server "/db/bib/info/lids.json")
+#_(go (let [lids (js/JSON.parse (<! (ajax (str host "db/bib/info/lids.json")
                                           :result "text")))]
         (loop [i (or (int (js/localStorage.getItem "i")) 0)
                ]
@@ -62,7 +62,7 @@
             (let [lid (aget lids i)
                   data (<! (get-triple  (aget lids i)))
                   result (<! (ajax
-                               (str js/solsort_server "/db/bib/" lid)
+                               (str host "db/bib/" lid)
                                :method "PUT"
                                :data (js/JSON.stringify data)))]
               (aset js/document "title" (str i))
