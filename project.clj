@@ -26,10 +26,10 @@
   :clean-targets ^{:protect false} 
   ["resources/public/out" 
    "resources/public/solsort.js" 
-   "target"
+ ;  "target"
    ".lein.failures"
    "figwheel_server.log"
-   "pom.xml"
+ ;  "pom.xml"
    "docs"
   ; "node_modules"
    ]
