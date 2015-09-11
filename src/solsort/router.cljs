@@ -1,3 +1,41 @@
+;; # Router - dispatch into different states of the application
+;; 
+;; Different kinds of dispatch:
+;;
+;; - http-requests - html, pages, rest
+;; - widgets in page
+;; - fullpage/url-hash/app ready/opened
+;; - rpc/ipc
+;;
+;; NB: notice there can be severa widgets on a page or several http-requests, 
+;; meaning that the db/state should anticipate that.
+;;
+;; A widget/page is a combination of route+db
+;;
+;; Different kinds of content are:
+;;
+;; - data with mime-type/caching/http-headers
+;;   - json-data / api
+;;   - (images rendered with canvas etc.)
+;;   - css
+;;   - pure html
+;; - react-element
+;;   - app
+;;   - widget
+;;
+;; ----
+;;
+;; - Initialiser
+;;   - HTTP-request
+;;   - widget + call init()
+;;   - (fullpage-load)
+;;   - (rpc/ipc)
+;; - Output
+;;   - in-page reactive react component
+;;   - static data/css/html
+;;
+;;
+;; # Namespace definition and dependencies
 (ns solsort.router
   (:require-macros
     [reagent.ratom :as ratom :refer [reaction]]
@@ -13,19 +51,15 @@
     [solsort.style :as style]
     [reagent.core :as reagent :refer  []]))
 
-(register-handler :error (fn [db [_ e] _] (log 'error (.-message e) e) db))
+;; # Handlers and subscriptions
+
 (register-handler :route (fn [db [_ route] _] (into db route)))
-(defonce initialise
-  (do
-    (js/window.addEventListener "error" #(dispatch [:error %]))))
-(register-sub :db (fn [db _] (reaction @db)))
-#_(js/console.log (clj->js @(subscribe [:db]))) ; debug
 (register-sub :app (fn [db _] (reaction (first (:path @db)))))
 
-;; # router
+;; # Actual Router implementation
 (defonce routes (atom {}))
-(defn route [id & {:keys (html app json f)
-                   :or {f (or html app json)}}]
+(defn route [id & {:keys (html app json http f)
+                   :or {f (or html app json http)}}]
   (swap! routes assoc id f))
 (def route-re #"([^?]*)(.*)")
 
@@ -78,10 +112,13 @@
         (when (and elem (not (:disabled content)))
           (reagent/render-component  [main-app content type] elem))))))
 
-;; # routes
+;; # Actual routes for depended on code
+;;
+;; Modules used by the router cannot declare routes themself, so instead those routes 
+;; are implemented here.
 
 (route 
-  "style"
+  "style" :http
   (fn []
     {:type :http
       :http-headers {:Content-Type "text/css"} 

@@ -6,6 +6,8 @@
     [solsort.db :as db]
     [solsort.style :as style]
     [solsort.router :as router]
+    [reagent.ratom :as ratom :refer-macros [reaction]]
+    [re-frame.core :refer [register-handler register-sub dispatch]]
     ))
 
 (js/setTimeout router/start 0)
@@ -22,3 +24,13 @@
 (def start router/start)
 
 (def ajax net/ajax)
+
+;; # log global error messages
+(register-handler :error (fn [db [_ e] _] (log 'error (.-message e) e) db))
+(defonce initialise
+  (do (js/window.addEventListener "error" #(dispatch [:error %]))))
+
+;; # debug
+(register-sub :db (fn [db _] (reaction @db)))
+#_(js/console.log (clj->js @(subscribe [:db]))) ; debug
+

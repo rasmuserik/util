@@ -33,7 +33,14 @@
     )
   )
 
-(go
+#(go 
+  (let [t0 (js/Date.now)]
+  (log (<! (ajax "http://localhost/db/bib/50581438")))
+  (log (- (js/Date.now) t0))
+  
+  )
+  )
+#_(go
   (print (<! (ajax (str host "db/_session") :result "text")))
   (js/console.log
     (clj->js
@@ -42,7 +49,6 @@
        :triples (<! (jsonp-hack (str "https://dev.vejlebib.dk/ting-visual-relation"
                                 "/get-ting-object/870970-basis:50581438")))}))
   )
-(js/console.log "hello")
 
 ;; bibdata-process
 (defn get-triple [id]
