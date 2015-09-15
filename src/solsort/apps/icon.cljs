@@ -12,15 +12,23 @@
     [solsort.db :refer [db-url]]
     [reagent.core :as reagent :refer []]
     [cljsjs.pouchdb]
-    [re-frame.core :as re-frame :refer [subscribe register-handler]]
+    [re-frame.core :as re-frame :refer [subscribe register-handler dispatch]]
     [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
 
+(declare icon-db)
+(declare <icon-url)
+
 (register-handler 
-  :icon-loaded
-  (fn [db [_ i]] 
-    (assoc db :icons
-           (assoc (or (:icons db) {}) (:id i) i))))
+  :icon-loaded 
+  (fn [db [_ id icon]] (assoc-in db [:icons id] (or icon "TODO: missing icon icon"))))
+(register-handler
+  :load-icon
+  (fn [db [_ [_ id]]]
+    (when-not (get (:icons db) id))
+    (go (dispatch :icon-loaded id (<! (<icon-url id))))
+    (assoc-in db [:icons id] "TODO: icon loading icon" )))
+
 
 ;; # PouchDB shorthands
 (defn put!close! [c d] (if (nil? d) (close! c) (put! c d)))
@@ -46,6 +54,8 @@
     c))
 
 (defn <icon-url [id] (go (<! (<blob-url (<! (<first-attachment icon-db id))))))
+
+
 ;; #experiments
 (defonce icon-db (js/PouchDB. "icons"))
 (go
