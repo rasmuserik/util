@@ -21,13 +21,15 @@
 
 (register-handler 
   :icon-loaded 
-  (fn [db [_ id icon]] (assoc-in db [:icons id] (or icon "TODO: missing icon icon"))))
+  (fn [db [_ id icon]] 
+    (log 'icon-loaded id icon)
+    (assoc-in db [:icons id] (or icon "TODO: missing icon icon"))))
 (register-handler
   :load-icon
-  (fn [db [_ [_ id]]]
-    (when-not (get (:icons db) id))
-    (go (dispatch :icon-loaded id (<! (<icon-url id))))
-    (assoc-in db [:icons id] "TODO: icon loading icon" )))
+  (fn [db [_ id]]
+    (when-not (get (:icons db) id)
+    (go (dispatch [:icon-loaded id (<! (<icon-url id))])))
+    (assoc-in db [:icons id] "TODO: missing icon icon")))
 
 
 ;; # PouchDB shorthands
@@ -77,7 +79,7 @@
        (fn []
          (reaction {:type :app
                     :title "solsort"
-                    :navigate-back {:event ['home] :title "Home" :icon "home"}
+                    :navigate-back {:event ['home] :title "Home" :icon "solsort"}
                     :actions [ {:event [:log "pressed hello"] :icon "hello"}
                               {:event ['paste] :icon "paste"} ]
                     :views [ {:event ['view-left] :icon "left"}

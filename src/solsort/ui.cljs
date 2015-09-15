@@ -25,6 +25,7 @@
                               (get-in @db  [:viewport :height])])))
 (register-sub :width  (fn  [db _]  (reaction  (get-in @db  [:viewport :width]))))
 (register-sub :height  (fn  [db _]  (reaction  (get-in @db  [:viewport :height]))))
+(register-sub :icons (fn  [db _]  (reaction  (:icons @db))))
 
 (register-handler
   :update-viewport
@@ -82,7 +83,16 @@
 (def bar-color "rgba(250,240,230,0.9)")
 ;(def bar-color "#f7f7f7")
 (defn icon [id]
-  [:span "[" id "]"])
+  (let [url (get @(subscribe [:icons]) id)]
+    (js/console.log "url" url)
+    (when-not url
+      (dispatch [:load-icon id]))
+    (if url
+      [:img.icon-img {:src url}]
+      [:span "[" id "]"] 
+      )
+    )
+  )
 (def app-style ; ###
   (ratom/reaction
     {:h1 {:background "red"}
@@ -101,6 +111,7 @@
       :height bar-height
       :position :fixed  }
 
+     :.icon-img {:width "2em" :height "2em" :vertical-align "middle" :margin ".25em"}
      :.topheight {}
      :.barheight {:height bar-height}
      :.botbar { :bottom 0 }}))
