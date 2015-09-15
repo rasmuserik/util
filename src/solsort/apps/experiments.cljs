@@ -32,8 +32,7 @@
 (print 'c @re)
 
 ;; # Sample app
-(route
-  "hello" :app
+(route "hello" :app
   (fn []
     (reaction {:type :app
            :title "solsort"
