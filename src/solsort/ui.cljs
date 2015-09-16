@@ -142,8 +142,8 @@
           [:span.float-right]
           (map
             (fn [a] [:span.barbutton
-                     {:on-click #(dispatch (:event a))
-                      :on-touch-start (fn [] (dispatch (:event a)) false)}
+                     {:on-click #(dispatch-sync (:event a))
+                      :on-touch-start (fn [] (dispatch-sync (:event a)) false)}
                      " " [icon (:icon a)] " "])
             actions)))]
      (when views
@@ -151,8 +151,8 @@
          [:div.botbar.bar]
          (map
            (fn [a] [:span.barbutton
-                    {:on-click #(dispatch (:event a))
-                     :on-touch-start (fn [] (dispatch (:event a)) false)}
+                    {:on-click #(dispatch-sync (:event a))
+                     :on-touch-start (fn [] (dispatch-sync (:event a)) false)}
                     " " [icon (:icon a)] " "])
            views)))
      [:div.barheight]

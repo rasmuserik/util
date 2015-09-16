@@ -10,9 +10,10 @@
     [solsort.util :refer [route log unique-id]]
     [solsort.net :as net]
     [solsort.db :refer [db-url]]
+    [solsort.ui]
     [reagent.core :as reagent :refer []]
     [cljsjs.pouchdb]
-    [re-frame.core :as re-frame :refer [subscribe register-handler dispatch]]
+    [re-frame.core :as re-frame :refer [subscribe register-sub register-handler dispatch]]
     [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
 
@@ -24,14 +25,17 @@
   (fn [db [_ id icon]] 
     (log 'icon-loaded id icon)
     (assoc-in db [:icons id] (or icon "TODO: missing icon icon"))))
+
 (register-handler
   :load-icon
   (fn [db [_ id]]
     (when-not (get (:icons db) id)
-    (go (dispatch [:icon-loaded id (<! (<icon-url id))])))
+      (go (dispatch [:icon-loaded id (<! (<icon-url id))])))
     (assoc-in db [:icons id] "TODO: missing icon icon")))
 
-
+(register-handler :all-icons (fn [db [_ ids]] (assoc db :all-icons ids)))
+(register-handler :add-icons-dialog (fn [db _]  (.click (js/document.getElementById "iconfile-input")) db))
+(register-sub :all-icons (fn [db] (reaction (:all-icons @db))))
 ;; # PouchDB shorthands
 (defn put!close! [c d] (if (nil? d) (close! c) (put! c d)))
 (defn <p 
@@ -65,8 +69,7 @@
   (log 'blob (<! (<blob-url (<!  (<first-attachment icon-db "solsort")))))
   (let [[u p] @(subscribe [:db-login])]
     (when (= u "daemon")
-      ;      (.sync icon-db (db-url "icons"))
-      ;      (log "all-docs" (js->clj (<! (<p (.allDocs icon-db))))) 
+            (.sync icon-db (db-url "icons"))
       ;      (log "solsort" (<! (<p (.get icon-db "solsort"))))  
       ;      (js/console.log "attach" (<! (<p (.getAttachment icon-db "solsort" "solsort.svg"))))
 
@@ -74,17 +77,33 @@
 
 (js/console.log (.allDocs icon-db))
 
+(defn show-icon [id]
+  [:span.icon-sample [solsort.ui/icon id] [:br]  id " "]
+  )
 ;; # Sample app
 (route "icon" :app
        (fn []
+         (go
+           (let [icons (map #(get % "id")
+                            (-> icon-db (.allDocs) (<p) (<!) (js->clj) (get "rows")))]
+             (dispatch [:all-icons icons])
+           (log "all-docs" icons)
+           
+           ))
          (reaction {:type :app
                     :title "solsort"
                     :navigate-back {:event ['home] :title "Home" :icon "solsort"}
                     :actions [ {:event [:log "pressed hello"] :icon "hello"}
                               {:event ['paste] :icon "paste"} ]
                     :views [ {:event ['view-left] :icon "left"}
-                            {:event ['view-right] :icon "right"} ]
+                            {:event [:add-icons-dialog] :icon "89834"} ]
                     :html
                     [:div
+                     [:input.hidden {:id "iconfile-input" 
+                                     :type "file" 
+                                     :multiple true 
+                                     :on-change (fn [a] (js/console.log "file-change" a))}]
+                     (into [:div]
+                           (map show-icon @(subscribe [:all-icons])))
                      (map (fn [e] [:div {:key (unique-id)} (.slice (str e) 1 -1)]) (reverse @(subscribe [:log])))
                      (str (range 1000))]})))

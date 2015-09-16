@@ -43,4 +43,14 @@
          :.container {:margin "5%" }
          :.button {:margin 5 :padding 5 :borderRadius 5 :border "1px solid black"}
          :body {:margin 0 :padding 0 :fontFamily "Ubuntu, sans-serif"}
+         :.hidden {:display "none"}
          :div {:margin 0 :padding 0} }))
+
+(defn load-default-style! []
+  (aset (or (js/document.getElementById "default-style")
+                 (let [elem (js/document.createElement "style")]
+                   (aset elem "id" "default-style")
+                   (.appendChild js/document.head elem) 
+                   elem))
+        "innerHTML" (clj->css @default-style)))
+(load-default-style!)
