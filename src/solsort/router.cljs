@@ -22,10 +22,20 @@
 #_(js/console.log (clj->js @(subscribe [:db]))) ; debug
 (register-sub :app (fn [db _] (reaction (first (:path @db)))))
 
+;; # Router design
+;;
+;; There are two kinds of execution of routes:
+;;
+;; - stateful/reactive, ie. app, widget, ...
+;; - pure, ie. http-request, fn-call, ...
+;;
+;; Several routes can be executed at the same time, ie. several widgets on a page, or
+;; several parallel http-requests.
+;;
 ;; # router
 (defonce routes (atom {}))
-(defn route [id & {:keys (html app json f)
-                   :or {f (or html app json)}}]
+(defn route [id & {:keys (html app json http f)
+                   :or {f (or html app json http)}}]
   (swap! routes assoc id f))
 (def route-re #"([^?]*)(.*)")
 
@@ -81,7 +91,7 @@
 ;; # routes
 
 (route 
-  "style"
+  "style" :http
   (fn []
     {:type :http
       :http-headers {:Content-Type "text/css"} 
