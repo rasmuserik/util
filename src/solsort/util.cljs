@@ -8,7 +8,9 @@
     [solsort.router :as router]
     ))
 
-(js/setTimeout router/start 0)
+(if (= "complete" js/document.readyState)
+  (js/setTimeout router/start 0)
+  (js/document.addEventListener "DOMContentLoaded" router/start))
 
 (def host net/host)
 (def log misc/log)

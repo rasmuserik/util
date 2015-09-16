@@ -35,7 +35,6 @@
       (go (dispatch [:icon-loaded id (<! (<icon-url id))])))
     db))
 
-(log 'hello-icon)
 (register-handler :all-icons (fn [db [_ ids]] (assoc db :all-icons ids)))
 (register-handler 
   :icon-cloud-sync 
@@ -119,21 +118,16 @@
 
 (route "icons" :app
        (fn []
-         (all-icons)
+         (go (<! (<p (.replicate.from icon-db (db-url "icons"))))
+          (all-icons))
          (reaction {:type :app
                     :title "Icons"
-                    ;:navigate-back {:event ['home] :title "Home" :icon "solsort"}
                     :actions [{:event [:icon-cloud-sync] :icon "31173"}
                               {:event [:add-icons-dialog] :icon "89834"}  ]
-                    ;:views [ {:event ['view-left] :icon "left"}
-                    ;        {:event [:add-icons-dialog] :icon "89834"} ]
                     :html
                     [:div
                      [:input.hidden {:id "iconfile-input" 
                                      :type "file" 
                                      :multiple true 
                                      :on-change upload-files}]
-                     (into [:div]
-                           (map show-icon @(subscribe [:all-icons])))
-                     (map (fn [e] [:div {:key (unique-id)} (.slice (str e) 1 -1)]) (reverse @(subscribe [:log])))
-                     (str (range 1000))]})))
+                     (into [:div] (map show-icon @(subscribe [:all-icons])))]})))
