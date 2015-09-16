@@ -84,7 +84,6 @@
 ;(def bar-color "#f7f7f7")
 (defn icon [id]
   (let [url (get @(subscribe [:icons]) id)]
-    (js/console.log "url" url)
     (when-not url
       (dispatch [:load-icon id]))
     (if url
