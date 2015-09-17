@@ -13,7 +13,7 @@
     [solsort.net :as net :refer [ajax]]))
 
 
-(defn db-url [& args] (apply str "http://localhost:1234/db/" args))
+(defn db-url [& args] (apply str net/host "db/" args))
 ;; # login
 (defn get-user-password [db]
   (if (and js/window.process js/process.env)

@@ -31,6 +31,7 @@
     [solsort.apps.bib]
     [solsort.apps.experiments]
     [solsort.apps.index]
+    [solsort.apps.icons]
     [solsort.apps.lemon]
     [solsort.apps.rasmuserik]
     [solsort.util]

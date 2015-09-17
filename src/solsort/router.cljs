@@ -56,7 +56,17 @@
 (register-handler :route (fn [db [_ route] _] (into db route)))
 (register-sub :app (fn [db _] (reaction (first (:path @db)))))
 
-;; # Actual Router implementation
+;; # Router design
+;;
+;; There are two kinds of execution of routes:
+;;
+;; - stateful/reactive, ie. app, widget, ...
+;; - pure, ie. http-request, fn-call, ...
+;;
+;; Several routes can be executed at the same time, ie. several widgets on a page, or
+;; several parallel http-requests.
+;;
+;; # router
 (defonce routes (atom {}))
 (defn route [id & {:keys (html app json http f)
                    :or {f (or html app json http)}}]

@@ -194,12 +194,3 @@
 (add-entry "CuteEngine"
            ["2011" "unfinished" "game" "unfinished"]
            "http://solsort.com/cute-engine")
-
-
-;(def cached-file (memoize read-file-sync))
-(def cached-file "not loaded")
-
-(route "icons"
-       (fn []
-        #js{:http-headers #js{:Content-Type "text/plain"}
-            :content (cached-file "misc/white.png")}))
