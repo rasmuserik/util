@@ -1,39 +1,33 @@
-;; # Router - dispatch into different states of the application
-;; 
-;; Different kinds of dispatch:
+;; # Router design
 ;;
-;; - http-requests - html, pages, rest
-;; - widgets in page
-;; - fullpage/url-hash/app ready/opened
-;; - rpc/ipc
+;; There are two kinds of execution of routes:
 ;;
-;; NB: notice there can be severa widgets on a page or several http-requests, 
-;; meaning that the db/state should anticipate that.
+;; - stateful/reactive, ie. app(through hash-url, or call), widget, ...
+;; - pure, ie. http-request, fn-call(rest/rpc/local), ...
 ;;
-;; A widget/page is a combination of route+db
+;; Several routes can be executed at the same time, ie. several widgets on a page, or
+;; several parallel http-requests.
 ;;
-;; Different kinds of content are:
+;; A route is defined by: `(route "path" f)` where `f` is a function that takes an 
+;; `options`-object as parameter, and returns a `result` object.
+;; `options` include
 ;;
-;; - data with mime-type/caching/http-headers
-;;   - json-data / api
-;;   - (images rendered with canvas etc.)
-;;   - css
-;;   - pure html
-;; - react-element
-;;   - app
-;;   - widget
+;; - `:reactive` - whether the result will be shown reactively, or single run
+;; - `:id` - identifier for route execution, data specific to this execution should be 
+;;   altered in `(db (:id options))`
+;; - `:args` data specific to this execution
+;; - `:path` path for this specific execution
+;; - Probably later:
+;;   `:accept` map of content-type/priorities, ie: `{"text/html" 0.9 "text/*" 0.1}`
 ;;
-;; ----
+;; `result` is unwrapped async/atom and can include:
 ;;
-;; - Initialiser
-;;   - HTTP-request
-;;   - widget + call init()
-;;   - (fullpage-load)
-;;   - (rpc/ipc)
-;; - Output
-;;   - in-page reactive react component
-;;   - static data/css/html
-;;
+;; - `:type` can be `:html`, or content-type-string if `:content` is raw data, 
+;;   probably later also `:clj` `:json`, ... later on.
+;; - one of
+;;   - `:content` 
+;;   - `:html` + `:title`  and optionally `:css`
+;; - Probably later: `:caching`
 ;;
 ;; # Namespace definition and dependencies
 (ns solsort.router
@@ -56,16 +50,6 @@
 (register-handler :route (fn [db [_ route] _] (into db route)))
 (register-sub :app (fn [db _] (reaction (first (:path @db)))))
 
-;; # Router design
-;;
-;; There are two kinds of execution of routes:
-;;
-;; - stateful/reactive, ie. app, widget, ...
-;; - pure, ie. http-request, fn-call, ...
-;;
-;; Several routes can be executed at the same time, ie. several widgets on a page, or
-;; several parallel http-requests.
-;;
 ;; # router
 (defonce routes (atom {}))
 (defn route [id & {:keys (html app json http f)
