@@ -19,6 +19,8 @@
 ;; - `:path` path for this specific execution
 ;; - Probably later:
 ;;   `:accept` map of content-type/priorities, ie: `{"text/html" 0.9 "text/*" 0.1}`
+;; - Probably later:
+;;   `:auth` authentication
 ;;
 ;; `result` is unwrapped async/atom and can include:
 ;;
