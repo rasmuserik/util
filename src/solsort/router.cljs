@@ -40,6 +40,7 @@
     [cljs.core.async :refer  [>! <! chan put! take! timeout close! pipe]]
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch dispatch-sync]]
+    [solsort.style :refer [default-style-str]]
     [solsort.misc :as misc :refer [function? chan? log]]
     [reagent.core :as reagent :refer  []]))
 
@@ -67,13 +68,6 @@
 ;; # Route management
 (defonce routes (atom {}))
 (defn route [id f] (swap! routes assoc id f))
-(defn get-route [id] 
-  (fn [_]
-    (go
-      {:type :html
-       :content "hello world"
-       :title "hi"
-       :html [:h1 "hello"]})))
 
 ;; # Dispatch-types
 ;;
@@ -92,26 +86,25 @@
 ;; that might add widgets.
 ;;
 (defn <extract-route [data]
-  (go (let [content (get-route (get data "route" ""))
-            content (if (function? content) (content data) content)
-            ]
+  (go (let [content (get @routes (get data "route" "")  
+                         {:type "text/plain" :content "not found"})
+            content (if (function? content) (content data) content)]
         (if (chan? content) (<! content) content))))
 (defn start []
-  (when (and (starts-with js/location.hash "#solsort:")
-             (nil? (js/document.getElementById "solsort-app-container")))
-    (let [elem (js/document.createElement "div")
+  (when (starts-with js/location.hash "#solsort:")
+    (let [elem (or (js/document.getElementById "solsort-app-container")
+                   (doto (js/document.createElement "div") 
+                     (.setAttribute "id" "solsort-app-container")
+                     (.setAttribute "class" "solsort-widget")
+                     (js/document.body.appendChild)))  
           args (parse-url (.slice js/location.hash 9))]
-      (.setAttribute elem "id" "solsort-app-container")
-      (.setAttribute elem "class" "solsort-widget")
-      (doall (for [[k v] args] (.setAttribute elem (str "data-" k) v)))
-      (.appendChild js/document.body elem)))
+      (doall (for [[k v] args] (.setAttribute elem (str "data-" k) v)))))
   (doall 
     (for [elem (js-seq (js/document.getElementsByClassName "solsort-widget"))]
       (go (let [data (<! (<extract-route (html-data elem)))]
             (if (= :html (:type data))
               (reagent/render-component (:html data) elem)
-              (reagent/render-component [:pre (:content data)] elem) 
-              ))))))
+              (reagent/render-component [:pre (:content data)] elem)))))))
 (defn html->content [data]
   (str
     "<!DOCTYPE html><html><head>"
@@ -120,24 +113,17 @@
     "<meta name='viewport' content='width=device-width, initial-scale=1'>"
     "<meta name='apple-mobile-web-app-capable' content='yes'>" 
     "<meta name='mobile-web-app-capable' content='yes'>" 
-    "<link href='normalize.css' rel='stylesheet' type='text/css'>"
+    "<style>" (default-style-str) "</style>"
+    ;"<link href='//solsort.com/style.css' rel='stylesheet'>"
     "</head><body>"
-    "TODO-style"
     (reagent/render-to-string (:html data))
     "TODO-script-solsort.js"
     "</body></html>"))
-(defn <dispatch-route [data]
+(defn <http-route [data]
   (go (let [data (<! (<extract-route data))]
-        (if (not= :html (:type data)) (:content data) (html->content data)))))
-(go (log (<! (<dispatch-route {"route" "hello"}))))
-;; # Actual routes for depended on code
-;;
-;; Modules used by the router cannot declare routes themself, so instead those routes 
-;; are implemented here.
-
-#_(route 
-  "style" :http
-  (fn []
-    {:type :http
-     :http-headers {:Content-Type "text/css"} 
-     :content (style/clj->css @style/default-style)}))
+        (if (not= :html (:type data)) 
+          data 
+          {:type "text/html"
+           :content (html->content data)}))))
+;; # actual routes
+(route "style" (fn [] {:type "text/css"   :content (default-style-str)}))
