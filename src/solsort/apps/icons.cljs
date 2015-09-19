@@ -19,7 +19,7 @@
 
 (defn starts-with [s prefix] (= (.slice s 0 (.-length prefix)) prefix))
 (declare icon-db)
-(declare all-icons)
+(declare all-icons!)
 (declare <icon-url)
 (declare <p)
 
@@ -42,7 +42,7 @@
     (go
       (when-not (<! (<p (.sync icon-db (db-url "icons"))))
         (js/alert "Sync error")) 
-      (all-icons))
+      (all-icons!))
     db))
 (register-handler 
   :add-icons-dialog 
@@ -52,7 +52,7 @@
   (fn [db [_ id]] 
     (when (js/confirm "Delete icon?")
       (go (<! (<p (.remove icon-db (<! (<p (.get icon-db id))))))
-          (all-icons)))
+          (all-icons!)))
     db))
 (register-sub :all-icons (fn [db] (reaction (:all-icons @db))))
 
@@ -62,8 +62,7 @@
   "Convert a javascript promise to a core.async channel"
   [p]
   (let [c (chan)]
-    (.then p #(put!close! c %))
-    (.catch p #(close! c))
+    (.then p #(put!close! c %) #(close! c))
     c))
 
 (defn <first-attachment-id [db id]
@@ -71,7 +70,7 @@
             a (and a (aget a "_attachments"))]
         (and a (aget (js/Object.keys a) 0)))))
 (defn <first-attachment [db id]
-  (go (<! (<p  (.getAttachment db id (<! (<first-attachment-id db id)))))))
+  (go (<! (<p (.getAttachment db id (<! (<first-attachment-id db id)))))))
 
 (defn <blob-url [blob]
   (let [reader (js/FileReader.)
@@ -90,7 +89,7 @@
    [:span {:style {:font-size "250%"}} [solsort.ui/icon id]] [:br] 
    [:span {:style {:font-size "70%"}} id]]) 
 
-(defn all-icons []
+(defn all-icons! []
   (go
     (let [icons (map #(get % "id")
                      (-> icon-db (.allDocs) (<p) (<!) (js->clj) (get "rows")))]
@@ -113,13 +112,14 @@
 
             (<! (<p (.put icon-db #js{:_id id})))
             (let [doc (<! (<p (.get icon-db id)))]
-              (<! (<p (.putAttachment icon-db id "icon" (aget doc "_rev") file (aget file "type")))))
-            (all-icons)))))))
+              (<! (<p (.putAttachment icon-db id "icon" 
+                                      (aget doc "_rev") file (aget file "type")))))
+            (all-icons!)))))))
 
 (route "icons" :app
        (fn []
          (go (<! (<p (.replicate.from icon-db (db-url "icons"))))
-          (all-icons))
+          (all-icons!))
          (reaction {:type :app
                     :title "Icons"
                     :actions [{:event [:icon-cloud-sync] :icon "31173"}
