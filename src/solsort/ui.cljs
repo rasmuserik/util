@@ -114,7 +114,7 @@
      :.topheight {}
      :.barheight {:height bar-height}
      :.botbar { :bottom 0 }}))
-(defn app [o] ; ###
+(defn app-html [o] ; ###
   (let [title (:title o)
         navigate-back (:navigate-back o)
         actions (:actions o)
@@ -158,3 +158,4 @@
      content
      (when views [:div.barheight])]))
 
+(defn app [o] {:type :html, :title (:title o) , :html [app-html o] })

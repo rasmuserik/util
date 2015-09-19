@@ -22,7 +22,8 @@
 ;; # logger
 (defn log [& args]
   (apply print 'log args)
-  (dispatch (into  [:log] args)))
+  (dispatch (into  [:log] args))
+  (first args))
 
 (register-handler
   :log (fn [db [_ & entry] _]
@@ -31,6 +32,14 @@
                q (conj q entry)]
            (assoc db :log q))))
 ;; # misc
+(defn js-seq [o] (seq (js/Array.prototype.slice.call o)))
+(defn starts-with [string prefix] (= prefix (.slice string 0 (.-length prefix))) )
+(defn html-data [elem]
+  (into {} (->> (js-seq (.-attributes elem))   
+                (map (fn [attr] [(.-name attr) (.-value attr)]))  
+                (filter (fn [[k w]] (starts-with k "data-")))
+                (map (fn [[k w]] [(.slice k 5) w])))))
+
 ;; ## run-once
 (defn run-once [f]
   (let [do-run (atom true)]

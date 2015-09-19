@@ -26,9 +26,9 @@
 ;;
 ;; - `:type` can be `:html`, or content-type-string if `:content` is raw data, 
 ;;   probably later also `:clj` `:json`, ... later on.
-;; - one of
-;;   - `:content` 
-;;   - `:html` + `:title`  and optionally `:css`
+;; - dependse on type, ie. 
+;;   - string-content-type: `:content` 
+;;   - `:html` `:html` + `:title`  and optionally `:css`
 ;; - Probably later: `:caching`
 ;;
 ;; # Namespace definition and dependencies
@@ -42,80 +42,79 @@
     [cljs.core.async :refer  [>! <! chan put! take! timeout close! pipe]]
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch dispatch-sync]]
-    [solsort.misc :as misc :refer [function? chan? log]]
-    [solsort.ui :as ui]
-    [solsort.style :as style]
+    [solsort.style :refer [default-style-str]]
+    [solsort.misc :as misc :refer [function? chan? log js-seq starts-with html-data]]
     [reagent.core :as reagent :refer  []]))
 
-;; # Handlers and subscriptions
-
-(register-handler :route (fn [db [_ route] _] (into db route)))
-(register-sub :app (fn [db _] (reaction (first (:path @db)))))
-
-;; # router
-(defonce routes (atom {}))
-(defn route [id & {:keys (html app json http f)
-                   :or {f (or html app json http)}}]
-  (swap! routes assoc id f))
+;; # Dispatch-types
+;;
+;; There are the following possible dispatch-types:
+;;
+;; - fullpage app, initiated through url-hash, ie: `http://ur.l/#solsort:some/path&some=data`
+;; - widget, with element like 
+;;   `<div class="solsort-widget" data-route="some/path" data-some='data'>`
+;; - static request, returns chan `(<dispatch-route {"route" "some/path", "some" "data"})`
+;;   - this is used by solsort/net etc. for http-requests
+;;
+;; Later:
+;; - actual url on certain domains, ie. solsort.com etc.
+;;
+;; NB: `(solsort.router/start)` should be called on page load, and on any page-change
+;; that might add widgets.
+;;
 (def route-re #"([^?]*)(.*)")
-
-(defn parse-route [adr]
+(defn url->route [adr]
   (let [path (nth (re-matches route-re adr) 1)
         args (.split (.slice adr (inc (.-length path))) "&")
-        path (.split path #"[./]")
         args (map #(let [i (.indexOf % "=")]
                      (if (= -1 i)
                        [% true]
                        [(.slice % 0 i)
                         (.slice % (inc i)) ]))
-                  args)
-        args (into {} args) ]
-    {:path path :args args}) )
+                  args)]
+    (into {"route" path} args)))
 
-(defn get-route []
-  (or  (@routes @(subscribe [:app])) (:default @routes) #{:disabled true}))
-
-(keys @routes)
-
-(defn main-app [content type]
-  (let [content (if (satisfies? IAtom content) @content content)]
-    (case type
-      (:app) [ui/app content]
-      (do
-        (log 'unsupported-app-type (:type content))
-        [:h1 "unsupported app type"]))))
-
+(defonce routes (atom {}))
+(defn route [id f] (swap! routes assoc id f))
+(defn <extract-route [data]
+  (go (let [content (get @routes (get data "route" "")  
+                         {:type "text/plain" :content "not found"})
+            content (if (function? content) (content data) content)]
+        (if (chan? content) (<! content) content))))
 (defn start []
-  (let [adr (or
-              (and (= "#solsort:"  (.slice js/location.hash 0 9))
-                   (.slice js/location.hash 9))
-              (and (or (= js/location.port 1234)
-                       (= js/location.hostname "solsort.com")
-                       (= js/location.hostname "blog.solsort.com")
-                       (= js/location.hostname "localhost"))
-                   js/location.pathname))
-        route (and adr (parse-route adr))
-        ]
-    (dispatch-sync [:update-viewport])
-    (dispatch-sync [:route route])
-    (go
-      (let  [elem  (js/document.getElementById "solsort-app")
-             content (get-route)
-             content (if (function? content) (content) content)
-             content (if (chan? content) (<! content) content)
-             type (:type (if (satisfies? IAtom content) @content content))
-             ]
-        (when (and elem (not (:disabled content)))
-          (reagent/render-component  [main-app content type] elem))))))
-
-;; # Actual routes for depended on code
-;;
-;; Modules used by the router cannot declare routes themself, so instead those routes 
-;; are implemented here.
-
-(route 
-  "style" :http
-  (fn []
-    {:type :http
-      :http-headers {:Content-Type "text/css"} 
-      :content (style/clj->css @style/default-style)}))
+  (when (starts-with js/location.hash "#solsort:")
+    (let [elem (or (js/document.getElementById "solsort-app-container")
+                   (doto (js/document.createElement "div") 
+                     (.setAttribute "id" "solsort-app-container")
+                     (.setAttribute "class" "solsort-widget")
+                     (js/document.body.appendChild)))  
+          args (url->route (.slice js/location.hash 9))]
+      (doall (for [[k v] args] (.setAttribute elem (str "data-" k) v)))))
+  (doall 
+    (for [elem (js-seq (js/document.getElementsByClassName "solsort-widget"))]
+      (go (let [data (<! (<extract-route (html-data elem)))]
+            (if (= :html (:type data))
+              (reagent/render-component (:html data) elem)
+              (reagent/render-component [:pre (:content data)] elem)))))))
+(defn html->content [data]
+  (str
+    "<!DOCTYPE html><html><head>"
+    "<title>" (:title data) "</title>"
+    "<meta charset='UTF-8'>"
+    "<meta name='viewport' content='width=device-width, initial-scale=1'>"
+    "<meta name='apple-mobile-web-app-capable' content='yes'>" 
+    "<meta name='mobile-web-app-capable' content='yes'>" 
+    "<style>" (default-style-str) "</style>"
+    ;"<link href='//solsort.com/style.css' rel='stylesheet'>"
+    "</head><body>"
+    (reagent/render-to-string (:html data))
+    "TODO-script-solsort.js"
+    "</body></html>"))
+(defn <http-route [data]
+  (go (let [data (<! (<extract-route data))]
+        (if (not= :html (:type data)) 
+          data 
+          {:type "text/html"
+           :content (html->content data)}))))
+;; # actual routes
+(route "style" (fn [] {:type "text/css"   :content (default-style-str)}))
