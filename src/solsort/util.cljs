@@ -1,4 +1,4 @@
-(ns solsort.util
+(ns ^:figwheel-always solsort.util
   (:require
     [solsort.misc :as misc]
     [solsort.net :as net]

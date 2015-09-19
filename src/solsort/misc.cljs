@@ -22,7 +22,8 @@
 ;; # logger
 (defn log [& args]
   (apply print 'log args)
-  (dispatch (into  [:log] args)))
+  (dispatch (into  [:log] args))
+  (first args))
 
 (register-handler
   :log (fn [db [_ & entry] _]
