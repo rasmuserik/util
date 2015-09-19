@@ -10,13 +10,12 @@
 ;;
 ;; A route is defined by: `(route "path" f)` where `f` is a function that takes an 
 ;; `options`-object as parameter, and returns a `result` object.
-;; `options` include
+;; `options` include parameters as string keys, and 
 ;;
 ;; - `:reactive` - whether the result will be shown reactively, or single run
 ;; - `:id` - identifier for route execution, data specific to this execution should be 
 ;;   altered in `(db (:id options))`
-;; - `:args` data specific to this execution
-;; - `:path` path for this specific execution
+;; - `"route"` path for this specific execution
 ;; - Probably later:
 ;;   `:accept` map of content-type/priorities, ie: `{"text/html" 0.9 "text/*" 0.1}`
 ;; - Probably later:
@@ -28,8 +27,8 @@
 ;;   probably later also `:clj` `:json`, ... later on.
 ;; - dependse on type, ie. 
 ;;   - string-content-type: `:content` 
-;;   - `:html` `:html` + `:title`  and optionally `:css`
-;; - Probably later: `:caching`
+;;   - `:html` `:html` + `:title` 
+;; - Probably later: `:caching` and `:css`
 ;;
 ;; # Namespace definition and dependencies
 (ns solsort.router
@@ -43,7 +42,7 @@
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch dispatch-sync]]
     [solsort.style :refer [default-style-str]]
-    [solsort.misc :as misc :refer [function? chan? log js-seq starts-with html-data]]
+    [solsort.misc :as misc :refer [function? chan? log js-seq starts-with html-data unique-id]]
     [reagent.core :as reagent :refer  []]))
 
 ;; # Dispatch-types
@@ -53,7 +52,7 @@
 ;; - fullpage app, initiated through url-hash, ie: `http://ur.l/#solsort:some/path&some=data`
 ;; - widget, with element like 
 ;;   `<div class="solsort-widget" data-route="some/path" data-some='data'>`
-;; - static request, returns chan `(<dispatch-route {"route" "some/path", "some" "data"})`
+;; - static request, returns chan `(<http-route {"route" "some/path", "some" "data"})`
 ;;   - this is used by solsort/net etc. for http-requests
 ;;
 ;; Later:
@@ -77,7 +76,8 @@
 (defonce routes (atom {}))
 (defn route [id f] (swap! routes assoc id f))
 (defn <extract-route [data]
-  (go (let [content (get @routes (get data "route" "")  
+  (go (let [data (assoc data :id (unique-id))
+            content (get @routes (get data "route" "")  
                          {:type "text/plain" :content "not found"})
             content (if (function? content) (content data) content)]
         (if (chan? content) (<! content) content))))
@@ -92,10 +92,12 @@
       (doall (for [[k v] args] (.setAttribute elem (str "data-" k) v)))))
   (doall 
     (for [elem (js-seq (js/document.getElementsByClassName "solsort-widget"))]
-      (go (let [data (<! (<extract-route (html-data elem)))]
+      (go (let [data (<! (<extract-route (assoc (html-data elem) :reactive true)))]
             (if (= :html (:type data))
               (reagent/render-component (:html data) elem)
               (reagent/render-component [:pre (:content data)] elem)))))))
+
+
 (defn html->content [data]
   (str
     "<!DOCTYPE html><html><head>"
@@ -110,8 +112,9 @@
     (reagent/render-to-string (:html data))
     "TODO-script-solsort.js"
     "</body></html>"))
+
 (defn <http-route [data]
-  (go (let [data (<! (<extract-route data))]
+  (go (let [data (assoc (<! (<extract-route data)) :reactive false)]
         (if (not= :html (:type data)) 
           data 
           {:type "text/html"
