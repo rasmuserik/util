@@ -10,7 +10,7 @@
     [solsort.util :refer [route log unique-id]]
     [solsort.net :as net]
     [solsort.db :refer [db-url]]
-    [solsort.ui]
+    [solsort.ui :refer [app]]
     [reagent.core :as reagent :refer []]
     [cljsjs.pouchdb]
     [re-frame.core :as re-frame :refer [subscribe register-sub register-handler dispatch]]
@@ -116,18 +116,21 @@
                                       (aget doc "_rev") file (aget file "type")))))
             (all-icons!)))))))
 
-(route "icons" :app
-       (fn []
-         (go (<! (<p (.replicate.from icon-db (db-url "icons"))))
-          (all-icons!))
-         (reaction {:type :app
-                    :title "Icons"
-                    :actions [{:event [:icon-cloud-sync] :icon "31173"}
-                              {:event [:add-icons-dialog] :icon "89834"}  ]
-                    :html
-                    [:div
-                     [:input.hidden {:id "iconfile-input" 
-                                     :type "file" 
-                                     :multiple true 
-                                     :on-change upload-files}]
-                     (into [:div] (map show-icon @(subscribe [:all-icons])))]})))
+(defn show-all-icons []
+  (into [:div] (map show-icon @(subscribe [:all-icons]))))
+(route 
+  "icons"
+  (fn [o]
+    (go (<! (<p (.replicate.from icon-db (db-url "icons")))) (all-icons!))
+    (app {:type :app
+          :title "Icons"
+          :actions [{:event [:icon-cloud-sync] :icon "31173"}
+                    {:event [:add-icons-dialog] :icon "89834"}  ]
+          :html
+          [:div
+           [:input.hidden {:id "iconfile-input" 
+                           :type "file" 
+                           :multiple true 
+                           :on-change upload-files}]
+           [show-all-icons]
+           ]})))
