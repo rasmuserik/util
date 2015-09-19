@@ -41,33 +41,8 @@
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch dispatch-sync]]
     [solsort.style :refer [default-style-str]]
-    [solsort.misc :as misc :refer [function? chan? log]]
+    [solsort.misc :as misc :refer [function? chan? log js-seq starts-with html-data]]
     [reagent.core :as reagent :refer  []]))
-
-;; # Util
-
-(defn js-seq [o] (seq (js/Array.prototype.slice.call o)))
-(defn starts-with [string prefix] (= prefix (.slice string 0 (.-length prefix))) )
-(defn html-data [elem]
-  (into {} (->> (js-seq (.-attributes elem))   
-                (map (fn [attr] [(.-name attr) (.-value attr)]))  
-                (filter (fn [[k w]] (starts-with k "data-")))
-                (map (fn [[k w]] [(.slice k 5) w])))))
-(def route-re #"([^?]*)(.*)")
-(defn parse-url [adr]
-  (let [path (nth (re-matches route-re adr) 1)
-        args (.split (.slice adr (inc (.-length path))) "&")
-        args (map #(let [i (.indexOf % "=")]
-                     (if (= -1 i)
-                       [% true]
-                       [(.slice % 0 i)
-                        (.slice % (inc i)) ]))
-                  args)]
-    (into {"route" path} args)))
-
-;; # Route management
-(defonce routes (atom {}))
-(defn route [id f] (swap! routes assoc id f))
 
 ;; # Dispatch-types
 ;;
@@ -85,6 +60,20 @@
 ;; NB: `(solsort.router/start)` should be called on page load, and on any page-change
 ;; that might add widgets.
 ;;
+(def route-re #"([^?]*)(.*)")
+(defn url->route [adr]
+  (let [path (nth (re-matches route-re adr) 1)
+        args (.split (.slice adr (inc (.-length path))) "&")
+        args (map #(let [i (.indexOf % "=")]
+                     (if (= -1 i)
+                       [% true]
+                       [(.slice % 0 i)
+                        (.slice % (inc i)) ]))
+                  args)]
+    (into {"route" path} args)))
+
+(defonce routes (atom {}))
+(defn route [id f] (swap! routes assoc id f))
 (defn <extract-route [data]
   (go (let [content (get @routes (get data "route" "")  
                          {:type "text/plain" :content "not found"})
@@ -97,7 +86,7 @@
                      (.setAttribute "id" "solsort-app-container")
                      (.setAttribute "class" "solsort-widget")
                      (js/document.body.appendChild)))  
-          args (parse-url (.slice js/location.hash 9))]
+          args (url->route (.slice js/location.hash 9))]
       (doall (for [[k v] args] (.setAttribute elem (str "data-" k) v)))))
   (doall 
     (for [elem (js-seq (js/document.getElementsByClassName "solsort-widget"))]
