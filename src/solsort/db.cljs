@@ -10,7 +10,7 @@
     [clojure.string :as string :refer  [split]]
     [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch dispatch-sync]]
     [solsort.misc :as misc :refer [function? chan? unique-id log <p]]
-    [solsort.net :as net :refer [ajax]]))
+    [solsort.net :as net :refer [<ajax]]))
 
 
 (defn db-url [& args] (apply str net/host "db/" args))
@@ -28,22 +28,22 @@
   (fn [db _]
     (let [[user password] @(subscribe [:db-login])]
       (go 
-        (<! (ajax (db-url "_session")
+        (<! (<ajax (db-url "_session")
                   :method "POST"
                   :data {:name user :password password}))
         (dispatch 
           [:login-result 
-           (get-in (<! (ajax (db-url "_session")))
+           (get-in (<! (<ajax (db-url "_session")))
                    ["userCtx" "name"])])  
         ))
     db))
 (dispatch [:login])
 (defn <login [user password]
   (go 
-    (<! (ajax (db-url "_session")
+    (<! (<ajax (db-url "_session")
               :method "POST"
               :data {:name user :password password}))
-    (get-in (<! (ajax (db-url "_session")))
+    (get-in (<! (<ajax (db-url "_session")))
             ["userCtx" "name"])))
 
 ;; # DBs

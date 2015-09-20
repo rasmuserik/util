@@ -26,7 +26,7 @@
 (def route router/route)
 (def start router/start)
 
-(def ajax net/ajax)
+(def <ajax net/<ajax)
 
 ;; # log global error messages
 (register-handler :error (fn [db [_ e] _] (log 'error (.-message e) e) db))

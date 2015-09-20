@@ -145,9 +145,9 @@
         (js/p2p.emit "hello" (clj->js [i (str js/navigator.userAgent)]))
         (when (< i 3) (recur (inc i))))))
 
-;; # ajax
+;; # <ajax
 
-(defn ajax [url & {:keys [method data headers timeout credentials result]
+(defn <ajax [url & {:keys [method data headers timeout credentials result]
                    :or {method "GET"
                         data nil
                         headers #js {}

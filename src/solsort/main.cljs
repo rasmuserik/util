@@ -16,7 +16,9 @@
 ;; - `lein ancient` check if dependencies are up to date
 ;; - TODO `lein cljsbuild test` builds and run unit-tests
 ;;
+;; ## Coding convention
 ;;
+;; - async functions prefixed with `<` as suggested in http://www.lispcast.com/core-async-code-style
 ;; ## Random ideas
 ;;
 ;; - selemium tests
@@ -32,7 +34,6 @@
     [solsort.apps.experiments]
     [solsort.apps.index]
     [solsort.apps.icons]
-    [solsort.apps.lemon]
     [solsort.apps.rasmuserik]
     [solsort.util]
     ))

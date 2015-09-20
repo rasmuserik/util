@@ -7,7 +7,7 @@
     [cljs.test :refer-macros  [deftest testing is]]
     [goog.net.XhrIo]
     [goog.net.Jsonp]
-    [solsort.util :refer [route log ajax host]]
+    [solsort.util :refer [route log <ajax host]]
     ;[garden.core :refer [css]]
     ;[garden.units :refer [px em]]
     [reagent.core :as reagent :refer []]
@@ -238,7 +238,7 @@
 ;; # Get data from server
 (defn load-events [server]
   (go
-    (let [events (<! (ajax (str "http://" server "/events.json") :result "text"))]
+    (let [events (<! (<ajax (str "http://" server "/events.json") :result "text"))]
       (when events
         (swap! state assoc :events (js->clj (js/JSON.parse events)))))))
 ;(load-events "localhost:3000")
