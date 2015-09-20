@@ -11,6 +11,7 @@
     [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch dispatch-sync]]
     [solsort.misc :as misc :refer [function? chan? unique-id unatom]]
     [solsort.net :as net]
+    [solsort.ui.icons]
     [solsort.style :refer [clj->css]]
     [reagent.core :as reagent :refer  []]))
 
@@ -25,8 +26,9 @@
                               (get-in @db  [:viewport :height])])))
 (register-sub :width  (fn  [db _]  (reaction  (get-in @db  [:viewport :width]))))
 (register-sub :height  (fn  [db _]  (reaction  (get-in @db  [:viewport :height]))))
-(register-sub :icons (fn  [db _]  (reaction  (:icons @db))))
 
+(def icon solsort.ui.icons/icon)
+;; ### :update-viewport
 (register-handler
   :update-viewport
   (fn [db _ _]
@@ -82,16 +84,6 @@
 (def bar-shadow "0px 0.5px 1.5px rgba(0,0,0,.5)")
 (def bar-color "rgba(250,240,230,0.9)")
 ;(def bar-color "#f7f7f7")
-(defn icon [id]
-  (let [url (get @(subscribe [:icons]) id)]
-    (when-not url
-      (dispatch-sync [:load-icon id]))
-    (if (and url (not= "loading" url))
-      [:img.icon-img {:src url}]
-      [:span "[" id "]"] 
-      )
-    )
-  )
 (def app-style ; ###
   (ratom/reaction
     {:h1 {:background "red"}

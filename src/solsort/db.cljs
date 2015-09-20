@@ -9,7 +9,7 @@
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [clojure.string :as string :refer  [split]]
     [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch dispatch-sync]]
-    [solsort.misc :as misc :refer [function? chan? unique-id log]]
+    [solsort.misc :as misc :refer [function? chan? unique-id log <p]]
     [solsort.net :as net :refer [ajax]]))
 
 
@@ -69,3 +69,12 @@
 ;; The "daemon" user, is the only one capable of creating new databases, and is also implicit
 ;; in the list of owners of all databases
 ;;
+
+;; # PouchDB utils
+(defn <first-attachment-id [db id]
+  (go (let [a (<! (<p (.get db id))) 
+            a (and a (aget a "_attachments"))]
+        (and a (aget (js/Object.keys a) 0)))))
+(defn <first-attachment [db id]
+  (go (<! (<p (.getAttachment db id (<! (<first-attachment-id db id)))))))
+

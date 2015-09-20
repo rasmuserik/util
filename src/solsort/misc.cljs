@@ -20,6 +20,23 @@
 
 (register-sub :log (fn [db _] (reaction (:log @db))))
 (defn unatom [o] (if (satisfies? IAtom o) @o o))
+(defn put!close!  [c d]  (if  (nil? d)  (close! c)  (put! c d)))
+(defn <p 
+  "Convert a javascript promise to a core.async channel"
+  [p]
+  (let  [c  (chan)]
+    (.then p #(put!close! c %) #(close! c))
+    c))
+
+(defn <blob-url [blob]
+  (let [reader (js/FileReader.)
+        c (chan)]
+    (aset reader "onloadend" #(put!close! c (aget reader "result")))
+    (if blob
+      (.readAsDataURL reader blob)
+      (close! c))
+    c))
+
 ;; # logger
 (defn log [& args]
   (apply print 'log args)
