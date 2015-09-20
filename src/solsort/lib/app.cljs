@@ -54,6 +54,10 @@
 ;;   - `:style` stylesheet as map of style maps
 ;;   - `:done` static application content is ready to be send, - defaults to true
 ;;
+(register-sub :show-bars (fn [db _] 
+                           (reaction (< 0 (get @db :show-bars 0)))))
+(register-handler :show-bars (fn [db [_ p]] 
+                               (assoc db :show-bars ((if p inc dec) (get db :show-bars 0)))))
 
 ;; ## Actual app component
 (def bar-height 48)
@@ -81,7 +85,12 @@
      :.barheight {:height bar-height}
      :.botbar { 
                :transition "bottom 1s ease-in"
-               :bottom (- bar-height) }}))
+               :bottom (- bar-height)
+               }}))
+
+
+(defonce _ (do (js/setTimeout #(dispatch [:show-bars true]) 500)
+              (js/setTimeout #(swap! app-style assoc-in [:.botbar :transition]  "") 2000)))
 (defn app-html [o] ; ###
   (let [title (unatom (:title o))
         navigate-back (:navigate-back o)
@@ -93,34 +102,35 @@
         ]
     (aset js/document "title" title)
     (swap! app-style assoc-in [:.bar :background] bar-color)
-    (js/setTimeout
-    #(swap! app-style assoc-in [:.botbar :bottom] 0) 100)
+
+    (swap!  app-style assoc-in [:.botbar :bottom] 
+           (if  @(subscribe [:show-bars]) 0 (- bar-height)))
     (log @app-style)
     [:div {:style {:position "absolute"
                    :width "100%" }}
      (style @app-style)
 
      (when show-top-bar
-     [:div.topbar.bar
-      [:span.middle title]
-      (when navigate-back
-        [:span.float-left
-         {:on-click #(dispatch (:event navigate-back))
-          :on-touch-start (fn []  (dispatch (:event navigate-back)) false)
+       [:div.topbar.bar
+        [:span.middle title]
+        (when navigate-back
+          [:span.float-left
+           {:on-click #(dispatch (:event navigate-back))
+            :on-touch-start (fn []  (dispatch (:event navigate-back)) false)
 
-          }
-         [icon (:icon navigate-back)]
-         " " (:title navigate-back)])
+            }
+           [icon (:icon navigate-back)]
+           " " (:title navigate-back)])
 
-      (when actions
-        (into
-          [:span.float-right]
-          (map
-            (fn [a] [:span.barbutton
-                     {:on-click #(dispatch-sync (:event a))
-                      :on-touch-start (fn [] (dispatch-sync (:event a)) false)}
-                     " " [icon (:icon a)] " "])
-            actions)))])
+        (when actions
+          (into
+            [:span.float-right]
+            (map
+              (fn [a] [:span.barbutton
+                       {:on-click #(dispatch-sync (:event a))
+                        :on-touch-start (fn [] (dispatch-sync (:event a)) false)}
+                       " " [icon (:icon a)] " "])
+              actions)))])
      (when views
        (into
          [:div.botbar.bar]

@@ -50,6 +50,8 @@
   [:input {:type type 
            :value @(subscribe [:form-value name])
            :placeholder placeholder
+           :on-focus #(dispatch [:show-bars false])
+           :on-blur #(go (<! (timeout 300)) (dispatch [:show-bars true]))
            :style style
            :class class
            :on-change #(dispatch-sync [:form-value name (-> % .-target .-value)]) }]))
