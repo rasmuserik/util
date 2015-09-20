@@ -17,17 +17,25 @@
     [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
 
-(def icon-size "1.5em")
+(def icon-size "2em")
 (def icon-margin ".25em")
 (add-default-style 
   {
    :.icon-container  {:vertical-align "middle"
-                      :padding icon-margin }
+                      :padding icon-margin 
+                      :display "inline-block"
+                      :height icon-size
+                      ;:box-shadow "0 0 2px #000"
+                      
+                      }
    :.icon-container2 {:width icon-size
                       :height icon-size
+                      ;:box-shadow "0 0 2px #000"
                       :display "inline-block"
+                      :vertical-align "top"
+                      :padding 0
                       :overflow "hidden" }
-   :.icon-img {:width icon-size :margin 0}})
+   :.icon-img {:width icon-size :margin 0 :vertical-align "top"}})
 
 (register-sub :icons  (fn  [db _]  (reaction  (:icons @db))))
 (register-sub 
@@ -59,11 +67,13 @@
         (starts-with id "emojione-")
         (dispatch-sync [:icon-author "Emoji One"])
         (starts-with id "noun-")
+        (when 
+          blob 
         (go (let [author (second (re-find #"Created by ([^<]*)" (<! (<blob-text blob))))]
                 (dispatch-sync [:icon-author "the Noun Project"])
               (if author
                 (dispatch-sync [:icon-author author])
-                (dispatch-sync [:icon-author "Public Domain"]))))
+                (dispatch-sync [:icon-author "Public Domain"])))))
         :else (dispatch-sync [:icon-author "solsort.com"])
         )
       (<! (<blob-url blob)))))

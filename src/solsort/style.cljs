@@ -68,7 +68,7 @@
                   ])
        "h1{font-weight:normal;font-size:14px}.div{background:blue}h1{background:red}"))
 
-(def default-style
+(defonce default-style
   (atom { "@font-face" {:fontFamily "Ubuntu"
                         :fontWeight "400"
                         :src "url(/font/ubuntu-latin1.ttf)format(truetype)"}

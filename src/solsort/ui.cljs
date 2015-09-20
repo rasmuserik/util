@@ -28,6 +28,8 @@
 (register-sub :width  (fn  [db _]  (reaction  (get-in @db  [:viewport :width]))))
 (register-sub :height  (fn  [db _]  (reaction  (get-in @db  [:viewport :height]))))
 
+(register-sub :view (fn  [db _]  (reaction  (get-in @db  [:view]))))
+(register-handler :view (fn  [db [_ view]]  (assoc db :view view)))
 
 (register-handler
   :update-viewport
@@ -35,16 +37,20 @@
     (-> db (assoc-in [:viewport :width] js/window.innerWidth)
         (assoc-in [:viewport :height] js/window.innerHeight))))
 
+(def default-shadow "1px 1px 3px rgba(0,0,0,0.4)")
 (def icon solsort.lib.icon/icon)
 (def app solsort.lib.app/app)
-(register-sub :form-value (fn [db s] (reaction (get-in @db [:form name]))))
-(register-handler :form-value (fn [db [_ s v]] (assoc-in db [:form name] v)))
-(defn input [& {:keys [type data name value class]
+(register-sub :form-value (fn [db [_ s]] (reaction (get-in @db [:form s]))))
+(register-handler :form-value (fn [db [_ s v]] 
+                                (assoc-in db [:form s] v)))
+(defn input [& {:keys [type data name value class placeholder style]
                 :or {type "text"
                      name "missing-name" }}]
   (let [class  (str "solsort-input solsort-input-" type " " class) ]
   [:input {:type type 
-           :value (or @(subscribe [:form-value name]))
+           :value @(subscribe [:form-value name])
+           :placeholder placeholder
+           :style style
            :class class
            :on-change #(dispatch-sync [:form-value name (-> % .-target .-value)]) }]))
 
@@ -52,8 +58,9 @@
   {:.solsort-input 
    {:border "none"
     :padding "0.5em"
-    :margin 0
-    :box-shadow "1px 1px 5px rgba(0,0,0,0.7) inset"
-    :border-radius "2px"
+    :margin ".5em"
+    :box-shadow (str default-shadow " inset")
+
+    ;:box-shadow "1px 1px 5px rgba(0,0,0,0.7) inset"
     :vertical-align "baseline"
     :text-color "red"}})

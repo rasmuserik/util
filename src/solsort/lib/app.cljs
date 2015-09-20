@@ -9,7 +9,7 @@
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [clojure.string :as string :refer  [split]]
     [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch dispatch-sync]]
-    [solsort.misc :as misc :refer [function? chan? unique-id unatom]]
+    [solsort.misc :as misc :refer [function? chan? unique-id unatom log]]
     [solsort.net :as net]
     [solsort.lib.icon :refer [icon]]
     [solsort.style :refer [clj->css style]]
@@ -58,40 +58,49 @@
 ;; ## Actual app component
 (def bar-height 48)
 (def bar-shadow "0px 0.5px 1.5px rgba(0,0,0,.5)")
-(def bar-color "rgba(250,240,230,0.9)")
-;(def bar-color "#f7f7f7")
-(def app-style ; ###
+(defonce app-style ; ###
   (ratom/reaction
-    {:h1 {:background "red"}
-     :.solsort-app {:background :blue}
-     :.float-right {:float :right}
+    {:.float-right {:float :right}
      :.float-left {:float :left}
 
      :.bar
      {:width "100%"
       :text-align :center
       :display :inline-block
-      :background bar-color
       :font-size (* .4 bar-height)
       :box-shadow bar-shadow
       :line-height bar-height
       :height bar-height
-      :position :fixed  }
+      :margin 0
+      :padding 0
+      :position :fixed
+      :z-index "2000"
+      }
 
      :.topheight {}
      :.barheight {:height bar-height}
-     :.botbar { :bottom 0 }}))
+     :.botbar { 
+               :transition "bottom 1s ease-in"
+               :bottom (- bar-height) }}))
 (defn app-html [o] ; ###
   (let [title (unatom (:title o))
         navigate-back (:navigate-back o)
         actions (:actions o)
         views (:views o)
-        content (:html o) ]
+        content (:html o) 
+        bar-color (or (:bar-color o) "rgba(250,240,230,0.9)")
+        show-top-bar  (or navigate-back actions (:show-title o)) 
+        ]
     (aset js/document "title" title)
+    (swap! app-style assoc-in [:.bar :background] bar-color)
+    (js/setTimeout
+    #(swap! app-style assoc-in [:.botbar :bottom] 0) 100)
+    (log @app-style)
     [:div {:style {:position "absolute"
                    :width "100%" }}
      (style @app-style)
 
+     (when show-top-bar
      [:div.topbar.bar
       [:span.middle title]
       (when navigate-back
@@ -111,7 +120,7 @@
                      {:on-click #(dispatch-sync (:event a))
                       :on-touch-start (fn [] (dispatch-sync (:event a)) false)}
                      " " [icon (:icon a)] " "])
-            actions)))]
+            actions)))])
      (when views
        (into
          [:div.botbar.bar]
@@ -119,9 +128,9 @@
            (fn [a] [:span.barbutton
                     {:on-click #(dispatch-sync (:event a))
                      :on-touch-start (fn [] (dispatch-sync (:event a)) false)}
-                    " " [icon (:icon a)] " "])
+                    " \u00a0" [icon (:icon a)] "\u00a0 "])
            views)))
-     [:div.barheight]
+     (when show-top-bar [:div.barheight])
      content
      (when views [:div.barheight])]))
 
