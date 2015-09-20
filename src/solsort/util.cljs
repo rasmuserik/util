@@ -10,10 +10,14 @@
     [re-frame.core :refer [register-handler register-sub dispatch]]
     ))
 
+(defn start []
+  (style/load-default-style!)
+  (router/start))
+
 (if (= "complete" js/document.readyState)
-  (js/setTimeout router/start 0)
-  (js/document.addEventListener "DOMContentLoaded" router/start))
-(js/window.addEventListener "hashchange" router/start)
+  (js/setTimeout start 0)
+  (js/document.addEventListener "DOMContentLoaded" start))
+(js/window.addEventListener "hashchange" start)
 
 (def host net/host)
 (def log misc/log)
@@ -24,7 +28,6 @@
 (def app ui/app)
 
 (def route router/route)
-(def start router/start)
 
 (def <ajax net/<ajax)
 

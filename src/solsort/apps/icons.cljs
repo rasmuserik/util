@@ -15,6 +15,7 @@
     [solsort.misc :refer [starts-with <p put!close!]]
     [reagent.core :as reagent :refer []]
     [cljsjs.pouchdb]
+    [clojure.string]
     [re-frame.core :as re-frame :refer [subscribe register-sub register-handler dispatch]]
     [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
@@ -44,6 +45,18 @@
             start (max 0 start)]
         (if (< start (count (:all-icons db))) start prev)))))
 
+(register-handler 
+  :icon-about 
+  (fn [db _]
+  (js/alert
+    (str
+      "Simple icon manager\n"
+      "Loads/deletes icons and sync to couchdb\n\n"
+      "Icons by: "
+      (clojure.string/join ", " @(subscribe [:icon-authors]))
+      )
+    )
+  db)) 
 (defn show-icon [id]
   [:span.inline-block {:style {:margin 10 :text-align "center"} :on-click #(dispatch [:delete-icon? id])} 
    [:span {:style {:font-size "250%"}} [icon id]] [:br] 
@@ -90,7 +103,8 @@
                  {:event [:icon-start-inc (- icon-step)] :icon "noun-26915"}
                  {:event [:icon-start-inc icon-step] :icon "noun-26914"}
                  {:event [:icon-cloud-sync] :icon "noun-31173"}
-                 {:event [:add-icons-dialog] :icon "noun-89834"}]
+                 {:event [:add-icons-dialog] :icon "noun-89834"}
+                 {:event [:icon-about] :icon "noun-170065"}] 
           :html
           [:div
            [:input.hidden {:id "iconfile-input" 

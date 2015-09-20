@@ -37,6 +37,15 @@
       (close! c))
     c))
 
+(defn <blob-text [blob]
+  (let [reader (js/FileReader.)
+        c (chan)]
+    (aset reader "onloadend" #(put!close! c (aget reader "result")))
+    (if blob
+      (.readAsText reader blob)
+      (close! c))
+    c))
+
 ;; # logger
 (defn log [& args]
   (apply print 'log args)

@@ -78,7 +78,6 @@
       :height bar-height
       :position :fixed  }
 
-     :.icon-img {:width "2em" :height "2em" :vertical-align "middle" :margin ".25em"}
      :.topheight {}
      :.barheight {:height bar-height}
      :.botbar { :bottom 0 }}))

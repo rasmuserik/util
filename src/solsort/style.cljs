@@ -8,6 +8,7 @@
     [cljs.core.async :refer  [>! <! chan put! take! timeout close! pipe]]
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [clojure.string :as string :refer  [split]]
+    [solsort.misc :refer [log]]
     [clojure.string :refer  [join]]
     ))
 
@@ -44,6 +45,7 @@
        "legend{border:0;padding:0}textarea{overflow:auto}optgroup{font-weight:bold"
        "}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}"
        ))
+
 ;; # css
 (defn css-name [id]
   (clojure.string/replace (name id) #"[A-Z]" #(str "-" (.toLowerCase %1))))
@@ -77,6 +79,7 @@
          :.hidden {:display "none"}
          :div {:margin 0 :padding 0} }))
 
+(defn add-default-style [o] (swap! default-style into o))
 (defn default-style-str [] 
   (str normalize-css 
        "\n/*! solsort-util css | github.com/rasmuserik/solsort-util */" 
@@ -89,6 +92,5 @@
               elem))
         "innerHTML" 
         (default-style-str)))
-(load-default-style!)
-;; # component
+
 (defn style [o] [:style {"dangerouslySetInnerHTML" #js {:__html (clj->css o)}}])
