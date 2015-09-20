@@ -19,6 +19,7 @@
 
 
 (register-sub :log (fn [db _] (reaction (:log @db))))
+(defn unatom [o] (if (satisfies? IAtom o) @o o))
 ;; # logger
 (defn log [& args]
   (apply print 'log args)

@@ -9,7 +9,7 @@
     [goog.net.Jsonp]
     [solsort.util :refer [route log unique-id]]
     [solsort.net :as net]
-    [solsort.db :refer [db-url]]
+    [solsort.db :refer [db-url <login]]
     [solsort.ui :refer [app]]
     [reagent.core :as reagent :refer []]
     [cljsjs.pouchdb]
@@ -23,17 +23,14 @@
 (declare <icon-url)
 (declare <p)
 
-(register-handler 
-  :icon-loaded 
-  (fn [db [_ id icon]] 
-    (assoc-in db [:icons id] icon)))
+(register-handler :icon-loaded (fn [db [_ id icon]] (assoc-in db [:icons id] icon)))
 
 (register-handler
   :load-icon
   (fn [db [_ id]]
     (when-not (get (:icons db) id)
       (go (dispatch [:icon-loaded id (<! (<icon-url id))])))
-    db))
+    (assoc-in db [:icons id] "loading")))
 
 (register-handler :all-icons (fn [db [_ ids]] (assoc db :all-icons ids)))
 (register-handler 
@@ -55,6 +52,20 @@
           (all-icons!)))
     db))
 (register-sub :all-icons (fn [db] (reaction (:all-icons @db))))
+(register-sub :icon-start (fn [db] (reaction (get @db :icon-start 0))))
+(register-handler 
+  :icon-start-inc 
+  (fn [db [_ cnt]] 
+    (assoc 
+      (if (< (js/Math.random) .95)
+        db
+      (assoc db :icons {}))
+      :icon-start
+           (let [prev (get db :icon-start 0)
+                 start (+ prev cnt)
+                 start (max 0 start)]
+             (if (< start (count (:all-icons db))) start prev)))))
+
 
 (defonce icon-db (js/PouchDB. "icons"))
 (defn put!close! [c d] (if (nil? d) (close! c) (put! c d)))
@@ -102,30 +113,40 @@
                 (if (< i (.-length files))
                   (recur (conj fs (aget files i)) (inc i))
                   fs))]
-    (doall 
+    (go (doall 
       (for [file files]
         (let [fname (aget file "name")
               id (if (starts-with fname "noun_")
-                   (re-find #"\d+" fname)
+                   (str "noun-" (re-find #"\d+" fname))
                    (re-find #"[^.]+" fname))]
-          (go
-
             (<! (<p (.put icon-db #js{:_id id})))
             (let [doc (<! (<p (.get icon-db id)))]
               (<! (<p (.putAttachment icon-db id "icon" 
                                       (aget doc "_rev") file (aget file "type")))))
             (all-icons!)))))))
 
+(def icon-step 24)
 (defn show-all-icons []
-  (into [:div] (map show-icon @(subscribe [:all-icons]))))
+  (into [:div] (map show-icon (take icon-step(drop @(subscribe [:icon-start]) 
+                                             @(subscribe [:all-icons]))))))
 (route 
   "icons"
   (fn [o]
-    (go (<! (<p (.replicate.from icon-db (db-url "icons")))) (all-icons!))
+    (when (:reactive o)
+      (<login (get o "user") (get o "password"))
+      (all-icons!)
+      (go (<! (<p (.replicate.from icon-db (db-url "icons")))) 
+          (all-icons!)))
     (app {:type :app
-          :title "Icons"
-          :actions [{:event [:icon-cloud-sync] :icon "31173"}
-                    {:event [:add-icons-dialog] :icon "89834"}  ]
+          :title (reaction (str "Icons " 
+                      (inc (/ @(subscribe [:icon-start]) icon-step)) "/"
+                      (js/Math.ceil (/ (count @(subscribe [:all-icons])) icon-step))
+                      ))
+          :views[
+                 {:event [:icon-start-inc (- icon-step)] :icon "emojione-finger-pointing-left"}
+                 {:event [:icon-start-inc icon-step] :icon "emojione-finger-pointing-right"}
+                 {:event [:icon-cloud-sync] :icon "31173"}
+                    {:event [:add-icons-dialog] :icon "89834"}]
           :html
           [:div
            [:input.hidden {:id "iconfile-input" 
@@ -133,4 +154,4 @@
                            :multiple true 
                            :on-change upload-files}]
            [show-all-icons]
-           ]})))
+           ]} o)))

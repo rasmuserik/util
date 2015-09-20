@@ -9,7 +9,7 @@
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [clojure.string :as string :refer  [split]]
     [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch dispatch-sync]]
-    [solsort.misc :as misc :refer [function? chan? unique-id]]
+    [solsort.misc :as misc :refer [function? chan? unique-id unatom]]
     [solsort.net :as net]
     [solsort.style :refer [clj->css]]
     [reagent.core :as reagent :refer  []]))
@@ -85,8 +85,8 @@
 (defn icon [id]
   (let [url (get @(subscribe [:icons]) id)]
     (when-not url
-      (dispatch [:load-icon id]))
-    (if url
+      (dispatch-sync [:load-icon id]))
+    (if (and url (not= "loading" url))
       [:img.icon-img {:src url}]
       [:span "[" id "]"] 
       )
@@ -115,7 +115,7 @@
      :.barheight {:height bar-height}
      :.botbar { :bottom 0 }}))
 (defn app-html [o] ; ###
-  (let [title (:title o)
+  (let [title (unatom (:title o))
         navigate-back (:navigate-back o)
         actions (:actions o)
         views (:views o)
@@ -158,4 +158,6 @@
      content
      (when views [:div.barheight])]))
 
-(defn app [o] {:type :html, :title (:title o) , :html [app-html o] })
+(defn app 
+  ([o] {:type :html, :title (:title o) , :html [app-html o] })
+  ([o1 o2] (app (into o2 o1))))

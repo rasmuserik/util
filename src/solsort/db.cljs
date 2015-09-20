@@ -18,8 +18,8 @@
 (defn get-user-password [db]
   (if (and js/window.process js/process.env)
     [js/process.env.SOLSORT_USER js/process.env.SOLSORT_PASSWORD]
-  (let [args (or (:args db {}))]
-    [(get args "user") (get args "password")])))
+    (let [args (or (:args db {}))]
+      [(get args "user") (get args "password")])))
 (register-sub :db-login (fn [db] (reaction (get-user-password @db))))
 
 (register-handler :login-result (fn [db [_ user]] (log 'welcome user) (assoc db :user user)))
@@ -29,8 +29,8 @@
     (let [[user password] @(subscribe [:db-login])]
       (go 
         (<! (ajax (db-url "_session")
-                       :method "POST"
-                       :data {:name user :password password}))
+                  :method "POST"
+                  :data {:name user :password password}))
         (dispatch 
           [:login-result 
            (get-in (<! (ajax (db-url "_session")))
@@ -38,6 +38,14 @@
         ))
     db))
 (dispatch [:login])
+(defn <login [user password]
+  (go 
+    (<! (ajax (db-url "_session")
+              :method "POST"
+              :data {:name user :password password}))
+    (get-in (<! (ajax (db-url "_session")))
+            ["userCtx" "name"])))
+
 ;; # DBs
 ;;
 ;; We have 3 need kinds of databases
