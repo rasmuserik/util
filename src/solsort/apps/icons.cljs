@@ -11,7 +11,7 @@
     [solsort.net :as net]
     [solsort.db :refer [db-url <login]]
     [solsort.ui :refer [app icon]]
-    [solsort.ui.icons :refer [icon-db all-icons!]]
+    [solsort.lib.icon :refer [icon-db all-icons!]]
     [solsort.misc :refer [starts-with <p put!close!]]
     [reagent.core :as reagent :refer []]
     [cljsjs.pouchdb]

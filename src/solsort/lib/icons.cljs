@@ -1,4 +1,4 @@
-(ns solsort.ui.icons
+(ns solsort.lib.icon
   (:require-macros
     [reagent.ratom :as ratom :refer [reaction]]
     [cljs.core.async.macros :refer  [go alt!]])

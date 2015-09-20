@@ -90,3 +90,5 @@
         "innerHTML" 
         (default-style-str)))
 (load-default-style!)
+;; # component
+(defn style [o] [:style {"dangerouslySetInnerHTML" #js {:__html (clj->css o)}}])
