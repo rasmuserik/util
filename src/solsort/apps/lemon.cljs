@@ -40,12 +40,13 @@
     ;; read the [re-frame](https://github.com/Day8/re-frame) readme.
     ;; As that is a very good document about how to structure application.
 
-    [re-frame.core :as re-frame :refer [subscribe]]
+    [re-frame.core :as re-frame :refer [subscribe register-sub register-handler dispatch dispatch-sync]]
 
     ;; And some of my own utility functions, that I share among projects.
     ;; Routing, platform-abstraction, utilities, etc.
-    [solsort.util :refer [route log unique-id]]
-    [solsort.ui :refer [app input default-shadow add-style]]
+    [solsort.util :refer [route log unique-id <p]]
+    [solsort.net :refer [<ajax]]
+    [solsort.ui :refer [app input default-shadow add-style icon]]
     ))
 
 ;; ## API-mock
@@ -66,8 +67,6 @@
                            (js->clj)))))))
 (defn current-user-id []
   (go (get (extract-solsort-data) "userid")))
-(go
-  (log 'uid (<! (current-user-id))))
 ;; ## Sample/getting started code
 ;;
 ;; This is just a small hello-world app, will be replaced by the actual code soon.
@@ -79,40 +78,100 @@
                  :height "100%"
                  :width "100%"
                  }}
-   [:h1 "LemonGold"]
+   [:h1 [icon "emojione-lemon"] "LemonGold"]
    [:div {:style {
                   :display :inline-block
                   :box-shadow default-shadow
                   :padding-top 30
                   :width 300}}
-   [:div [input :style {:width 240} :placeholder "username" :name "username"]]   
-   [:div [input :style {:width 240} :placeholder "password" :type "password ":name "password"]]
-   [:div [:button.float-right
-          {:style {:margin 15
-                   }
-           :on-click #(js/alert "not implemented yet")} "login"]]
-   ]]
-  
+    [:div [input :style {:width 240} :placeholder "username" :name "username"]]   
+    [:div [input :style {:width 240} :placeholder "password" :type "password ":name "password"]]
+    [:div [:button.float-right
+           {:style {:margin 15 }
+            :on-click #(js/alert "not implemented yet")} "login"]]
+    ]]
+
+  )
+
+(defn <upsert [db k f]
+  (go (let [doc (<! (<p (.get db k)))
+            doc (or (clj->js {:_id k}))
+            doc (f doc)]
+        (<p (.put db doc)))))
+(register-sub :tinkuy-events (fn [db _] (reaction (:tinkuy-events @db))))
+(register-handler :tinkuy-events (fn [db [_ events]] (assoc db :tinkuy-events events)))
+(defonce tinkuy-db (js/PouchDB. "tinkuy"))
+(go (dispatch [:tinkuy-events (get (js->clj (<! (<p (.get tinkuy-db "events")))) "all")]))
+(defonce init
+  (go 
+    (let [events (<! (<ajax "https://www.tinkuy.dk/events.json"))]
+      (log 'events-downloaded)
+      (when events
+        (dispatch-sync [:tinkuy-events events])
+        (<upsert tinkuy-db "events" #(aset % "all" events))))))
+
+(defn calendar []
+  (let [events @(subscribe [:tinkuy-events])]
+    (log 'here)
+
+    
+    (into
+    (into [:div
+           [:h1 {:style {:text-align :center}} "Events i Tinkuy"]]
+          (->> events
+               (filter #(% "confirmed"))
+               (filter #(<= (-> (js/Date.) (.toISOString) (.slice 0 10)) (% "startdate")))
+               (take 50)
+               ; url starttime startdate id hour name duration minut confirmed description
+               (map (fn [e] 
+                      (let [date (.slice (e "startdate") 0 10)
+                            starttime     (.slice (e "starttime") 11 16)
+                            url (.slice (e "url") 0 -5)
+                            title (e "name")
+                            description (e "description")] 
+                        [:div 
+                         {:style {:white-space "nowrap"
+                                  :overflow "hidden"
+                                  :background "rgba(255,255,255,0.9)"
+                                  :box-shadow (str default-shadow)
+                                  :margin "1em"
+                                  :padding "0.5em" } 
+                          :on-click (fn []  
+                                      (log 'open url)
+                                      (js/open url)
+                                      nil)
+                          }
+                         [:strong title] [:br] 
+                         [:span 
+                          (["Søndag" "Mandag" "Tirsdag" "Onsdag" "Torsdag" "Fredag" "Lørdag"]
+                           (.getDay (js/Date. date)))  " "
+                          date " " starttime] [:br] 
+                         description]))))
+          )
+
+    [[:div {:style {:text-align "center" :padding "2em"}} "• • •"]]
+    )
+    )
+
   )
 
 (defn show-log []
-       [:div
-        [:h3 "Debugging log:"]
-        (map
-          (fn [e] [:div {:key (unique-id)} (.slice (str e) 1 -1)])
-          (reverse @(subscribe [:log]))) ]    )
+  [:div
+   [:h3 "Debugging log:"]
+   (map
+     (fn [e] [:div {:key (unique-id)} (.slice (str e) 1 -1)])
+     (reverse @(subscribe [:log]))) ]    )
 (def
   views
   {:lemon [show-log]
-  :calendar [show-log]
-  :profile [login-page]
-  :items [login-page]
-  :show-log [show-log]}
+   :calendar [calendar]
+   :profile [login-page]
+   :items [login-page]
+   :show-log [show-log]}
   )
 
 (defn view []
   (get views @(subscribe [:view]) [login-page]))
-
 (route
   "lemon"
   (fn []
@@ -123,15 +182,15 @@
        ;:actions [ {:event [:log "pressed hello"] :icon "hello"} ]
        ;:bar-color "rgba(00,50,50,0.8)"
        :views [ 
-               {:event [:view :lemon] :icon "emojione-lemon"}
+               ;{:event [:view :lemon] :icon "emojione-lemon"}
                {:event [:view :calendar] :icon "emojione-calendar"}
                {:event [:view :profile] :icon "emojione-bust-in-silhouette"}
-               {:event [:view :items] :icon "emojione-package"}
+               ;{:event [:view :items] :icon "emojione-package"}
                {:event [:view :show-log] :icon "emojione-clipboard"} ]
        :html [view] })))
 
 (add-style
   {:body
-   {:background "#fed"}
+   {:background "#fff7e0"}
    }
   )

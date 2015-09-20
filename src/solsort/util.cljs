@@ -21,6 +21,7 @@
 
 (def host net/host)
 (def log misc/log)
+(def <p misc/<p)
 (def canonize-string misc/canonize-string)
 (def hex-color misc/hex-color)
 (def unique-id misc/unique-id)
