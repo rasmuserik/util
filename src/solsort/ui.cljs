@@ -47,18 +47,27 @@
                 :or {type "text"
                      name "missing-name" }}]
   (let [class  (str "solsort-input solsort-input-" type " " class) ]
-  [:input {:type type 
-           :value @(subscribe [:form-value name])
-           :placeholder placeholder
-           :on-focus #(dispatch [:show-bars false])
-           :on-blur #(go (<! (timeout 300)) (dispatch [:show-bars true]))
-           :style style
-           :class class
-           :on-change #(dispatch-sync [:form-value name (-> % .-target .-value)]) }]))
+    [:input {:type type 
+             :value @(subscribe [:form-value name])
+             :placeholder placeholder
+             :on-focus #(dispatch [:show-bars false])
+             :on-blur #(go (<! (timeout 300)) (dispatch [:show-bars true]))
+             :style style
+             :class class
+             :on-change #(dispatch-sync [:form-value name (-> % .-target .-value)]) }]))
 
+(def add-style add-default-style)
 (add-default-style 
-  {:.solsort-input 
+  {:button
+   {:background "rgba(255,255,255,0.75);" 
+    :box-shadow default-shadow
+    :border :none
+    :padding 5
+
+    }
+   :.solsort-input 
    {:border "none"
+    :background "rgba(255,255,255,0.75);"
     :padding "0.5em"
     :margin ".5em"
     :box-shadow (str default-shadow " inset")

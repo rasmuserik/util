@@ -45,7 +45,7 @@
     ;; And some of my own utility functions, that I share among projects.
     ;; Routing, platform-abstraction, utilities, etc.
     [solsort.util :refer [route log unique-id]]
-    [solsort.ui :refer [app input default-shadow]]
+    [solsort.ui :refer [app input default-shadow add-style]]
     ))
 
 ;; ## API-mock
@@ -89,10 +89,6 @@
    [:div [input :style {:width 240} :placeholder "password" :type "password ":name "password"]]
    [:div [:button.float-right
           {:style {:margin 15
-                   :background "#fff"
-                   :box-shadow default-shadow
-                   :border :none
-                   :padding 5
                    }
            :on-click #(js/alert "not implemented yet")} "login"]]
    ]]
@@ -115,8 +111,8 @@
   )
 
 (defn view []
-  (get views @(subscribe [:view]) [login-page])
-  )
+  (get views @(subscribe [:view]) [login-page]))
+
 (route
   "lemon"
   (fn []
@@ -133,3 +129,9 @@
                {:event [:view :items] :icon "emojione-package"}
                {:event [:view :show-log] :icon "emojione-clipboard"} ]
        :html [view] })))
+
+(add-style
+  {:body
+   {:background "#fed"}
+   }
+  )
