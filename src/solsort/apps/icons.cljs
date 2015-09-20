@@ -59,12 +59,12 @@
     (assoc 
       (if (< (js/Math.random) .95)
         db
-      (assoc db :icons {}))
+        (assoc db :icons {}))
       :icon-start
-           (let [prev (get db :icon-start 0)
-                 start (+ prev cnt)
-                 start (max 0 start)]
-             (if (< start (count (:all-icons db))) start prev)))))
+      (let [prev (get db :icon-start 0)
+            start (+ prev cnt)
+            start (max 0 start)]
+        (if (< start (count (:all-icons db))) start prev)))))
 
 
 (defonce icon-db (js/PouchDB. "icons"))
@@ -113,22 +113,22 @@
                 (if (< i (.-length files))
                   (recur (conj fs (aget files i)) (inc i))
                   fs))]
-    (go (doall 
+    (doall 
       (for [file files]
         (let [fname (aget file "name")
               id (if (starts-with fname "noun_")
                    (str "noun-" (re-find #"\d+" fname))
                    (re-find #"[^.]+" fname))]
-            (<! (<p (.put icon-db #js{:_id id})))
-            (let [doc (<! (<p (.get icon-db id)))]
-              (<! (<p (.putAttachment icon-db id "icon" 
-                                      (aget doc "_rev") file (aget file "type")))))
-            (all-icons!)))))))
+          (go (<! (<p (.put icon-db #js{:_id id})))
+              (let [doc (<! (<p (.get icon-db id)))]
+                (<! (<p (.putAttachment icon-db id "icon" 
+                                        (aget doc "_rev") file (aget file "type")))))
+              (all-icons!)))))))
 
 (def icon-step 24)
 (defn show-all-icons []
   (into [:div] (map show-icon (take icon-step(drop @(subscribe [:icon-start]) 
-                                             @(subscribe [:all-icons]))))))
+                                                   @(subscribe [:all-icons]))))))
 (route 
   "icons"
   (fn [o]
@@ -139,14 +139,14 @@
           (all-icons!)))
     (app {:type :app
           :title (reaction (str "Icons " 
-                      (inc (/ @(subscribe [:icon-start]) icon-step)) "/"
-                      (js/Math.ceil (/ (count @(subscribe [:all-icons])) icon-step))
-                      ))
+                                (inc (/ @(subscribe [:icon-start]) icon-step)) "/"
+                                (js/Math.ceil (/ (count @(subscribe [:all-icons])) icon-step))
+                                ))
           :views[
                  {:event [:icon-start-inc (- icon-step)] :icon "emojione-finger-pointing-left"}
                  {:event [:icon-start-inc icon-step] :icon "emojione-finger-pointing-right"}
-                 {:event [:icon-cloud-sync] :icon "31173"}
-                    {:event [:add-icons-dialog] :icon "89834"}]
+                 {:event [:icon-cloud-sync] :icon "noun-31173"}
+                 {:event [:add-icons-dialog] :icon "noun-89834"}]
           :html
           [:div
            [:input.hidden {:id "iconfile-input" 
