@@ -81,7 +81,9 @@
 (register-handler 
   :icon-loaded 
   (fn [db [_ id icon]] 
-    (assoc-in db [:icons id] icon)))
+    (if-not icon
+      db
+    (assoc-in db [:icons id] icon))))
 (register-handler
   :load-icon
   (fn [db [_ id]]

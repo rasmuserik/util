@@ -46,11 +46,18 @@
                 :output-dir "resources/public/out"
                 :source-map-timestamp true }}
 
+    {:id "debug"
+     :source-paths ["src"]
+     :compiler {:main solsort.main
+                :source-map-timestamp true   
+                :optimizations :simple
+                :pretty-print true}}
     {:id "dist"
      :source-paths ["src"]
      :compiler {:output-to "resources/public/solsort.js"
                 :main solsort.main
-                :externs ~(into ["misc/externs.js"]
+                :externs ~(into ["misc/externs.js"
+                                 "misc/cljsjs-pouchdb.ext.js"]
                                 (map 
                                   #(str "node_modules/nodejs-externs/externs/" % ".js")
                                   ["assert" "buffer" "child_process" "cluster" "core"
