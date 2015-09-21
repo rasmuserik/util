@@ -18,6 +18,7 @@
 (enable-console-print!)
 
 
+(declare log)
 (register-sub :log (fn [db _] (reaction (:log @db))))
 (defn unatom [o] (if (satisfies? IAtom o) @o o))
 (defn put!close!  [c d]  (if  (nil? d)  (close! c)  (put! c d)))
@@ -25,7 +26,7 @@
   "Convert a javascript promise to a core.async channel"
   [p]
   (let  [c  (chan)]
-    (.then p #(put!close! c %) #(close! c))
+    (.then p #(put!close! c %) (fn [e] (log e (js/Object.keys e)) (close! c)))
     c))
 
 (defn <blob-url [blob]

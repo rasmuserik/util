@@ -93,85 +93,92 @@
 
   )
 
+(defonce tinkuy-db (js/PouchDB. "tinkuy"))
 (defn <upsert [db k f]
   (go (let [doc (<! (<p (.get db k)))
             doc (or (clj->js {:_id k}))
             doc (f doc)]
         (<p (.put db doc)))))
 (register-sub :tinkuy-events (fn [db _] (reaction (:tinkuy-events @db))))
-(register-handler :tinkuy-events (fn [db [_ events]] (assoc db :tinkuy-events events)))
-(defonce tinkuy-db (js/PouchDB. "tinkuy"))
-(go (dispatch [:tinkuy-events (get (js->clj (<! (<p (.get tinkuy-db "events")))) "all")]))
+(register-handler 
+  :tinkuy-events 
+  (fn [db [_ events]] 
+    (assoc db :tinkuy-events events)))
+(go 
+  (let [events  (<! (<p (.get tinkuy-db "events")))]
+    (dispatch [:tinkuy-events (get (js->clj events)"all")])))
 (defonce init
   (go 
     (let [events (<! (<ajax "https://www.tinkuy.dk/events.json"))]
-      (log 'events-downloaded)
       (when events
         (dispatch-sync [:tinkuy-events events])
-        (<upsert tinkuy-db "events" #(aset % "all" events))))))
+        (<upsert tinkuy-db "events" (fn [o] (aset o "all" (clj->js events)) o))))))
 
 (defn calendar []
-  (let [events @(subscribe [:tinkuy-events])]
-    (log 'here)
+  (let [events 
+        (->> @(subscribe [:tinkuy-events]) 
+             (filter #(% "confirmed"))
+             (filter #(<= (-> (js/Date.) (.toISOString) (.slice 0 10)) (% "startdate")))
+             (take 50)
+             ; url starttime startdate id hour name duration minut confirmed description
+             (map (fn [e] 
+                    (let [date (.slice (e "startdate") 0 10)
+                          starttime     (.slice (e "starttime") 11 16)
+                          url (.slice (e "url") 0 -5)
+                          title (e "name")
+                          description (e "description")] 
+                      [:div 
+                       {:style {:white-space "nowrap"
+                                :overflow "hidden"
+                                :background "rgba(255,255,255,0.9)"
+                                :box-shadow (str default-shadow)
+                                :margin "1em"
+                                :padding "0.5em" } 
+                        :on-click (fn []  
+                                    (js/open url)
+                                    nil)
+                        }
+                       [:strong title] [:br] 
+                       [:span 
+                        (["Søndag" "Mandag" "Tirsdag" "Onsdag" "Torsdag" "Fredag" "Lørdag"]
+                         (.getDay (js/Date. date)))  " "
+                        date " " starttime] [:br] 
+                       description]))))]
 
-    
-    (into
-    (into [:div
-           [:h1 {:style {:text-align :center}} "Events i Tinkuy"]]
-          (->> events
-               (filter #(% "confirmed"))
-               (filter #(<= (-> (js/Date.) (.toISOString) (.slice 0 10)) (% "startdate")))
-               (take 50)
-               ; url starttime startdate id hour name duration minut confirmed description
-               (map (fn [e] 
-                      (let [date (.slice (e "startdate") 0 10)
-                            starttime     (.slice (e "starttime") 11 16)
-                            url (.slice (e "url") 0 -5)
-                            title (e "name")
-                            description (e "description")] 
-                        [:div 
-                         {:style {:white-space "nowrap"
-                                  :overflow "hidden"
-                                  :background "rgba(255,255,255,0.9)"
-                                  :box-shadow (str default-shadow)
-                                  :margin "1em"
-                                  :padding "0.5em" } 
-                          :on-click (fn []  
-                                      (log 'open url)
-                                      (js/open url)
-                                      nil)
-                          }
-                         [:strong title] [:br] 
-                         [:span 
-                          (["Søndag" "Mandag" "Tirsdag" "Onsdag" "Torsdag" "Fredag" "Lørdag"]
-                           (.getDay (js/Date. date)))  " "
-                          date " " starttime] [:br] 
-                         description]))))
-          )
-
-    [[:div {:style {:text-align "center" :padding "2em"}} "• • •"]]
-    )
-    )
-
-  )
+    [:div
+     [:h1 {:style {:text-align :center}} "Events i Tinkuy"]
+     (if (zero? (count events))
+       [:center "Loading."]
+       (into [:div] events))
+     [:div {:style {:text-align "center" :padding "2em"}} "• • •"]]))
 
 (defn show-log []
-  [:div
+  [:div.container
    [:h3 "Debugging log:"]
-   (map
-     (fn [e] [:div {:key (unique-id)} (.slice (str e) 1 -1)])
-     (reverse @(subscribe [:log]))) ]    )
+   
+   
+    (into [:div]
+      (map
+     (fn [e] [:p {:key (unique-id)} (.slice (str e) 1 -1)])
+     (reverse @(subscribe [:log]))))])
+(defn about []
+  [:div.container
+   [:h1 "Om LemonGold"]
+   [:p "Dette er en prototype, udviklet for New Circle Movement af RasmusErik / solsort.com"]
+   [:p "Icons by " @(subscribe [:icon-authors])]
+   ])
 (def
   views
   {:lemon [show-log]
    :calendar [calendar]
    :profile [login-page]
    :items [login-page]
-   :show-log [show-log]}
+   :show-log [show-log]
+   :about [about]} 
   )
 
 (defn view []
-  (get views @(subscribe [:view]) [login-page]))
+  (get views @(subscribe [:view]) [calendar]))
 (route
   "lemon"
   (fn []
@@ -186,11 +193,16 @@
                {:event [:view :calendar] :icon "emojione-calendar"}
                {:event [:view :profile] :icon "emojione-bust-in-silhouette"}
                ;{:event [:view :items] :icon "emojione-package"}
-               {:event [:view :show-log] :icon "emojione-clipboard"} ]
+               {:event [:view :show-log] :icon "emojione-clipboard"} 
+               {:event [:view :about] :icon "emojione-question"}
+
+               ]
        :html [view] })))
 
 (add-style
   {:body
    {:background "#fff7e0"}
+   :.container 
+   {:margin "0em 1em 0em 1em" }
    }
   )
