@@ -8,6 +8,8 @@
     [goog.net.XhrIo]
     [goog.net.Jsonp]
     [solsort.util :refer [log <ajax host route]]
+    [solsort.db :refer [db-url]]
+    [clojure.string :as string]
     [reagent.core :as reagent :refer []]
     [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
@@ -17,13 +19,17 @@
 (route 
   "bib"
   (fn [o]
-    (log 'bib)
-    (go
+    (go 
+      (let [path (string/split (o "path") "/")
+            lid (nth path 3)
+            kind (nth path 2)
+            json  (<! (<ajax (db-url (str "bib-old/" lid) ) :result :json))]
       {:type :json
-       :json (clj->js {:hello :world})
-       }
-      )
-    ))
+       :json
+        (case kind
+          "info" (aget json "stat")
+          "related" (aget json "related")
+          "wrong-path")}))))
 ;; # old
 
 (defn <jsonp "Do an ajax request and return the result as JSON" ; ##

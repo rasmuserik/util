@@ -5,9 +5,11 @@
   (:require
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [reagent.ratom :refer-macros [reaction]]
+    [reagent.core :as reagent]
     [goog.net.XhrIo]
     [solsort.misc :refer [log unique-id]]
     [solsort.router :refer [route-exists?]]
+    [solsort.style :refer [default-style-str]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]
     [re-frame.core :refer [register-handler register-sub]]))
 
@@ -57,64 +59,90 @@
              (log 'disconnect id)
              (swap! daemons dissoc (:auth client))
              (swap! clients dissoc id)))))
-  (js/console.log "app" (js/Object.keys app)
-                  (.-use app)
-                  (.lazyrouter app)
-                  (.-_router app)
-                  (-> app
-                      (aget "_router")
-                      (aget "stack")
-                      )
-                  
-                  )
+
+  (defn html->http [route data]
+    (let [title (:title data)
+          inner-html (reagent/render-to-string (:html data))
+          route-str (js/JSON.stringify (clj->js route))
+          ]
+      {:type "text/html"
+       :content  
+       (str
+         "<!DOCTYPE html><html><head>"
+         "<script>"
+         "solsort_route=" route-str  ";"
+         "document.write('<script async src=\"//solsort.com/"
+         " solsort.js\"></sc' + 'ript>');"
+         "</script>"
+         "<meta charset=\"UTF-8\">"
+         ; TODO: make zoom optional
+         "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1,"
+         "maximum-scale=1,user-scaleable=no\">"
+         "<meta name=\"apple-mobile-web-app-capable\" content=\"yes\">"
+         "<meta name=\"mobile-web-app-capable\" content=\"yes\">"
+         "<title>" (:title data) "</title>"
+         "<style>" (default-style-str) "</style>"
+         "</head><body>"
+         inner-html
+         "</body></html>"
+         )
+       }))
+  (defn http-result [res route data]
+    (let [data (if (= :html (:type data))
+                 (html->http route data)
+                 data)]
+      (if (= :json (:type data))
+        (-> res
+            (.jsonp (:json data))
+            (.end))
+        (if (string? (:type data))
+          (-> res
+              (.set "Content-Type" (:type data))
+              (.end (:content data)))
+          (.end res "unexpected :type")))))
+
   (defn middleware [req res cb]
-    ;(log (js/Object.keys req))
     (let [route (solsort.router/url->route (aget req "url"))]
-      (log route (route-exists? (route "route")))
-     (go  (log (<! (solsort.router/<extract-route route))))
       (if (route-exists? (route "route")) 
-        (go  (.end res (str (<! (solsort.router/<extract-route route)))))
-        ;(.end res "ho")
-        (cb)) 
-      
-      )
-    )
+        (go (http-result res route (<! (solsort.router/<extract-route route))))
+        (cb))))
+
   (defonce prev-middleware (atom))
   (defn remove-middleware [f]
     (let [stack (-> app (aget "_router") (aget "stack"))]
-    (loop [i 0]
-      (when (< i (.-length stack))
-        (log 'remove-middleware i)
-        (if (= @prev-middleware (aget (aget stack i) "handle"))
-          (aset (aget app "_router") "stack" (.concat (.slice stack 0 i) (.slice stack (inc i))))
-          (recur (inc i)))))))
-  (defn add-middleware []
-    (log 'add-middleware)
-    (when (some? @prev-middleware) (remove-middleware @prev-middleware))
-    (reset! prev-middleware middleware)
-    (.use app middleware))
+      (loop [i 0]
+        (when (< i (.-length stack))
+          (log 'remove-middleware i)
+          (if (= @prev-middleware (aget (aget stack i) "handle"))
+            (aset (aget app "_router") "stack" (.concat (.slice stack 0 i) (.slice stack (inc i))))
+            (recur (inc i)))))))
+(defn add-middleware []
+  (log 'add-middleware)
+  (when (some? @prev-middleware) (remove-middleware @prev-middleware))
+  (reset! prev-middleware middleware)
+  (.use app middleware))
 
-  (defonce start-server
-    (do
-      (log 'starting-server)
-      (.use io p2p-server)
-      (.use app "/db" (proxy "localhost:5984" #js {"forwardPath" #(aget % "url")}))
-      (.on io "connection" #(new-socket-connection %))
-      (.listen server 1234)
-      (log "started server")
-      nil)))
+(defonce start-server
+  (do
+    (log 'starting-server)
+    (.use io p2p-server)
+    (.use app "/db" (proxy "localhost:5984" #js {"forwardPath" #(aget % "url")}))
+    (.on io "connection" #(new-socket-connection %))
+    (.listen server 1234)
+    (log "started server")
+    nil)))
 
-   (add-middleware)
+(add-middleware)
 
 ;; # Client connection
 (def is-dev (or
-    (= "file:" js/location.protocol)
-    (= "localhost" js/location.hostname)
-    (contains? #{"3449" "3000"} js/location.port)))
+              (= "file:" js/location.protocol)
+              (= "localhost" js/location.hostname)
+              (contains? #{"3449" "3000"} js/location.port)))
 (def location-hostname (if (= "" js/location.hostname) "localhost" js/location.hostname))
 (def host (if is-dev 
-                   (str "http://" location-hostname ":1234/")
-                   (str js/location.protocol "//blog.solsort.com/")))
+            (str "http://" location-hostname ":1234/")
+            (str js/location.protocol "//blog.solsort.com/")))
 (def socket-path (str host "socket.io/"))
 
 (defn load-js 
@@ -130,7 +158,7 @@
 (defn socket-connect []
   (go
     (when-not (some? js/window.io)
-        (<! (load-js (str socket-path "socket.io.js"))))
+      (<! (load-js (str socket-path "socket.io.js"))))
     ))
 (socket-connect)
 ;; # Network api
@@ -187,13 +215,13 @@
 ;; # <ajax
 
 (defn <ajax [url & {:keys [method data headers timeout credentials result]
-                   :or {method "GET"
-                        data nil
-                        headers #js {}
-                        timeout 0
-                        credentials true
-                        result "js->clj"
-                        }}]
+                    :or {method "GET"
+                         data nil
+                         headers #js {}
+                         timeout 0
+                         credentials true
+                         result "js->clj"
+                         }}]
   (let [c (chan)
         data-is-json (not (contains?
                             [nil js/window.ArrayBuffer js/window.ArrayBufferView js/window.Blob]
