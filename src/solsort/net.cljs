@@ -7,6 +7,7 @@
     [reagent.ratom :refer-macros [reaction]]
     [goog.net.XhrIo]
     [solsort.misc :refer [log unique-id]]
+    [solsort.router :refer [route-exists?]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]
     [re-frame.core :refer [register-handler register-sub]]))
 
@@ -56,6 +57,42 @@
              (log 'disconnect id)
              (swap! daemons dissoc (:auth client))
              (swap! clients dissoc id)))))
+  (js/console.log "app" (js/Object.keys app)
+                  (.-use app)
+                  (.lazyrouter app)
+                  (.-_router app)
+                  (-> app
+                      (aget "_router")
+                      (aget "stack")
+                      )
+                  
+                  )
+  (defn middleware [req res cb]
+    ;(log (js/Object.keys req))
+    (let [route (solsort.router/url->route (aget req "url"))]
+      (log route (route-exists? (route "route")))
+     (go  (log (<! (solsort.router/<extract-route route))))
+      (if (route-exists? (route "route")) 
+        (go  (.end res (str (<! (solsort.router/<extract-route route)))))
+        ;(.end res "ho")
+        (cb)) 
+      
+      )
+    )
+  (defonce prev-middleware (atom))
+  (defn remove-middleware [f]
+    (let [stack (-> app (aget "_router") (aget "stack"))]
+    (loop [i 0]
+      (when (< i (.-length stack))
+        (log 'remove-middleware i)
+        (if (= @prev-middleware (aget (aget stack i) "handle"))
+          (aset (aget app "_router") "stack" (.concat (.slice stack 0 i) (.slice stack (inc i))))
+          (recur (inc i)))))))
+  (defn add-middleware []
+    (log 'add-middleware)
+    (when (some? @prev-middleware) (remove-middleware @prev-middleware))
+    (reset! prev-middleware middleware)
+    (.use app middleware))
 
   (defonce start-server
     (do
@@ -67,6 +104,7 @@
       (log "started server")
       nil)))
 
+   (add-middleware)
 
 ;; # Client connection
 (def is-dev (or

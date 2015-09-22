@@ -7,12 +7,23 @@
     [cljs.test :refer-macros  [deftest testing is]]
     [goog.net.XhrIo]
     [goog.net.Jsonp]
-    [solsort.util :refer [log <ajax host]]
+    [solsort.util :refer [log <ajax host route]]
     [reagent.core :as reagent :refer []]
     [cljs.core.async.impl.channels :refer [ManyToManyChannel]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
 
 ; NB: http://ogp.me/, http://schema.org, dublin-core, https://en.wikipedia.org/wiki/RDFa
+
+(route 
+  "bib"
+  (fn [o]
+    (log 'bib)
+    (go
+      {:type :json
+       :json (clj->js {:hello :world})
+       }
+      )
+    ))
 ;; # old
 
 (defn <jsonp "Do an ajax request and return the result as JSON" ; ##

@@ -71,10 +71,13 @@
                        [(.slice % 0 i)
                         (.slice % (inc i)) ]))
                   args)]
-    (into {"route" path} args)))
+    (into {"path" path
+           "route" (first (re-find #"(_|[^./]+)" path))}
+          args)))
 
 (defonce routes (atom {}))
 (defn route [id f] (swap! routes assoc id f))
+(defn route-exists? [s] (some? (@routes s)))
 (defn <extract-route [data]
   (go (let [data (assoc data :id (unique-id))
             content (get @routes (get data "route" "")  
@@ -93,8 +96,9 @@
   (doall 
     (for [elem (js-seq (js/document.getElementsByClassName "solsort-widget"))]
       (go (let [data (<! (<extract-route (assoc (html-data elem) :reactive true)))]
-            (if (= :html (:type data))
-              (reagent/render-component (:html data) elem)
+            (case (:type data)
+              :html (reagent/render-component (:html data) elem)
+              :json (reagent/render-component [:pre (js/JSON.stringify (:json data))] elem)     
               (reagent/render-component [:pre (:content data)] elem)))))))
 
 
