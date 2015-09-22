@@ -200,7 +200,7 @@
        :html [view] })))
 
 (add-style
-  {:body
+  {".solsort-app-container"
    {:background "#fff7e0"}
    :.container 
    {:margin "0em 1em 0em 1em" }
