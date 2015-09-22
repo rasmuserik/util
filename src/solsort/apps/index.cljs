@@ -3,12 +3,15 @@
   (:require
     [reagent.core :as reagent :refer  []]
     [solsort.util :refer [route log canonize-string hex-color]]
+    [solsort.db :refer [db-url]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close! pipe]]))
 
 
 (def entries (atom []))
-(defn add-entry [title tags url]
-  (swap! entries conj {:title title :tags tags :url url}))
+(defn add-entry 
+  ([title tags url img] 
+  (swap! entries conj {:title title :tags tags :url url :img img}))
+  ([title tags url] (add-entry title tags url (canonize-string title))))
 
 
 (def circle-size 100)
@@ -24,7 +27,7 @@
                  :boxShadow (str "0px 0px 2px #000, "
                                  "3px 3px 10px rgba(0,0,0,0.4)")
                  }}
-     [:img {:src (str "/icons/" (canonize-string title) "")
+     [:img {:src (db-url "icons/" (:img o) "/icon")   
             :style { :width circle-size
                     :height circle-size
                     :backgroundColor "#fff"
@@ -65,7 +68,7 @@
 (defn home-html []
   [:div {:style {:textAlign :center}}
    [:div {:style {:margin "32px 0 64px 0" :fontSize 16}}
-    [:img {:src "/icons/solsort.png"
+    [:img {:src (db-url "/icons/solsort/icon")
            :style {:height 64 :width 64}}]
     [:div
      [:span {:style {:fontSize "150%"}}
@@ -84,32 +87,39 @@
    ])
 
 
-(route "index" :html
+(route "index"
        (fn []
-         (reagent/render-component  [home-html] js/document.body)
-         {:offline true :type "html" :title "solsort.com" :html (home-html)}))
+         {:type :html 
+          :title "solsort.com" 
+          :html (home-html)}))
 
 ; state: unfinished|alpha|beta|done
 (add-entry "Rasmus Erik Voel Jensen"
            ["developer" "company owner" "computer scientist"]
-           "/rasmuserik.html")
+           "/rasmuserik.html"
+           "rasmuserik"
+           )
 
 (add-entry "Blog"
            ["2015"]
            "/blog/")
 (add-entry "BibData"
            ["2015"]
-           "/bibdata/")
+           "/bibdata/"
+           "default"
+           )
 
-(add-entry "Barefoot Tango"
+#_(add-entry "Barefoot Tango"
            ["2015"]
            "/notes/barefoot-tango")
-(add-entry "Repeat record"
+#_(add-entry "Repeat record"
            ["2015" "utility" "webapp" "firefox-only" "video"]
            "/#repeat-record/10")
 (add-entry "Anbefalings-webservice"
            ["2015" "beta" "visualisering af relationer" "webservice" "ClojureScript"]
-           "/visualisering-af-relationer/compare.html#relvis/cir870970-basis:05625351")
+           "/visualisering-af-relationer/compare.html#relvis/cir870970-basis:05625351"
+           "relvis"
+           )
 (add-entry "Visualisering af relationer"
            ["2014" "done" "visualisering af relationer" "visualisation" "JavaScript"]
            (str "https://vejlebib.dk/search/ting/musik#relvis/str870971-tsart:71029824,"
@@ -122,54 +132,58 @@
                 "870970-basis:20826592,870970-basis:04971914,870970-basis:28799950,"
                 "870970-basis:28799942,870970-basis:28205899,870970-basis:26386896,"
                 "870970-basis:23702630,870970-basis:51445481,870970-basis:26747953,"
-                "870971-tsart:87018148,870971-tsart:35714006i"))
+                "870971-tsart:87018148,870971-tsart:35714006i")
+           "relvis"
+           )
 (add-entry "Sketch note draw"
            ["2014" "beta" "webapp" "infinite canvas" "zoomable"]
            "/sketch-note-draw/")
 (add-entry "Frie Børnesange"
            ["2014" "alpha" "webapp" "open content" "sangbog"]
-           "/frie-sange/")
+           "/frie-sange/" "frie-sange") 
 (add-entry "Learn morse\u00a0code"
            ["2014" "alpha" "webapp"]
-           "/morse-code/")
+           "/morse-code/" "morse-code")
 (add-entry "Single touch snake"
            ["2014" "unfinished" "game" "webapp"]
            "/single-touch-snake/")
 (add-entry "Parkering i København"
            ["2014" "alpha" "hackathon" "open data day" "data.kk.dk" "gatesense"
             "iotpeople" "okfn"]
-           "/kbh-parking/")
+           "/kbh-parking/" "kbh-parking")
 (add-entry "360º Viewer"
            ["2014" "done" "widget" "frontend" "hammertime"]
            "/360/test.html")
 (add-entry "Backend for UCC-organismen"
            ["2014" "done" "backend" "UCC Organismen" "ucc" "webuntis" "rejseplanen"]
-           "http://ssl.solsort.com:8080/")
+           "http://ssl.solsort.com:8080/"
+           "uccorg"
+           )
 (add-entry "BibTekKonf Slides"
            ["2013" "done" "presentation" "dbc" "bibgraph"]
-           "/slides/bibtekkonf2013-bibgraph")
+           "/slides/bibtekkonf2013-bibgraph" "bibgraph")
 (add-entry "Art quiz"
            ["2013" "alpha" "prototype" "hack4dk"]
-           "/hack4dk/quiz/")
+           "/hack4dk/quiz/" "h4dk-artquiz")
 (add-entry "Summer\u00a0Hacks Slides"
            ["2013" "done" "copenhagenjs" "presentation" "bibgraph" "skolevej"]
-           "/slides/cphjs2013-summer-hacks")
+           "/slides/cphjs2013-summer-hacks" "summer-hacks")
 (add-entry "BibGraph"
            ["2013" "alpha" "visualisation" "widget" "dbc" "adhl" "d3"]
            "http://labs.dbc.dk/bibgraph")
 (add-entry "HTML5 Developer Perspective Slides"
            ["2013" "done" "presentation" "html5" "cnug"]
-           "/slides/talk-html5-2013/cnug2013-slides.html")
+           "/slides/talk-html5-2013/cnug2013-slides.html" "html5cnug")
 (add-entry "Speeding visualisation"
            ["2013" "done" "visualisation" "hammertime"
             "role:optimisation" "role:reimplementation"]
-           "http://speeding.solsort.com/")
+           "http://speeding.solsort.com/" "speeding")
 (add-entry "Dragimation"
            ["2013" "done" "widget" "hammertime" "legoland billund resort"]
            "http://dragimation.solsort.com")
-(add-entry "Pricing scale"
+#_(add-entry "Pricing scale"
            ["2013" "done" "notes" "estimation tool"]
-           "/notes/pricing-scale")
+           "/notes/pricing-scale") ;;;;
 (add-entry "Tsar Tnoc"
            ["2012" "beta" "ludum dare" "hackathon"]
            "/tsartnoc/")
@@ -182,9 +196,9 @@
 (add-entry "CombiGame"
            ["2012" "alpha" "game" "hackathon"]
            "http://old.solsort.com/#combigame")
-(add-entry "Presentation evaluation notes"
+#_(add-entry "Presentation evaluation notes"
            ["2012" "done" "notes" "toastmasters"]
-           "/notes/presentation-evaluation")
+           "/notes/presentation-evaluation") ;;;;
 #_(add-entry "NoteScore"
            ["2011" "beta" "app" "music" "edu"]
            "https://play.google.com/store/apps/details?id=dk.solsort.notescore")

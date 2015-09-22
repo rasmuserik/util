@@ -99,7 +99,7 @@
           (-> res
               (.set "Content-Type" (:type data))
               (.end (:content data)))
-          (.end res "unexpected :type")))))
+          (.end res (str "unexpected :type " (:type data) " for " route))))))
 
   (defn middleware [req res cb]
     (let [route (solsort.router/url->route (aget req "url"))]
@@ -116,11 +116,11 @@
           (if (= @prev-middleware (aget (aget stack i) "handle"))
             (aset (aget app "_router") "stack" (.concat (.slice stack 0 i) (.slice stack (inc i))))
             (recur (inc i)))))))
-(defn add-middleware []
-  (log 'add-middleware)
-  (when (some? @prev-middleware) (remove-middleware @prev-middleware))
-  (reset! prev-middleware middleware)
-  (.use app middleware))
+  (defn add-middleware []
+    (log 'add-middleware)
+    (when (some? @prev-middleware) (remove-middleware @prev-middleware))
+    (reset! prev-middleware middleware)
+    (.use app middleware)
 
 (defonce start-server
   (do
@@ -133,6 +133,8 @@
     nil)))
 
 (add-middleware)
+
+)
 
 ;; # Client connection
 (def is-dev (or
