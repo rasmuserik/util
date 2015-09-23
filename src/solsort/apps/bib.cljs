@@ -8,7 +8,7 @@
     [goog.net.XhrIo]
     [goog.net.Jsonp]
     [solsort.util :refer [log <ajax host route]]
-    [solsort.misc :refer [go<!-seq]]
+    [solsort.misc :refer [<seq<!]]
     [solsort.db :refer [db-url]]
     [clojure.string :as string]
     [reagent.core :as reagent :refer []]
@@ -75,7 +75,7 @@
                                   biblioteker)
                              ))
       "related" [:div.spaceabove "Anbefalinger: " (into [:ul]
-                                                        (<! (go<!-seq (map related-link (take 30 (rest vs))))))]
+                                                        (<! (<seq<! (map related-link (take 30 (rest vs))))))]
       [:div k (str vs)])))
 
 (defn itemtype [t]
@@ -111,7 +111,7 @@
               (into []  (concat [:div {:itemScope "itemscope"
                              :itemType (itemtype (obj "type"))}]
                       (filter identity
-                              (<! (go<!-seq
+                              (<! (<seq<!
                                     (map html-for-type
                                          (map #(list % (obj %) obj) ks)))))
                       [[:hr]
@@ -144,7 +144,7 @@
      :html [:div.container
             [:h1 "BibData"]
             "Eksempler:"
-            (into [:ul] (<! (go<!-seq (map sample-lid sample-lids))))
+            (into [:ul] (<! (<seq<! (map sample-lid sample-lids))))
             [:small "Eksemplerne er udvalgt som 1., 10., 100., 1.000., 10.000., 20.000., 30.000., 40.000., 50.000., 60.000., 70.000., 80.000., 90.000., og 100.000. mest populære bog."]
             ]}))
 

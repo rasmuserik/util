@@ -36,5 +36,6 @@
     [solsort.apps.icons]
     [solsort.apps.lemon]
     [solsort.apps.rasmuserik]
+    [solsort.apps.install-sites]
     [solsort.util]
     ))

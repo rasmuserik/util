@@ -29,6 +29,13 @@
     (.then p #(put!close! c %) (fn [e] (log e (js/Object.keys e)) (close! c)))
     c))
 
+(defn <n 
+  "Convert a javascript node-style async to core.async channel"
+  [f & args]
+  (let  [c  (chan)]
+    (apply f (conj args (fn [err res] (if err (close! c) (put!close! c res)))))
+    c))
+
 (defn <blob-url [blob]
   (let [reader (js/FileReader.)
         c (chan)]
@@ -47,7 +54,6 @@
       (close! c))
     c))
 
-;; # logger
 (defn log [& args]
   (apply print 'log args)
   (dispatch (into  [:log] args))
@@ -59,7 +65,7 @@
                q (if (<= 30 (count q)) (pop q) q)
                q (conj q entry)]
            (assoc db :log q))))
-;; # misc
+
 (defn js-seq [o] (seq (js/Array.prototype.slice.call o)))
 (defn starts-with [string prefix] (= prefix (.slice string 0 (.-length prefix))) )
 (defn html-data [elem]
@@ -68,7 +74,6 @@
                 (filter (fn [[k w]] (starts-with k "data-")))
                 (map (fn [[k w]] [(.slice k 5) w])))))
 
-;; ## run-once
 (defn run-once [f]
   (let [do-run (atom true)]
     (fn [& args]
@@ -76,7 +81,6 @@
         (reset! do-run false)
         (apply f args)))))
 
-;; ## js-json
 (defn parse-json-or-nil [str]
   (try
     (js/JSON.parse str)
@@ -88,12 +92,10 @@
       (let [k (.pop ks)] (aset target k (aget source k)))))
   target)
 
-;; ## tests
 (defn chan? [c] (instance? ManyToManyChannel c))
 (defn function? [c] (instance? js/Function c))
-;; ## async channels
 
-(defn go<!-seq [cs]
+(defn <seq<! [cs]
   (go
     (loop [acc []
            cs cs]
@@ -177,10 +179,14 @@
 ;(def -writer  (transit/writer :json))
 ;(def -reader  (transit/reader :json))
 
-(defn <exec  [cmd] ; ##
+;; ## system
+(defn <exec  [cmd] 
   (let  [c  (chan)]
     (.exec  (js/require "child_process") cmd
            (fn  [err stdout stderr]
+             (when (not= "" stderr)
+               (log 'exec-stderr cmd stderr)
+               )
              (if  (nil? err)
                (put! c stdout)
                (close! c))))
