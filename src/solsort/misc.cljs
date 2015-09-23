@@ -177,3 +177,12 @@
 ;(def -writer  (transit/writer :json))
 ;(def -reader  (transit/reader :json))
 
+(defn <exec  [cmd] ; ##
+  (let  [c  (chan)]
+    (.exec  (js/require "child_process") cmd
+           (fn  [err stdout stderr]
+             (if  (nil? err)
+               (put! c stdout)
+               (close! c))))
+    c))
+
