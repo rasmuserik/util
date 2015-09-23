@@ -20,13 +20,16 @@
 (when (and (some? js/window.require)
            (some? (js/window.require "fs")))
   (defn <e [& args] 
-    (let [s (apply str args)]
-      (log '> s) 
-      (go (<! (<exec s)))))
-  (def cfg (atom false))
-  (def fs (js/require "fs"))
-  (def dl-path "/tmp/dl/")
-  (def base-path "/tmp/new-solsort/")
+    (go (let [s (apply str args)  
+              result (<! (<exec s))]
+          (log '> s) 
+          (when (nil? result)
+            (log 'WARNING-FAILED s))
+          result)))
+  (defonce cfg (atom nil))
+  (defonce  fs (js/require "fs"))
+  (defonce  dl-path "/tmp/dl/")
+  (defonce  base-path "/tmp/new-solsort/")
 
   (defn <load-source [[k url]]
     (go
@@ -50,7 +53,7 @@
       (case ext
         "zip" (<e "install -d " dst ";"
                   "cd " dst ";"
-                  "unzip " src)
+                  "unzip -x -o " src)
         "gz" (<e "zcat " src " > " dst)
         "git" (<e "install -d " dst ";"
                   "rsync -a " src "/ " dst "")
@@ -62,35 +65,38 @@
       (<! (<seq<! 
             (map (fn [[src dest]]
                    (<install-content src (str path dest)))
-                 (seq (:content o)))))
+                 (seq (get o :content [])))))
       (<! (<seq<!
             (map 
               #(<e "install -d " path % ";"
                    "chmod 777 " path % ";") 
-              (:write-dir o))))
-        
+              (get o :write-dir []))))
+
       (<! (<seq<!
             (map 
               (fn [[src dst]]
                 (<e "rm -rf " path dst ";"
                     "ln -sf " src " " path dst))
-              (:ln o))))))
+              (get o :ln []))))))
 
   (defn <install-site [site]
     (go (let [site-path (str base-path "sites/" site "/")]
           (<! (<e "install -d " site-path))
-          (log 'default-site)
+          (log 'default-content-for site)
           (<! (<exec-install (:default-site @cfg) site-path))
-          (log 'site site)
+          (log 'custom-content-for site)
           (<! (<exec-install ((:sites @cfg) site) site-path)))))
 
   (route 
     "install-sites"
     (fn [o]
-      (when (not @cfg)
+      (when (nil? @cfg)
         (reset! cfg true)
         (go 
           (log 'start-install)  
+          (<! (<e "cd /home/rasmuserik/install; git pull"))
+          ;(<! (<e "rm -rf " dl-path))
+          (<! (<e "rm -rf " base-path))
           (let [config (-> fs
                            (.readFileSync
                              "/home/rasmuserik/install/config.clj")
@@ -101,13 +107,11 @@
                          (into {}
                                (<! (<seq<! (map <load-source (:sources config))))))]
             (reset! cfg config)
-            (<! (<e "rm -rf " base-path))
             (<! (<exec-install (:root config) "/tmp/new-solsort/"))
             (<! (<seq<! (map <install-site (keys (:sites @cfg)))))
             )
-          (reset! cfg false)
+          (reset! cfg nil)
           )
         )
       {:type :html
        :html (log-elem)})))
-; (<! (<exec "for path in /solsort/sites/*; do cd $path; git pull; done")))
