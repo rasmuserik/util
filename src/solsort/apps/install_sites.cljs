@@ -77,7 +77,12 @@
               (fn [[src dst]]
                 (<e "rm -rf " path dst ";"
                     "ln -sf " src " " path dst))
-              (get o :ln []))))))
+              (get o :ln []))))
+      (<! (<seq<!
+            (map 
+              (fn [dir]
+                (<e "rsync -a /solsort/" dir "/ " path dir))
+              (get o :preserve []))))))
 
   (defn <install-site [site]
     (go (let [site-path (str base-path "sites/" site "/")]
