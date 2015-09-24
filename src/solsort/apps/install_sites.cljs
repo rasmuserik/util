@@ -20,8 +20,11 @@
 (when (and (some? js/window.require)
            (some? (js/window.require "fs")))
   (defonce has-error (atom false))
-
-  (defn <e [& args]
+  (defonce cfg (atom nil))
+  (defonce fs (js/require "fs"))
+  (defonce dl-path "/tmp/dl/")
+  (defonce base-path "/tmp/new-solsort/")
+  (defn <e [& args] ; ##
     (go (let [s (apply str args)
               result (<! (<exec s))]
           (log '> s)
@@ -29,12 +32,8 @@
             (reset! has-error true)
             (log 'WARNING-FAILED s))
           result)))
-  (defonce cfg (atom nil))
-  (defonce fs (js/require "fs"))
-  (defonce dl-path "/tmp/dl/")
-  (defonce base-path "/tmp/new-solsort/")
 
-  (defn <load-source [[k url]]
+  (defn <load-source [[k url]] ; ##
     (go
       (let [fname (re-find #"[^/]*$" url)
             ext (re-find #"[^./]*$" url)]
@@ -45,12 +44,12 @@
                        (str "wget -nc " url)))))
         [k [fname ext]])))
 
-  (defn <copy [src dst]
+  (defn <copy [src dst] ; ##
     (let [path (re-find #".*/" dst)]
       (go (<! (<e "install -d " path))
           (<! (<e "cp -a " src " " dst)))))
 
-  (defn <install-content [src dst]
+  (defn <install-content [src dst] ; ##
     (let [[fname ext]  (-> @cfg (:sources) (src))
           src (str dl-path fname)]
       (case ext
@@ -62,7 +61,7 @@
                   "rsync -a " src "/ " dst "")
         (<copy src dst))))
 
-  (defn <exec-install [o path]
+  (defn <exec-install [o path] ; ##
     (go
       (<! (<e "install -d " path))
       (<! (<seq<!
@@ -89,15 +88,30 @@
                   "rsync -a /solsort/" dir "/ " path dir))
               (get o :preserve []))))))
 
-  (defn <wp-config [site]
+  (defn <wp-config [site] ; ##
+    (go (let [site-path (str base-path "sites/" site)
+              site ((:sites @cfg) site)
+              config-template (.readFileSync 
+                                fs
+                                "/home/rasmuserik/install/templates/wp-config.php"
+                                "utf8" )]
+          (when (= -1 (.indexOf config-template "/*!SOLSORT_CONFIG*/"))
+            (log "WARNING: no /*!SOLSORT_CONFIG*/ in template")
+            (reset! has-error true))
+          (.writeFile
+            fs (str  site-path "/wordpress/wp-config.php")
+            (.replace
+              config-template "/*!SOLSORT_CONFIG*/"
+              (str
+                "define('DB_NAME', '" (:db site) "');\n"
+                "define('DB_USER', '" (:db-user site) "');\n"
+                "define('DB_PASSWORD', '" (:db-password site) "');\n"))))))
+
+  (defn <nginx-config [site] ; ##
     (go ;TODO
         false))
 
-  (defn <nginx-config [site]
-    (go ;TODO
-        false))
-
-  (defn <mysql-dbs [site]
+  (defn <mysql-dbs [site] ; ##
     (go (let [site ((:sites @cfg) site)
               db (:db site)
               user (:db-user site)
@@ -117,18 +131,18 @@
                 "true"
                 )))))
 
-  (defn <install-site [site]
-    (go (let [site-path (str base-path "sites/" site "/")]
-          (<! (<e "install -d " site-path))
-          (log 'default-content-for site)
-          (<! (<exec-install (:default-site @cfg) site-path))
-          (log 'custom-content-for site)
-          (<! (<exec-install ((:sites @cfg) site) site-path))
-          (<! (<wp-config site))
-          (<! (nginx-config site))
-          (<! (<mysql-dbs site)))))
+(defn <install-site [site] ; ##
+  (go (let [site-path (str base-path "sites/" site "/")]
+        (<! (<e "install -d " site-path))
+        (log 'default-content-for site)
+        (<! (<exec-install (:default-site @cfg) site-path))
+        (log 'custom-content-for site)
+        (<! (<exec-install ((:sites @cfg) site) site-path))
+        (<! (<wp-config site))
+        (<! (<nginx-config site))
+        (<! (<mysql-dbs site)))))
 
-(defn <download-resources []
+(defn <download-resources [] ; ##
   (go
     ;(<! (<e "rm -rf " dl-path))
     (let [config (-> fs
@@ -141,14 +155,14 @@
                    (into {}
                          (<! (<seq<! (map <load-source (:sources config))))))]
       (reset! cfg config))))
-(defn <create-sites []
+(defn <create-sites [] ; ##
   (go
     (log 'start-install)
     (<! (<e "rm -rf " base-path))
     (<! (<exec-install (:root @cfg) "/tmp/new-solsort/"))
     (<! (<seq<! (map <install-site (keys (:sites @cfg)))))))
 
-(defn <install-sites  []
+(defn <install-sites  [] ; ##
   (go
     (<! (<e "cd /home/rasmuserik/install; git pull"))
     (<! (<download-resources))
@@ -164,13 +178,12 @@
       (<! (<e "sudo mv /tmp/new-solsort /solsort")))
     (reset! cfg nil)))
 
-(route 
-  "install-sites" 
-  (fn [o] 
-    (when (nil? @cfg)
-      (reset! cfg true)
-      (go
-        (<! (<install-sites))
-        (reset! cfg nil)))
-    {:type :html :html (log-elem)}))
+(route "install-sites" ; ##
+       (fn [o] 
+         (when (nil? @cfg)
+           (reset! cfg true)
+           (go
+             (<! (<install-sites))
+             (reset! cfg nil)))
+         {:type :html :html (log-elem)}))
 )
