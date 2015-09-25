@@ -8,7 +8,8 @@
     [reagent.core :as reagent]
     [solsort.misc :refer [log unique-id <exec <n <seq<!]]
     [solsort.router :refer [route-exists? route]]
-    (cljs.reader :refer [read-string])
+    [cljs.reader :refer [read-string]]
+    [clojure.string :as string]
     [solsort.style :refer [default-style-str]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]
     [re-frame.core :refer [register-handler register-sub subscribe]]))
@@ -18,7 +19,7 @@
               (reverse @(subscribe  [:log])))])
 
 (when (and (some? js/window.require)
-           (some? (js/window.require "fs")))
+           (some? (js/window.require "fs"))))
   (defonce has-error (atom false))
   (defonce cfg (atom nil))
   (defonce fs (js/require "fs"))
@@ -107,9 +108,55 @@
                 "define('DB_USER', '" (:db-user site) "');\n"
                 "define('DB_PASSWORD', '" (:db-password site) "');\n"))))))
 
-  (defn <nginx-config [site] ; ##
-    (go ;TODO
-        false))
+  (defn nginx-config [site] ; ## 
+    ["server"
+     [:server_name site]
+     [:root (str "/solsort/sites/" site)]
+     [:listen 80]
+     [:listen 443 "ssl"]
+     [:ssl_certificate "/solsort/ssl/blog_solsort_com.crt"]
+     [:ssl_certificate_key "/solsort/ssl/blog_solsort_com.key"]
+     ["location /"
+      [:try_files "$uri" "$uri/" "index.php?$args"]]
+     ["location /socket.io"
+      [:proxy_http_version "1.1"]
+      [:proxy_set_header "Upgrade" "$http_upgrade"]
+      [:proxy_set_header "X-Forwarded-For" "$proxy_add_x_forwarded_for"]
+      [:proxy_set_header "Connection" "\"upgrade\""]
+      [:proxy_pass  "http://127.0.0.1:1234"]
+      [:access_log "off"]]])
+(defn nginx-to-str 
+  ([o] 
+   (nginx-to-str o "  "))
+  ([o indent] 
+   (js/console.log (str o indent))
+   (log (if-not (vector? o)
+     (if (keyword? o) (name o) (str o))
+     (str
+         "\n" indent
+     (string/join 
+       " " 
+       (if (vector? (last o)) 
+         (concat [(first o) "{"] 
+                 (map #(nginx-to-str %  (str "  " indent)) (rest o)))
+                 (map #(nginx-to-str %  "") o)))
+     (if (vector? (last o)) (str "\n" indent "}") ";"))))))
+ 
+  (defn <nginx-config []
+    (log 'HJERE)
+    (go (let [ config-template (.readFileSync 
+                                fs
+                                "/home/rasmuserik/install/templates/nginx.conf"
+                                "utf8" )]
+          (when (= -1 (.indexOf config-template "#SERVER_CONFIG#"))
+            (log "WARNING: no #SERVER_CONFIG# in nginx template")
+            (reset! has-error true))
+          (.writeFile
+            fs (str  base-path "nginx.conf")
+            (.replace
+              config-template "#SERVER_CONFIG#"
+              (nginx-to-str (nginx-config "blah")))))))
+
 
   (defn <mysql-dbs [site] ; ##
     (go (let [site ((:sites @cfg) site)
@@ -139,7 +186,6 @@
         (log 'custom-content-for site)
         (<! (<exec-install ((:sites @cfg) site) site-path))
         (<! (<wp-config site))
-        (<! (<nginx-config site))
         (<! (<mysql-dbs site)))))
 
 (defn <download-resources [] ; ##
@@ -160,7 +206,8 @@
     (log 'start-install)
     (<! (<e "rm -rf " base-path))
     (<! (<exec-install (:root @cfg) "/tmp/new-solsort/"))
-    (<! (<seq<! (map <install-site (keys (:sites @cfg)))))))
+    (<! (<seq<! (map <install-site (keys (:sites @cfg)))))
+    (<! (<nginx-config))))
 
 (defn <install-sites  [] ; ##
   (go
@@ -168,7 +215,6 @@
     (<! (<download-resources))
     (reset! has-error false)
     (<! (<create-sites))
-    ; TODO: wp-config
     (when (not @has-error)
 
       (<! (<e "(crontab -l ; echo @reboot /solsort/html/start-server.sh)"
@@ -186,4 +232,4 @@
              (<! (<install-sites))
              (reset! cfg nil)))
          {:type :html :html (log-elem)}))
-)
+ 

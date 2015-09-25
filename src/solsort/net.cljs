@@ -247,8 +247,10 @@
       method data (clj->js headers) timeout credentials)
     c))
 ;; # autorestart
-(when (and (some? js/window.require)
-           (some? (js/window.require "fs")))
+(when (and 
+        false
+        (some? js/window.require)
+        (some? (js/window.require "fs")))
   (let [fs (js/require "fs")
         script-file  "/solsort/html/solsort.js"  
         ]
