@@ -72,7 +72,7 @@
          "<script>"
          "solsort_route=" route-str  ";"
          "document.write('<script async src=\"//solsort.com/"
-         " solsort.js\"></sc' + 'ript>');"
+         "solsort.js\"></sc' + 'ript>');"
          "</script>"
          "<meta charset=\"UTF-8\">"
          ; TODO: make zoom optional

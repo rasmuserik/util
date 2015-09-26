@@ -4,7 +4,7 @@
 
   (:require
     [solsort.misc :refer [log unique-id <exec <n <seq<!]]
-    [solsort.router :refer [route]]
+    [solsort.router :refer [route all-routes]]
     [cljs.reader :refer [read-string]]
     [clojure.string :refer [join]]
     [cljs.core.async :refer [<!]]
@@ -136,6 +136,7 @@
       [:proxy_set_header "X-Forwarded-For" "$proxy_add_x_forwarded_for"]
       [:proxy_set_header "Connection" "\"upgrade\""]
       [:proxy_pass  "http://127.0.0.1:1234"]
+      [:try_files "$uri" "$uri/" "@server"] 
       [:access_log "off"]]
      ["location /posts" 
       [:include "fastcgi_params"]
@@ -144,8 +145,8 @@
       ]
      ["location /wp-json " [:try_files "$uri" "$uri/" "/index.php?$args"]]
      ["location ~ ^/20.*" [:try_files "$uri" "$uri/" "/index.php?$args"]]
-     ["location /hello" [:try_files "$uri @server"]]
-     ["location /db" [:try_files "$uri @server"]]
+     [(str "location ~ ^/(db|" (join "|" (all-routes)) ")") 
+      [:try_files "$uri" "$uri/" "@server"]]
      ["location @server"
       [:proxy_set_header  "x-solsort-remote-addr"  "$remote_addr"]
       [:proxy_set_header  "x-solsort-site" id] 

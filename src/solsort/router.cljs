@@ -77,6 +77,7 @@
 
 (defonce routes (atom {}))
 (defn route [id f] (swap! routes assoc id f))
+(defn all-routes [] (keys @routes))
 (defn route-exists? [s] (some? (@routes s)))
 (defn <extract-route [data]
   (go (let [data (assoc data :id (unique-id))
