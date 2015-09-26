@@ -97,7 +97,7 @@
 ; state: unfinished|alpha|beta|done
 (add-entry "Rasmus Erik Voel Jensen"
            ["developer" "company owner" "computer scientist"]
-           "/rasmuserik.html"
+           "/rasmuserik"
            "rasmuserik"
            )
 
