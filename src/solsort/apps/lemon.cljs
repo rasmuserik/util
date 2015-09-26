@@ -107,12 +107,6 @@
 (go 
   (let [events  (<! (<p (.get tinkuy-db "events")))]
     (dispatch [:tinkuy-events (get (js->clj events)"all")])))
-(defonce init
-  (go 
-    (let [events (<! (<ajax "https://www.tinkuy.dk/events.json"))]
-      (when events
-        (dispatch-sync [:tinkuy-events events])
-        (<upsert tinkuy-db "events" (fn [o] (aset o "all" (clj->js events)) o))))))
 
 (defn calendar []
   (let [events 
@@ -155,12 +149,12 @@
 (defn show-log []
   [:div.container
    [:h3 "Debugging log:"]
-   
-   
-    (into [:div]
-      (map
-     (fn [e] [:p {:key (unique-id)} (.slice (str e) 1 -1)])
-     (reverse @(subscribe [:log]))))])
+
+
+   (into [:div]
+         (map
+           (fn [e] [:p {:key (unique-id)} (.slice (str e) 1 -1)])
+           (reverse @(subscribe [:log]))))])
 (defn about []
   [:div.container
    [:h1 "Om LemonGold"]
@@ -182,6 +176,12 @@
 (route
   "lemon"
   (fn []
+    (defonce init
+      (go 
+        (let [events (<! (<ajax "https://www.tinkuy.dk/events.json"))]
+          (when events
+            (dispatch-sync [:tinkuy-events events])
+            (<upsert tinkuy-db "events" (fn [o] (aset o "all" (clj->js events)) o))))))
     (app
       {:type :app
        ;:title "LemonGold"
