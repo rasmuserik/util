@@ -14,7 +14,7 @@
            (some? (js/window.require "fs"))))
 (defonce has-error (atom false))
 (defonce cfg (atom nil))
-(defonce fs (js/require "fs"))
+(defonce fs (when (some? js/window.require) (js/require "fs")))
 (defonce dl-path "/tmp/dl/")
 (defonce base-path "/tmp/new-solsort/")
 (defn local-name [site] (str (re-find #"[^.]+" site) ".localhost"))
@@ -30,7 +30,7 @@
 (defn <load-source [[k url]] ; ##
   (go
     (let [fname (re-find #"[^/]*$" url)
-          ext (re-find #"[^./]*$" url)]
+          ext (first (re-find #"(tar.gz|[^./]*)$" url))]
       (<! (<e (str "install -d " dl-path ";"
                    "cd " dl-path ";"
                    (if (= "git" ext)
@@ -51,6 +51,9 @@
                 "cd " dst ";"
                 "unzip -x -o " src)
       "gz" (<e "zcat " src " > " dst)
+      "tar.gz" (<e "install -d " dst ";"
+                "cd " dst ";"
+                "tar xzf " src)
       "git" (<e "install -d " dst ";"
                 "rsync -a " src "/ " dst "")
       (<copy src dst))))
