@@ -133,13 +133,12 @@
         nil)))
 
 (add-middleware)
-
 )
 
 ;; # Client connection
 (def is-dev (or
               (= "file:" js/location.protocol)
-              (= "localhost" js/location.hostname)
+              (re-find #"localhost" js/location.hostname)
               (contains? #{"3449" "3000"} js/location.port)))
 (def location-hostname (if (= "" js/location.hostname) "localhost" js/location.hostname))
 (def host (if is-dev 

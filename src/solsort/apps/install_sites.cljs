@@ -67,12 +67,6 @@
                (seq (get o :content [])))))
     (<! (<seq<!
           (map
-            #(<e "install -d " path % ";"
-                 "chmod 777 " path % ";")
-            (get o :write-dir []))))
-
-    (<! (<seq<!
-          (map
             (fn [[src dst]]
               (<e "rm -rf " path dst ";"
                   "ln -sf " src " " path dst))
@@ -83,7 +77,13 @@
               (<e 
                 "install -d /solsort/" dir ";"
                 "rsync -a /solsort/" dir "/ " path dir))
-            (get o :preserve []))))))
+            (get o :preserve []))))
+    (<! (<seq<!
+          (map
+            #(<e "install -d " path % ";"
+                 "chmod 777 " path % ";")
+            (get o :write-dir [])))) 
+    ))
 
 (defn <wp-config [site] ; ##
   (go (let [site-path (str base-path "sites/" site)

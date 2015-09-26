@@ -91,10 +91,9 @@
     [:br] "Updated Summer 2015"]]
   )
 
-(route "rasmuserik" :html
+(route "rasmuserik"
        (fn []
-        (reagent/render-component  [html] js/document.body)
-         {:type "html"
+         {:type :html
           :offline true
           :title "Rasmus Erik - solsort.com"
           :css {:h1 {:fontWeight :normal

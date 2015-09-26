@@ -70,10 +70,11 @@
    [:div {:style {:margin "32px 0 64px 0" :fontSize 16}}
     [:img {:src (db-url "/icons/solsort/icon")
            :style {:height 64 :width 64}}]
-    [:div
+    #_[:div
      [:span {:style {:fontSize "150%"}}
       " solsort.com "]
      "ApS"]
+    [:p " "]
     [:div
      "Open Source • Agile • Full Stack • ClojureScript"]
     [:div {:style {:fontSize "300%" :margin "0.5ex 0 1ex 0"}}
