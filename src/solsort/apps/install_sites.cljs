@@ -1,22 +1,14 @@
 (ns solsort.apps.install-sites
   (:require-macros
-    [cljs.core.async.macros :refer  [go alt!]])
+    [cljs.core.async.macros :refer  [go]])
 
   (:require
-    [cljs.test :refer-macros  [deftest testing is run-tests]]
-    [reagent.ratom :refer-macros [reaction]]
-    [reagent.core :as reagent]
     [solsort.misc :refer [log unique-id <exec <n <seq<!]]
-    [solsort.router :refer [route-exists? route]]
+    [solsort.router :refer [route]]
     [cljs.reader :refer [read-string]]
-    [clojure.string :as string]
-    [solsort.style :refer [default-style-str]]
-    [cljs.core.async :refer [>! <! chan put! take! timeout close!]]
-    [re-frame.core :refer [register-handler register-sub subscribe]]))
-
-(defn log-elem  []
-  [:div  (map  (fn  [e]  [:div  {:key  (unique-id)}  (.slice  (str e) 1 -1)])
-              (reverse @(subscribe  [:log])))])
+    [clojure.string :refer [join]]
+    [cljs.core.async :refer [<!]]
+    ))
 
 (when (and (some? js/window.require)
            (some? (js/window.require "fs"))))
@@ -25,6 +17,7 @@
 (defonce fs (js/require "fs"))
 (defonce dl-path "/tmp/dl/")
 (defonce base-path "/tmp/new-solsort/")
+(defn local-name [site] (str (re-find #"[^.]+" site) ".localhost"))
 (defn <e [& args] ; ##
   (go (let [s (apply str args)
             result (<! (<exec s))]
@@ -91,7 +84,12 @@
 
 (defn <wp-config [site] ; ##
   (go (let [site-path (str base-path "sites/" site)
+            id site
             site ((:sites @cfg) site)
+            hostname (.hostname (js/require "os"))
+            dev (contains? #{"panther" "test" "ubuntu" "monolith"} hostname)
+            protocol (or (:protocol site) "http://")
+            site-name (if dev (local-name id) id)
             config-template (.readFileSync 
                               fs
                               "/home/rasmuserik/install/templates/wp-config.php"
@@ -106,16 +104,22 @@
             (str
               "define('DB_NAME', '" (:db site) "');\n"
               "define('DB_USER', '" (:db-user site) "');\n"
-              "define('DB_PASSWORD', '" (:db-password site) "');\n"))))))
+              "define('DB_PASSWORD', '" (:db-password site) "');\n"
+              "define('WP_DEBUG', '" dev "');\n"
+              "define('WP_HOME', '" protocol site-name "');\n"
+              "define('WP_SITEURL', '" protocol site-name "');\n"
+              
+              ))))))
 
 (defn nginx-config [site] ; ## 
   (let [id (first site)
         sites (:sites @cfg)
         site (second site)
-        hosts (string/join " " (conj (get site :hosts []) id))]
+        hosts (join " " (conj (get site :hosts []) id (local-name id)))]
     ["server"
      [:server_name hosts]
-     [:root (str "/solsort/sites/" id "/wordpress/")]
+     [:root (str "/solsort/sites/" id "/wordpress")]
+     [:index "index.html index.php"]
      [:listen 80]
      [:listen 443 "ssl"]
      [:ssl_certificate "/solsort/ssl/blog_solsort_com.crt"]
@@ -156,7 +160,7 @@
      (if (keyword? o) (name o) (str o))
      (str
        "\n" indent
-       (string/join 
+       (join 
          " " 
          (if (vector? (last o)) 
            (concat [(first o) "{"] 
@@ -209,7 +213,12 @@
         (log 'custom-content-for site)
         (<! (<exec-install ((:sites @cfg) site) site-path))
         (<! (<wp-config site))
-        (<! (<mysql-dbs site)))))
+        (<! (<mysql-dbs site))
+        (<! (<e "grep " (local-name site) " /etc/hosts ||"
+                "sudo sh -c 'echo 127.0.0.1 " (local-name site) " >> /etc/hosts'"
+                ))
+        
+        )))
 
 (defn <download-resources [] ; ##
   (go
@@ -231,7 +240,9 @@
     (<! (<copy "/home/rasmuserik/install/skeleton/solsort/ssl" base-path))
     (<! (<exec-install (:root @cfg) "/tmp/new-solsort/"))
     (<! (<seq<! (map <install-site (keys (:sites @cfg)))))
-    (<! (<nginx-config))))
+    (<! (<nginx-config))
+    
+    ))
 
 (defn <install-sites  [] ; ##
   (go
@@ -259,5 +270,5 @@
            (go
              (<! (<install-sites))
              (reset! cfg nil)))
-         {:type :html :html (log-elem)}))
+         {:type :html :html [:h1 "install"]}))
 
