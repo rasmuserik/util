@@ -134,7 +134,7 @@
       [:proxy_set_header "Upgrade" "$http_upgrade"]
       [:proxy_set_header "X-Forwarded-For" "$proxy_add_x_forwarded_for"]
       [:proxy_set_header "Connection" "\"upgrade\""]
-      [:proxy_pass  "http://127.0.0.1:1234"]
+      [:proxy_pass  "http://127.0.0.1:4321"]
       [:try_files "$uri" "$uri/" "@server"] 
       [:access_log "off"]]
      ["location /posts" 
@@ -149,7 +149,7 @@
      ["location @server"
       [:proxy_set_header  "x-solsort-remote-addr"  "$remote_addr"]
       [:proxy_set_header  "x-solsort-site" id] 
-      [:proxy_pass  "http://127.0.0.1:1234"] ]
+      [:proxy_pass  "http://127.0.0.1:4321"] ]
 
      ]))
 (defn nginx-to-str 
