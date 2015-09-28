@@ -238,6 +238,8 @@
     (log 'start-install)
     (<! (<e "rm -rf " base-path))
     (<! (<copy "/home/rasmuserik/install/skeleton/solsort/ssl" base-path))
+    (<! (<copy "/home/rasmuserik/install/start-server.sh" base-path))
+    (<! (<copy "/home/rasmuserik/install/run-server.sh" base-path))
     (<! (<seq<! (map <install-site (keys (:sites @cfg)))))
     (<! (<nginx-config))
     
