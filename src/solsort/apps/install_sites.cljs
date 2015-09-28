@@ -263,6 +263,7 @@
       (<! (<e "sudo mv /solsort/static/nginx.conf /etc/nginx/nginx.conf"))
       (<! (<e "sudo /etc/init.d/nginx restart"))
       (<! (<e "sudo /etc/init.d/php5-fpm restart"))) 
+    (js/process.exit (if @has-error 1 0))
     (reset! cfg nil)))
 
 (route "install-sites" ; ##
