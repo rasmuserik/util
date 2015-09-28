@@ -30,12 +30,13 @@
 (defn <load-source [[k url]] ; ##
   (go
     (let [fname (re-find #"[^/]*$" url)
-          ext (first (re-find #"(tar.gz|[^./]*)$" url))]
+          ext (first (re-find #"(/|tar.gz|[^./]*)$" url))]
       (<! (<e (str "install -d " dl-path ";"
                    "cd " dl-path ";"
-                   (if (= "git" ext)
-                     (str "git clone " url " " fname)
-                     (str "wget -nc " url)))))
+                   (case ext
+                     "git" (str "git clone " url " " fname)
+                     "/"
+                     :default (str "wget -nc " url)))))
       [k [fname ext]])))
 
 (defn <copy [src dst] ; ##
@@ -54,11 +55,13 @@
       "tar.gz" (<e "install -d " dst ";"
                 "cd " dst ";"
                 "tar xzf " src)
+      "/" (<e "install -d " dst ";"
+              "rsync -a " src "/ " dst "")
       "git" (<e "install -d " dst ";"
                 "rsync -a " src "/ " dst "")
       (<copy src dst))))
 
-(defn <exec-install [o path] ; ##
+(defn <exec-install [o path site] ; ##
   (go
     (<! (<e "install -d " path))
     (<! (<seq<!
@@ -69,24 +72,17 @@
           (map
             (fn [[src dst]]
               (<e "rm -rf " path dst ";"
-                  "ln -sf " src " " path dst))
+                  "ln -sf /solsort/data/" site "/" src " " path dst))
             (get o :ln []))))
     (<! (<seq<!
           (map
-            (fn [dir]
-              (<e 
-                "install -d /solsort/" dir ";"
-                "rsync -a /solsort/" dir "/ " path dir))
-            (get o :preserve []))))
-    (<! (<seq<!
-          (map
-            #(<e "install -d " path % ";"
-                 "chmod 777 " path % ";")
+            #(<e "sudo install -d /solsort/data/" site "/" % ";"
+                 "sudo chmod 777 /solsort/data/" site "/" % ";")
             (get o :write-dir [])))) 
     ))
 
 (defn <wp-config [site] ; ##
-  (go (let [site-path (str base-path "sites/" site)
+  (go (let [site-path (str base-path site)
             id site
             site ((:sites @cfg) site)
             hostname (.hostname (js/require "os"))
@@ -121,12 +117,12 @@
         hosts (join " " (conj (get site :hosts []) id (local-name id)))]
     ["server"
      [:server_name hosts]
-     [:root (str "/solsort/sites/" id "/wordpress")]
+     [:root (str "/solsort/static/" id "/wordpress")]
      [:index "index.html index.php"]
      [:listen 80]
      [:listen 443 "ssl"]
-     [:ssl_certificate "/solsort/ssl/blog_solsort_com.crt"]
-     [:ssl_certificate_key "/solsort/ssl/blog_solsort_com.key"]
+     [:ssl_certificate "/solsort/static/ssl/blog_solsort_com.crt"]
+     [:ssl_certificate_key "/solsort/static/ssl/blog_solsort_com.key"]
      ["location /"
       [:try_files "$uri" "$uri/" "/index.php?args"]]
      ["location ~ \\.php"
@@ -210,12 +206,12 @@
               )))))
 
 (defn <install-site [site] ; ##
-  (go (let [site-path (str base-path "sites/" site "/")]
+  (go (let [site-path (str base-path site "/")]
         (<! (<e "install -d " site-path))
         (log 'default-content-for site)
-        (<! (<exec-install (:default-site @cfg) site-path))
+        (<! (<exec-install (:default-site @cfg) site-path site))
         (log 'custom-content-for site)
-        (<! (<exec-install ((:sites @cfg) site) site-path))
+        (<! (<exec-install ((:sites @cfg) site) site-path site))
         (<! (<wp-config site))
         (<! (<mysql-dbs site))
         (<! (<e "grep " (local-name site) " /etc/hosts ||"
@@ -242,7 +238,6 @@
     (log 'start-install)
     (<! (<e "rm -rf " base-path))
     (<! (<copy "/home/rasmuserik/install/skeleton/solsort/ssl" base-path))
-    (<! (<exec-install (:root @cfg) "/tmp/new-solsort/"))
     (<! (<seq<! (map <install-site (keys (:sites @cfg)))))
     (<! (<nginx-config))
     
@@ -252,19 +247,20 @@
   (go
     (<! (<e "cd /home/rasmuserik/install; git pull"))
     (<! (<download-resources))
+    (<! (<e "sudo install -d /solsort/data"))
+    (<! (<e "sudo chown rasmuserik:rasmuserik /solsort/data"))
     (reset! has-error false)
     (<! (<create-sites))
     (when (not @has-error)
 
-      (<! (<e "(crontab -l ; echo @reboot /solsort/html/start-server.sh)"
+      (<! (<e "(crontab -l ; echo @reboot /solsort/static/start-server.sh)"
               " | sort | uniq | crontab -"))
-      (<! (<e "sudo rm -rf /solsort-old" ))
-      (<! (<e "sudo mv /solsort /solsort-old" ))
-      (<! (<e "sudo mv /tmp/new-solsort /solsort"))
-      (<! (<e "sudo mv /solsort/nginx.conf /etc/nginx/nginx.conf"))
+      (<! (<e "sudo rm -rf /solsort-old-static" ))
+      (<! (<e "sudo mv /solsort/static /solsort-old-static" ))
+      (<! (<e "sudo mv /tmp/new-solsort /solsort/static"))
+      (<! (<e "sudo mv /solsort/static/nginx.conf /etc/nginx/nginx.conf"))
       (<! (<e "sudo /etc/init.d/nginx restart"))
-      (<! (<e "sudo /etc/init.d/php5-fpm restart"))
-      ) 
+      (<! (<e "sudo /etc/init.d/php5-fpm restart"))) 
     (reset! cfg nil)))
 
 (route "install-sites" ; ##
