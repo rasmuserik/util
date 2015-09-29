@@ -16,6 +16,10 @@
 (register-sub :online (fn [db _] (reaction (:online @db))))
 (register-handler :connect (fn [db [] _] (assoc db :online true)))
 (register-handler :disconnect (fn [db [] _] (assoc db :online false)))
+(defonce port 
+  (if js/window.process
+    (js/parseInt (or (-> js/process .-env (aget "PORT")) "1234") 10)
+    1234))  
 ;; # Server
 (when (and (some? js/window.require)
            (some? (js/window.require "express")))
@@ -39,7 +43,8 @@
           auth (auth-token cookie)
           id (.-id socket)]
       (request
-        #js {:url "http://localhost:1234/db/_session"
+
+        #js {:url (str "http://localhost:" port "/db/_session")
              :headers #js {:cookie cookie}}
         (fn [_ _ data]
           (log 'connect-auth data)
@@ -123,17 +128,16 @@
     (.use app middleware)
 
     (defonce start-server
-      (let [port (js/parseInt (or (-> js/process .-env (aget "PORT")) "1234") 10)]
+      (do
         (log 'starting-server port)
-        (.use io p2p-server)
-        (.use app "/db" (proxy "localhost:5984" #js {"forwardPath" #(aget % "url")}))
-        (.on io "connection" #(new-socket-connection %))
-        (.listen server port)
-        (log "started server")
-        nil)))
+      (.use io p2p-server)
+      (.use app "/db" (proxy "localhost:5984" #js {"forwardPath" #(aget % "url")}))
+      (.on io "connection" #(new-socket-connection %))
+      (.listen server port)
+      (log "started server")
+      nil)))
 
-(add-middleware)
-)
+(add-middleware))
 
 ;; # Client connection
 (def is-dev (or
@@ -142,7 +146,7 @@
               (contains? #{"3449" "3000"} js/location.port)))
 (def location-hostname (if (= "" js/location.hostname) "localhost" js/location.hostname))
 (def host (if is-dev 
-            (str "http://" location-hostname ":1234/")
+            (str "http://" location-hostname ":" port "/")
             (str js/location.protocol "//blog.solsort.com/")))
 (def socket-path (str host "socket.io/"))
 
@@ -260,11 +264,11 @@
                     (go (<! (timeout 10000))
                         (js/process.exit))))))
 
-(route "update-html"
-       (fn []
-         (go
-           (log "updating html")
-           (log "updated sites"
-                (<! (<exec "for path in /solsort/sites/*; do cd $path; git pull; done")))
-           (log "updated html" (<! (<exec "cd /solsort/html && git pull")))
-           ))))
+  (route "update-html"
+         (fn []
+           (go
+             (log "updating html")
+             (log "updated sites"
+                  (<! (<exec "for path in /solsort/sites/*; do cd $path; git pull; done")))
+             (log "updated html" (<! (<exec "cd /solsort/html && git pull")))
+             ))))
