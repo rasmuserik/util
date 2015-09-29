@@ -106,10 +106,12 @@
 
     (swap!  app-style assoc-in [:.botbar :bottom] 
            (if  @(subscribe [:show-bars]) 0 (- bar-height)))
-    [:div {:style {:position "absolute"
+    [:div {:class "solsort-app"
+           :style {:position "absolute"
                    :width "100%" 
                    :min-height "100%"
                    :overflow "hidden"
+                   :background "#fff8e8"
                    }}
      (style @app-style)
 
