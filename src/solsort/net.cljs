@@ -250,7 +250,7 @@
       method data (clj->js headers) timeout credentials)
     c))
 ;; # autorestart
-(when (and 
+#_(when (and 
         false
         (some? js/window.require)
         (some? (js/window.require "fs")))
