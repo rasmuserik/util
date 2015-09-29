@@ -248,7 +248,6 @@
 (defn <install-sites  [] ; ##
   (go
     (<! (<e "cd /home/rasmuserik/install; git pull"))
-    (<! (<e "rm -rf " dl-path))
     (<! (<download-resources))
     (<! (<e "sudo install -d /solsort/data"))
     (<! (<e "sudo chown rasmuserik:rasmuserik /solsort/data"))
