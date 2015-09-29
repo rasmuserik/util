@@ -57,6 +57,7 @@
      :compiler {:output-to "resources/public/solsort.js"
                 :main solsort.main
                 :externs ~(into ["misc/externs.js"
+                                 "misc/express.ext.js"
                                  "misc/cljsjs-pouchdb.ext.js"]
                                 (map 
                                   #(str "node_modules/nodejs-externs/externs/" % ".js")
