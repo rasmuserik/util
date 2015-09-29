@@ -222,7 +222,7 @@
 
 (defn <download-resources [] ; ##
   (go
-    ;(<! (<e "rm -rf " dl-path))
+    (<! (<e "rm -rf " dl-path))
     (let [config (-> fs
                      (.readFileSync
                        "/home/rasmuserik/install/config.clj")
@@ -266,12 +266,21 @@
     (js/process.exit (if @has-error 1 0))
     (reset! cfg nil)))
 
-(route "install-sites" ; ##
+(route "site-install" ; ##
        (fn [o] 
-         (when (nil? @cfg)
+         (if (nil? @cfg)
+           (do
            (reset! cfg true)
            (go
              (<! (<install-sites))
-             (reset! cfg nil)))
-         {:type :html :html [:h1 "install"]}))
+             (reset! cfg nil))
+            {:type :html :html [:h1 "reinstall error"]}  
+           
+           ))
+          {:type :html :html [:h1 "already running"]}))
+
+(route "site-update" ; ##
+       (fn [o] 
+        (go (<! (<e "for dir in /solsort/static/*/wordpress; do cd $dir; git pull; done"))
+            (js/process.exit 0))))
 
