@@ -248,12 +248,13 @@
 (defn <install-sites  [] ; ##
   (go
     (<! (<e "cd /home/rasmuserik/install; git pull"))
+    (<! (<e "rm -rf " dl-path))
     (<! (<download-resources))
     (<! (<e "sudo install -d /solsort/data"))
     (<! (<e "sudo chown rasmuserik:rasmuserik /solsort/data"))
     (reset! has-error false)
     (<! (<create-sites))
-    (<! (<e "cd " base-path "static/root/wordpress && npm install"))
+    (<! (<e "cd " base-path "root/wordpress && npm install"))
     (when (not @has-error)
 
       (<! (<e "(crontab -l ; echo @reboot /solsort/static/start-server.sh)"
