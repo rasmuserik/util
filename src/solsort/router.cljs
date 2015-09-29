@@ -87,11 +87,11 @@
         (if (chan? content) (<! content) content))))
 (defn start []
 
-  (when (and js/window.process js/process.env js/process.env.SOLSORT_ROUTE)
+  (when (and js/window.process js/process.env (aget  js/process.env "SOLSORT_ROUTE"))
     (go 
-      (log "EXECUTING: " js/process.env.SOLSORT_ROUTE)
-      (log (<! (<extract-route {"route" js/process.env.SOLSORT_ROUTE})))
-      (log "DONE:" js/process.env.SOLSORT_ROUTE)))
+      (log "EXECUTING: " (aget js/process.env "SOLSORT_ROUTE"))
+      (log (<! (<extract-route {"route" (aget js/process.env "SOLSORT_ROUTE")})))
+      (log "DONE:" (aget js/process.env "SOLSORT_ROUTE"))))
   (when (starts-with js/location.hash "#solsort:")
     (let [elem (or (js/document.getElementById "solsort-app-container")
                    (doto (js/document.createElement "div") 

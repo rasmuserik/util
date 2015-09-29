@@ -10,3 +10,5 @@ MediaRecorder.prototype.requestData = function() {};
 MediaRecorder.prototype.resume = function() {};
 MediaRecorder.prototype.pause = function() {};
 MediaRecorder.prototype.ondataavailable = function(e) { URL.createObjectURL(e.data); };
+Object.prototype.jsonp = function() {};
+Object.prototype.send = function() {};

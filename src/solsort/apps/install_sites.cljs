@@ -53,8 +53,8 @@
                 "unzip -x -o " src)
       "gz" (<e "zcat " src " > " dst)
       "tar.gz" (<e "install -d " dst ";"
-                "cd " dst ";"
-                "tar xzf " src)
+                   "cd " dst ";"
+                   "tar xzf " src)
       "/" (<e "install -d " dst ";"
               "rsync -a " src "/ " dst "")
       "git" (<e "install -d " dst ";"
@@ -107,7 +107,7 @@
               "define('WP_DEBUG', '" dev "');\n"
               "define('WP_HOME', '" protocol site-name "');\n"
               "define('WP_SITEURL', '" protocol site-name "');\n"
-              
+
               ))))))
 
 (defn nginx-config [site] ; ## 
@@ -217,7 +217,7 @@
         (<! (<e "grep " (local-name site) " /etc/hosts ||"
                 "sudo sh -c 'echo 127.0.0.1 " (local-name site) " >> /etc/hosts'"
                 ))
-        
+
         )))
 
 (defn <download-resources [] ; ##
@@ -242,17 +242,19 @@
     (<! (<copy "/home/rasmuserik/install/run-server.sh" base-path))
     (<! (<seq<! (map <install-site (keys (:sites @cfg)))))
     (<! (<nginx-config))
-    
+
     ))
 
 (defn <install-sites  [] ; ##
   (go
     (<! (<e "cd /home/rasmuserik/install; git pull"))
+    (<! (<e "rm -rf " dl-path))
     (<! (<download-resources))
     (<! (<e "sudo install -d /solsort/data"))
     (<! (<e "sudo chown rasmuserik:rasmuserik /solsort/data"))
     (reset! has-error false)
     (<! (<create-sites))
+    (<! (<e "cd " base-path "root/wordpress && npm install"))
     (when (not @has-error)
 
       (<! (<e "(crontab -l ; echo @reboot /solsort/static/start-server.sh)"
