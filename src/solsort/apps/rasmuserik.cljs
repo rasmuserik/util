@@ -16,7 +16,7 @@
                   :maxWidth 720
                   :textAlign :center
                   :fontSize 16 :marginTop (/ img-height 2) :marginBottom (/ img-height 2)}}
-    [:img {:src "/icons/rasmus-erik-voel-jensen"
+    [:img {:src "/icons/rasmuserik.jpg"
            :style {:height img-height
                    :width img-height
                    :borderRadius (/ img-height 10)
