@@ -18,8 +18,8 @@
 (register-handler :disconnect (fn [db [] _] (assoc db :online false)))
 (defonce port 
   (if js/window.process
-    (js/parseInt (or (-> js/process .-env (aget "PORT")) "1234") 10)
-    1234))  
+    (js/parseInt (or (-> js/process .-env (aget "PORT")) "4321") 10)
+    4321))  
 ;; # Server
 (when (and (some? js/window.require)
            (some? (js/window.require "express")))
