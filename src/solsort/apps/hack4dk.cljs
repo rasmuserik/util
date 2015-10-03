@@ -23,7 +23,7 @@
                            "http://testapi.natmus.dk")]
           {:type :json :json (<! (<ajax url :result :json))}))))
 
-;
+;; # 360-natmus
 ;(comment js/console.log 
 ;        (clj->js (<! (<ajax  "http://testapi.natmus.dk/v1/Search/?query=(categories:Rotationsbilleder)" )))
 ;      (js/console.log 
@@ -40,7 +40,7 @@
   (<ajax (str 
            "//blog.solsort.com/natmusapi-proxy"
            ;"//testapi.natmus.dk"
-              "/v1/search/?query=(sourceId:" id ")" :credentials false)))
+           "/v1/search/?query=(sourceId:" id ")" :credentials false)))
 
 (defn <natmus-images [id]
   (go (let [imgs (->> (get (<! (<natmus-id id)) "Results")
@@ -117,3 +117,46 @@
                   (case src "natmus" (<! (<natmus-images id)) [])]))
              {:type :html
               :html [view-360 pid obj-id]}))))
+;; # filmografi
+(defn dom->sxml [dom]
+  dom)
+
+(defn xml->sxml [s]
+  (let [parser (js/DOMParser.)
+        dom (.parseFromString parser s "application/xml")]
+  (dom->sxml dom)))
+
+(defn <film-page [n]
+  (go
+    (let [xml (<! (<ajax 
+                    (str
+                      "http://nationalfilmografien.service.dfi.dk"
+                      "/movie.svc/list?startrow=" n "00&rows=100")
+                    :result :text
+                    ))]
+      (log (xml->sxml xml))
+    [:div
+     xml
+     ])))
+(defn film-page-list []
+  (into
+    [:div]
+    (interpose " "
+               (map 
+                 (fn [i]
+                   [:a {:href (str js/location.href "/pages/" i)
+                        :style {:margin ".5ex"}
+                        } i])
+                 (take 232 (range))))))
+
+(route 
+  "filmografi"
+  (fn [o]
+    (go (let [path  (split  (o "path") "/")]
+          (log path (second path))
+          {:type :html
+           :html 
+           (case (second path)
+             "pages" (<! (<film-page (nth path 2)))
+             "" [film-page-list])}))
+    ))
