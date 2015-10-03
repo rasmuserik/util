@@ -37,6 +37,6 @@
     [solsort.apps.lemon]
     [solsort.apps.rasmuserik]
     [solsort.apps.install-sites]
-    [solsort.apps.hack4dk-2015]
+    [solsort.apps.hack4dk]
     [solsort.util]
     ))

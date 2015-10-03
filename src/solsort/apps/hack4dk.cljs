@@ -1,4 +1,4 @@
-(ns solsort.apps.hack4dk-2015
+(ns solsort.apps.hack4dk
   (:require-macros
     [reagent.ratom :as ratom :refer [reaction]]
     [cljs.core.async.macros :refer  [go alt!]])
