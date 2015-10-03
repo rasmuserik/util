@@ -9,7 +9,7 @@
     [re-frame.core :as re-frame :refer [subscribe register-sub register-handler dispatch dispatch-sync]]
 
     [solsort.util :refer [route log unique-id <p]]
-    [clojure.string :refer [replace]]
+    [clojure.string :refer [replace split]]
     [solsort.net :refer [<ajax]]
     [solsort.ui :refer [app input default-shadow add-style icon]]
     ))
@@ -40,20 +40,32 @@
 ;      (js/console.log 
 ;        (clj->js (<! (<ajax  "http://testapi.natmus.dk/v1/Search/?query=solvogn* and (categories:Rotationsbilleder)" )))))
 
-(defn <natmus [q]
+(defn <natmus [& args]
   (<ajax (str "http://localhost:4321/natmusapi-proxy"
-              "/v1/search/?query=" q)))
+              "/v1/search/?query=" (apply str args))))
+
+(defn <natmus-images [id]
+  (log 'natmus-images id)
+  (go 
+    (let [imgs (->> 
+                 (get (<! (<natmus "(sourceId:" id ")")) "Results")
+                (map #(get % "relatedSubAssets"))
+                (filter #(< 0 (count %)))
+                (first))]
+    (js/console.log (clj->js imgs)))
+    []))
+
 (route
   "360"
   (fn [o]
     (go
-      (let [im-config (<! (<ajax (o "imgs")))]
-        (<! (timeout 1000))
-        (js/console.log (clj->js (<! (<natmus "(sourceId:106977)"))))
+      (log o)
+      (let [[_ src id] (re-find #"^([^:]*):(.*)$" (o "src")) 
+            img-src (case src "natmus" (<! (<natmus-images id))
+                      [])]
         {:type :html
          :html [:div 
                 (comment map (fn [im] [:img {:src im
                                              :width "100%"
-
                                              }]) (im-config "imgs"))
                 ]}))))
