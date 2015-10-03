@@ -108,6 +108,11 @@
 
   (defn middleware [req res cb]
     (let [route (solsort.router/url->route (aget req "url"))]
+      (js/console.log req)
+      (.header res "Access-Control-Allow-Origin" (or (-> req (aget "headers") (aget "origin")) "*"))
+      (.header res "Access-Control-Allow-Credentials" "true")
+      (.header res "Access-Control-Allow-Headers" "Content-Type")
+      (.removeHeader res "X-Powered-By")
       (if (route-exists? (route "route")) 
         (go (http-result res route (<! (solsort.router/<extract-route route))))
         (cb))))

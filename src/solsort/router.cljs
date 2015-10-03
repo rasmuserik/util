@@ -71,7 +71,8 @@
                        [(.slice % 0 i)
                         (.slice % (inc i)) ]))
                   args)]
-    (into {"path" path
+    (into {"url" adr
+           "path" path
            "route" (first (re-find #"(_|[^./]+)" path))}
           args)))
 
