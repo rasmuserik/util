@@ -43,7 +43,6 @@
               "/v1/search/?query=(sourceId:" id ")" :credentials false)))
 
 (defn <natmus-images [id]
-  (log 'natmus-images id)
   (go (let [imgs (->> (get (<! (<natmus-id id)) "Results")
                       (map #(get % "relatedSubAssets"))
                       (filter #(< 0 (count %)))
@@ -68,7 +67,6 @@
 (register-handler 
   :360-img-load
   (fn  [db  [_ oid url]]  
-    (log 'im-load oid url)
     (update-in db [:360 oid "loaded"] #(conj (or % #{}) url))))
 
 (register-handler 
@@ -88,8 +86,7 @@
   (let [client-x (aget e "clientX")
         target (aget e "target")
         target-width  (aget target "offsetWidth")]
-    (dispatch [:360-pos pid (/ client-x target-width)])
-    (log pid client-x target-width)))
+    (dispatch [:360-pos pid (/ client-x target-width)])))
 
 (defn view-360 [pid oid]
   (let [o @(subscribe [:360-images oid])
