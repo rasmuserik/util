@@ -42,6 +42,7 @@
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch dispatch-sync]]
     [solsort.style :refer [default-style-str]]
+    (clojure.string :refer [blank?])
     [solsort.misc :as misc :refer [function? chan? log js-seq starts-with html-data unique-id]]
     [reagent.core :as reagent :refer  []]))
 
@@ -81,13 +82,12 @@
 (defn all-routes [] (keys @routes))
 (defn route-exists? [s] (some? (@routes s)))
 (defn <extract-route [data]
-  (go (let [data (assoc data :id (unique-id))
-            content (get @routes (get data "route" "")  
+  (go (let [content (get @routes (get data "route" "")  
                          {:type "text/plain" :content "not found"})
             content (if (function? content) (content data) content)]
         (if (chan? content) (<! content) content))))
-(defn start []
 
+(defn start []
   (when (and js/window.process js/process.env (aget  js/process.env "SOLSORT_ROUTE"))
     (go 
       (log "EXECUTING: " (aget js/process.env "SOLSORT_ROUTE"))
@@ -103,7 +103,12 @@
       (doall (for [[k v] args] (.setAttribute elem (str "data-" k) v)))))
   (doall 
     (for [elem (js-seq (js/document.getElementsByClassName "solsort-widget"))]
-      (go (let [data (<! (<extract-route (assoc (html-data elem) :reactive true)))]
+      (go (let [id (aget elem "id")
+                id (aset elem "id" 
+                         (if (blank? id) (unique-id) id))
+                data (<! (<extract-route (assoc (html-data elem) 
+                                                :id (aget elem "id")
+                                                :reactive true)))]
             (case (:type data)
               :html (reagent/render-component (:html data) elem)
               :json (reagent/render-component [:pre (js/JSON.stringify (:json data))] elem)     
@@ -126,10 +131,11 @@
     "</body></html>"))
 
 (defn <http-route [data]
-  (go (let [data (assoc (<! (<extract-route data)) :reactive false)]
+  (go (let [data (assoc (<! (<extract-route (assoc data :id (unique-id)))) :reactive false)]
         (if (not= :html (:type data)) 
           data 
           {:type "text/html"
            :content (html->content data)}))))
+
 ;; # actual routes
 (route "style" (fn [] {:type "text/css"   :content (default-style-str)}))
