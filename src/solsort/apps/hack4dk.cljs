@@ -33,9 +33,14 @@
 ;      (js/console.log 
 ;        (clj->js (<! (<ajax  "http://testapi.natmus.dk/v1/Search/?query=solvogn* and (categories:Rotationsbilleder)" )))))
 
+; TODO reverse rotation direction
+; non-cors-credentials
+; collection on image id
 (defn <natmus-id [id]
-  (<ajax (str "//blog.solsort.com/natmusapi-proxy"
-              "/v1/search/?query=(sourceId:" id ")")))
+  (<ajax (str 
+           "//blog.solsort.com/natmusapi-proxy"
+           ;"//testapi.natmus.dk"
+              "/v1/search/?query=(sourceId:" id ")" :credentials false)))
 
 (defn <natmus-images [id]
   (log 'natmus-images id)
@@ -43,7 +48,10 @@
                       (map #(get % "relatedSubAssets"))
                       (filter #(< 0 (count %)))
                       (first)
-                      (map #(<natmus-id (get % "sourceId"))))
+                      (map #(<natmus-id (get % "sourceId")
+                                        ; also get "collection"
+                                        ; query should be (sourceId:..) AND (collection:...)
+                                        )))
             imgs (map #(get % "Results") (<! (<seq<! imgs)))
             imgs (map (fn [o] (->> o
                                    (map #(get % "assetUrlSizeMedium"))
@@ -80,14 +88,14 @@
   (let [client-x (aget e "clientX")
         target (aget e "target")
         target-width  (aget target "offsetWidth")]
-    (dispatch [:360-pos pid (* 2 (/ client-x target-width))])
+    (dispatch [:360-pos pid (/ client-x target-width)])
     (log pid client-x target-width)))
 
 (defn view-360 [pid oid]
   (let [o @(subscribe [:360-images oid])
         widget @(subscribe [:360-widget pid])]
     (if-not (:imgs o)
-      [:div "Finding images"]
+      [:div "[... getting data / images, can take a while ...]"]
       (let [imgs (:imgs o)
             img-count (count imgs)
             pos (-> (get widget :pos 0)
