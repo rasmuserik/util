@@ -17,11 +17,10 @@
 (route
   "natmusapi-proxy"
   (fn [o]
-    (go (let [url (replace 
-                    (o "url")
-                    #"^.?natmusapi-proxy"
-                    "http://testapi.natmus.dk")]
-          {:type :json :json (<! (<ajax url :result :json))   }))))
+    (go (let [url (replace (o "url")
+                           #"^.?natmusapi-proxy"
+                           "http://testapi.natmus.dk")]
+          {:type :json :json (<! (<ajax url :result :json))}))))
 
 ;(register-handler 
 ;  :360-images
