@@ -41,7 +41,7 @@
 ;        (clj->js (<! (<ajax  "http://testapi.natmus.dk/v1/Search/?query=solvogn* and (categories:Rotationsbilleder)" )))))
 
 (defn <natmus [& args]
-  (<ajax (str "http://localhost:4321/natmusapi-proxy"
+  (<ajax (str "//solsort.com/natmusapi-proxy"
               "/v1/search/?query=" (apply str args))))
 
 (defn <natmus-images [id]
