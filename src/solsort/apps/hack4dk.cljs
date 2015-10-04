@@ -34,20 +34,24 @@
 ;        (clj->js (<! (<ajax  "http://testapi.natmus.dk/v1/Search/?query=solvogn* and (categories:Rotationsbilleder)" )))))
 
 ; TODO reverse rotation direction
-; non-cors-credentials
 ; collection on image id
 (defn <natmus-id [id]
+  (let [[_ collection sourceId] (re-matches #"([^/]*)/(.*)" id)]
+  (log id sourceId collection)
   (<ajax (str 
-           "//blog.solsort.com/natmusapi-proxy"
-           ;"//testapi.natmus.dk"
-           "/v1/search/?query=(sourceId:" id ")" :credentials false)))
+           "//testapi.natmus.dk"
+           "/v1/search/?query=(sourceId:" sourceId ") " 
+           "AND (collection:" collection ")") 
+         :credentials false)))
 
 (defn <natmus-images [id]
   (go (let [imgs (->> (get (<! (<natmus-id id)) "Results")
                       (map #(get % "relatedSubAssets"))
                       (filter #(< 0 (count %)))
                       (first)
-                      (map #(<natmus-id (get % "sourceId")
+                      (map #(<natmus-id 
+                              (str (get % "collection") 
+                                  "/" (get % "sourceId"))
                                         ; also get "collection"
                                         ; query should be (sourceId:..) AND (collection:...)
                                         )))
@@ -59,11 +63,6 @@
                       imgs)]
         (or imgs []))))
 
-(defn preload-img [oid img-url]
-  (->  (js/document.createElement "img")   
-      (aset "onload" #(dispatch [:360-img-load oid img-url]))
-      (aset "src" img-url)))
-
 (register-handler 
   :360-img-load
   (fn  [db  [_ oid url]]  
@@ -72,7 +71,6 @@
 (register-handler 
   :360-images 
   (fn  [db  [_ oid imgs]]  
-    (doall (map preload-img oid imgs))
     (assoc-in db [:360 oid :imgs] imgs)))
 
 (register-handler 
@@ -101,9 +99,21 @@
                     (js/Math.floor))
             ]
 
-        [:img {:src (nth (:imgs o) pos)
+        [:div
+        [:img {:src (nth imgs pos)
                :on-mouse-move (partial handle-move pid)
-               :width "100%"}]))))
+               :width "100%"}] 
+         (into 
+           [:div {:style {:display "none" }}]
+           (map
+             (fn [src]
+               [:img {:src src
+                :width (str (/ 100 img-count) "%")}])
+             imgs)
+          )
+         ]
+        
+        ))))
 
 (route "360"
        (fn [o]
