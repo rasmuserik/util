@@ -26,7 +26,7 @@
 
 (defn related-link [lid]
   (go
-    (let [o (<! (bibobj lid))]
+    #_(let [o (<! (bibobj lid))]
       (when o
         [:li
          [:a {:href (str "/bibdata/lid/" lid)
@@ -35,7 +35,9 @@
           (conj (into [:span " ("]
                       (interpose " & " (or (o "creator") [])))
                 ")")
-          ]]))))
+          ]]))
+   ; TODO 
+    [:span " " [:a {:href (str "/bibdata/lid/" lid)} lid]]))
 
 
 (def biblioteker
@@ -63,7 +65,9 @@
                        [:span
                         [:a {:href (str "http://www.worldcat.org/isbn/" isbn)
                              :itemProp "sameAs"} "WorldCat"] " "
-                        [:a {:href (str "http://www.bogpriser.dk/Search/Result?isbn=" isbn)} "bogpriser.dk" ] " "
+                        [:a 
+                         {:href (str "http://www.bogpriser.dk/Search/Result?isbn=" isbn)} 
+                         "bogpriser.dk" ] " "
                         [:a {:href (str "https://books.google.dk/books?vid=ISBN" isbn)
                              :itemProp "sameAs"} "GoogleBøger"] " "])
                      " ")]
@@ -74,8 +78,14 @@
                                      bib])
                                   biblioteker)
                              ))
-      "related" [:div.spaceabove "Anbefalinger: " (into [:ul]
-                                                        (<! (<seq<! (map related-link (take 30 (rest vs))))))]
+      "related" [:div.spaceabove 
+                 "Anbefalinger: " 
+                 (into [:ul]
+                       (<! (<seq<! (map related-link (take 30 (rest vs))))))
+                 "(anbefalingerne mangler midlertidigt titler, skyldes en større "
+                 "omstrukturering in progress, - vil indeholde titler igen senere på måneden)" 
+                 
+                 ]
       [:div k (str vs)])))
 
 (defn itemtype [t]
@@ -109,15 +119,15 @@
              "ul" {"margin-top" "0"}}
        :html [:div.container
               (into []  (concat [:div {:itemScope "itemscope"
-                             :itemType (itemtype (obj "type"))}]
-                      (filter identity
-                              (<! (<seq<!
-                                    (map html-for-type
-                                         (map #(list % (obj %) obj) ks)))))
-                      [[:hr]
-                       [:div [:small
-                              "Dette er et eksperiment med at lægge data om bøger online med semantisk opmarkering. Grunddata er en del af de nationalbibliografiske data som Kulturstyrelsen og Kulturministeriet stiller til fri brug. Anbefalingerne er baseret på lånstatistik som DBC frigjorde på hackathonen Hack4DK. Dette site, kildekode og anbefalingsalgoritme er lavet af solsort.com" ]]]
-                      ))
+                                       :itemType (itemtype (obj "type"))}]
+                                (filter identity
+                                        (<! (<seq<!
+                                              (map html-for-type
+                                                   (map #(list % (obj %) obj) ks)))))
+                                [[:hr]
+                                 [:div [:small
+                                        "Dette er et eksperiment med at lægge data om bøger online med semantisk opmarkering. Grunddata er en del af de nationalbibliografiske data som Kulturstyrelsen og Kulturministeriet stiller til fri brug. Anbefalingerne er baseret på lånstatistik som DBC frigjorde på hackathonen Hack4DK. Dette site, kildekode og anbefalingsalgoritme er lavet af solsort.com" ]]]
+                                ))
               ;[:hr]
               ;[:div (string/join " " ks)]
               ;[:div (string/join " " (keys obj))]
