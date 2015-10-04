@@ -62,7 +62,7 @@
 ;; NB: `(solsort.router/start)` should be called on page load, and on any page-change
 ;; that might add widgets.
 ;;
-(def route-re #"([^?]*)(.*)")
+(def route-re #"/?([^?]*)(.*)")
 (defn url->route [adr]
   (let [path (nth (re-matches route-re adr) 1)
         args (.split (.slice adr (inc (.-length path))) "&")

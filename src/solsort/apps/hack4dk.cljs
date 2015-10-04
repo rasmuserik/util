@@ -164,7 +164,6 @@
   (let [xml (first (:children xml))
         entry (tagmap (:children xml))
         ]
-    (log (tagmap (:MainImage entry)))
     [:div {:style {:margin "10%"}}
       [style {"div" {:margin-top "2ex"}}]
      [:div {:itemScope "itemscope"
@@ -232,11 +231,12 @@
                  (take 232 (range))))))
 
 
-(defn <film-page [n]
+(defn <film-page [o n]
   (go (let [url (str "http://nationalfilmografien.service.dfi.dk"
                      "/movie.svc/list?startrow=" n "00&rows=100")
             xml (parse-xml (<! (<ajax url :result :text)))]
         [:div 
+         (str (o "path"))
          [:h1 "Film:"]
          (interpose 
            " "
@@ -258,10 +258,9 @@
   "filmografi"
   (fn [o]
     (go (let [path  (split  (o "path") "/")]
-          (log path (second path))
           {:type :html
            :html 
            (case (second path)
              "movie" (<! (<movie-page (nth path 2)))
-             "page" (<! (<film-page (nth path 2)))
-             (<! (<film-page 1)))}))))
+             "page" (<! (<film-page o (nth path 2)))
+             (<! (<film-page o 1)))}))))
