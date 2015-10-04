@@ -128,7 +128,7 @@
              {:type :html
               :html [view-360 pid obj-id]}))))
 ;; # filmografi
-(defn pathurl [& args] (apply str "#solsort:" args))
+(defn pathurl [& args] (apply str "/" args))
 (defn name->kw [o] (keyword (str (.-nodeName o))))
 (defn dom->clj [dom]
   (case (.-nodeType dom)
@@ -207,22 +207,18 @@
                [:span {:itemProp "publisher"}
                 (:Name (tagmap (:children o)))]))
         (interpose " & ")
-        (into [:div [:b "Distributionsselskaber: "]]))
-     
-     ]
-     
+        (into [:div [:b "Distributionsselskaber: "]]))]
      [:hr {:style {:clear "both"}}]
      [:div "Link til: "[:a {:href (pathurl "filmografi")} "alle film"]]
      [:div "Dette er en prototype der ligger semantisk linked open data ud. Alle data her stammer fra "
-      [:a {:href "http://www.dfi.dk/opendata"} "The Danish Film Institute"]]
-     ]
-    )
-  )
+      [:a {:href "http://www.dfi.dk/opendata"} "The Danish Film Institute"]]]))
+
 (defn <movie-page [id]
      (go  (let [url (str "http://nationalfilmografien.service.dfi.dk"
                      "/movie.svc/" id)
             xml (parse-xml (<! (<ajax url :result :text)))]
          (movie xml))))
+
 (defn film-page-list []
   (into
     [:div]
