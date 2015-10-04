@@ -12,6 +12,7 @@
     [solsort.misc :refer [<seq<! js-seq]]
     [clojure.string :refer [replace split blank?]]
     [solsort.net :refer [<ajax]]
+    [solsort.style :refer [style]]
     [solsort.ui :refer [app input default-shadow add-style icon]]
     ))
 
@@ -37,12 +38,11 @@
 ; collection on image id
 (defn <natmus-id [id]
   (let [[_ collection sourceId] (re-matches #"([^/]*)/(.*)" id)]
-  (log id sourceId collection)
-  (<ajax (str 
-           "//testapi.natmus.dk"
-           "/v1/search/?query=(sourceId:" sourceId ") " 
-           "AND (collection:" collection ")") 
-         :credentials false)))
+    (<ajax (str 
+             "//testapi.natmus.dk"
+             "/v1/search/?query=(sourceId:" sourceId ") " 
+             "AND (collection:" collection ")") 
+           :credentials false)))
 
 (defn <natmus-images [id]
   (go (let [imgs (->> (get (<! (<natmus-id id)) "Results")
@@ -51,10 +51,10 @@
                       (first)
                       (map #(<natmus-id 
                               (str (get % "collection") 
-                                  "/" (get % "sourceId"))
-                                        ; also get "collection"
-                                        ; query should be (sourceId:..) AND (collection:...)
-                                        )))
+                                   "/" (get % "sourceId"))
+                              ; also get "collection"
+                              ; query should be (sourceId:..) AND (collection:...)
+                              )))
             imgs (map #(get % "Results") (<! (<seq<! imgs)))
             imgs (map (fn [o] (->> o
                                    (map #(get % "assetUrlSizeMedium"))
@@ -102,19 +102,19 @@
             ]
 
         [:div
-        [:img {:src (nth imgs pos)
-               :on-mouse-move (partial handle-move pid)
-               :width "100%"}] 
+         [:img {:src (nth imgs pos)
+                :on-mouse-move (partial handle-move pid)
+                :width "100%"}] 
          (into 
            [:div {:style {:display "none" }}]
            (map
              (fn [src]
                [:img {:src src
-                :width (str (/ 100 img-count) "%")}])
+                      :width (str (/ 100 img-count) "%")}])
              imgs)
-          )
+           )
          ]
-        
+
         ))))
 
 (route "360"
@@ -130,6 +130,7 @@
              {:type :html
               :html [view-360 pid obj-id]}))))
 ;; # filmografi
+(defn pathurl [& args] (apply str "/" args))
 (defn name->kw [o] (keyword (str (.-nodeName o))))
 (defn dom->clj [dom]
   (case (.-nodeType dom)
@@ -151,14 +152,73 @@
 (defn parse-xml [s] (dom->clj (.parseFromString (js/DOMParser.) s "text/xml")))
 (defn parse-html [s] (dom->clj (.parseFromString (js/DOMParser.) s "text/html")))
 
-(defn <film-page [n]
-  (go (let [url (str "http://nationalfilmografien.service.dfi.dk"
-                     "/movie.svc/list?startrow=" n "00&rows=100")
+(defn tagmap [xml-list]
+        (into {} (map 
+           #(let [v (:children %)]
+             [(:tag %) 
+              (if (and (= 1 (count v))
+                       (string? (first v)))
+                (first v)
+                v)]))
+              xml-list))
+
+(defn movie [xml]
+  (let [xml (first (:children xml))
+        entry (tagmap (:children xml))
+        ]
+    [:div {:style {:margin "10%"}}
+      [style {"div" {:margin-top "2ex"}}]
+     [:div {:itemScope "itemscope"
+            :itemType "http://schema.org/Movie"}
+     [:img {:itemProp "image"
+            :width "38%"
+            :style {:float "right"}
+            :src (:SrcMini (tagmap (:MainImage entry)))}]
+     [:h1 {:itemProp "name" :style {:clear "none"}} (:Title entry)]
+     [:div [:span {:itemProp "description"} (:Description entry)]]
+     [:div [:a {:itemProp "sameAs" :href (:Url entry) } (:Url entry)]]
+     [:div [:b "Udgivet: "] [:span {:itemProp "datePublished"} (:ReleaseYear entry)]]
+     [:div [:b "Længde: "] [:time {:itemProp "duration" 
+                                   :dateTime (str "PT" (:LengthInMin entry) "M")} 
+                            (str (:LengthInMin entry) "min")]]
+     (->> (:Credits entry)
+        (map (fn [o] 
+               (let [tm (tagmap (:children o))]
+               [(= "Appearance" (:Type tm)) [:span {:itemProp "actor"} (:Name tm)]])))
+        (filter first)
+        (map second)
+        (interpose " & ")
+        (into [:div [:b "Skuespillere: "]]))
+     (->> (:Credits entry)
+        (map (fn [o] 
+               (let [tm (tagmap (:children o))]
+               [(not= "Appearance" (:Type tm)) [:span {:itemProp "contributor"} (:Name tm)]])))
+        (filter first)
+        (map second)
+        (interpose " & ")
+        (into [:div [:b "Øvrige: "]]))
+     (->> (:ProductionCompanies entry)
+        (map (fn [o] 
+               [:span {:itemProp "productionCompany"}
+                (:Name (tagmap (:children o)))]))
+        (interpose " & ")
+        (into [:div [:b "Produktionsselskaber: "]]))
+     (->> (:DistributionCompanies entry)
+        (map (fn [o] 
+               [:span {:itemProp "publisher"}
+                (:Name (tagmap (:children o)))]))
+        (interpose " & ")
+        (into [:div [:b "Distributionsselskaber: "]]))]
+     [:hr {:style {:clear "both"}}]
+     [:div "Link til: "[:a {:href (pathurl "filmografi")} "alle film"]]
+     [:div "Dette er en prototype der ligger semantisk linked open data ud. Alle data her stammer fra "
+      [:a {:href "http://www.dfi.dk/opendata"} "The Danish Film Institute"]]]))
+
+(defn <movie-page [id]
+     (go  (let [url (str "http://nationalfilmografien.service.dfi.dk"
+                     "/movie.svc/" id)
             xml (parse-xml (<! (<ajax url :result :text)))]
-        [:div (map (fn [o] [:div 
-                            (-> o :children (nth 0) :children first)
-                            (-> o :children (nth 1) :children first)])
-                   (:children (first (:children xml))))])))
+         (movie xml))))
 
 (defn film-page-list []
   (into
@@ -166,18 +226,43 @@
     (interpose " "
                (map 
                  (fn [i]
-                   [:a {:href (str js/location.href "/pages/" i)
+                   [:a {:href (pathurl "filmografi/page/" i)
                         :style {:margin ".5ex"}
+                        :key i
                         } i])
                  (take 232 (range))))))
+
+
+(defn <film-page [o n]
+  (go (let [url (str "http://nationalfilmografien.service.dfi.dk"
+                     "/movie.svc/list?startrow=" n "00&rows=100")
+            xml (parse-xml (<! (<ajax url :result :text)))]
+        [:div 
+         (str (o "path"))
+         [:h1 "Film:"]
+         (interpose 
+           " "
+           (map (fn [o] 
+                  [:a {:style {:display "inline-block"
+                               :width "20ex"
+                               :padding "1ex" }
+                       :href (pathurl "filmografi/movie/" 
+                                      (-> o :children  (nth 0) :children first))
+                       :key (-> o :children  (nth 0) :children first)
+                       }  
+                   (-> o :children (nth 1) :children first)])
+                (:children (first (:children xml)))))
+         [:h2 "Flere sider med film:"]
+         [film-page-list]
+         ])))
 
 (route 
   "filmografi"
   (fn [o]
     (go (let [path  (split  (o "path") "/")]
-          (log path (second path))
           {:type :html
            :html 
            (case (second path)
-             "pages" (<! (<film-page (nth path 2)))
-             "" [film-page-list])}))))
+             "movie" (<! (<movie-page (nth path 2)))
+             "page" (<! (<film-page o (nth path 2)))
+             (<! (<film-page o 1)))}))))

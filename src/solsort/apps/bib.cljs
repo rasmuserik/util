@@ -162,8 +162,8 @@
   "bibdata"
   (fn [o]
     (let [path (string/split (o "path") "/")
-          lid (nth path 3 "")
-          kind (nth path 2 "")]
+          lid (nth path 2 "")
+          kind (nth path 1 "")]
       (case kind
         "lid" (entry lid)
         (default)))))
@@ -173,8 +173,8 @@
   (fn [o]
     (go 
       (let [path (string/split (o "path") "/")
-            lid (nth path 3)
-            kind (nth path 2)
+            lid (nth path 2)
+            kind (nth path 1)
             json  (<! (<ajax (db-url (str "bib-old/" lid) ) :result :json))]
         {:type :json
          :json
