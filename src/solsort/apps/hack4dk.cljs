@@ -9,8 +9,8 @@
     [re-frame.core :as re-frame :refer [subscribe register-sub register-handler dispatch dispatch-sync]]
 
     [solsort.util :refer [route log unique-id <p]]
-    [solsort.misc :refer [<seq<!]]
-    [clojure.string :refer [replace split]]
+    [solsort.misc :refer [<seq<! js-seq]]
+    [clojure.string :refer [replace split blank?]]
     [solsort.net :refer [<ajax]]
     [solsort.ui :refer [app input default-shadow add-style icon]]
     ))
@@ -118,26 +118,36 @@
              {:type :html
               :html [view-360 pid obj-id]}))))
 ;; # filmografi
-(defn dom->sxml [dom]
-  dom)
+(defn name->kw [o] (keyword (str (.-nodeName o))))
+(defn dom->clj [dom]
+  (case (.-nodeType dom)
+    ((.-DOCUMENT_NODE dom) (.-ELEMENT_NODE dom)) 
+    (let [tag (name->kw dom)
+          children (map dom->clj (js-seq (.-children dom))) 
+          children (if (empty? children)
+                     (if (blank? (.-textContent dom))
+                       []
+                       [(str (.-textContent dom))])
+                     children)
+          attrs (into {} (map (fn [o] [(name->kw o) (.-textContent o)]))
+                      (js-seq (or (.-attributes dom) [])))]
+      {:tag tag
+       :attrs attrs
+       :children children})
+    (.-TEXT_NODE dom) (str (.-textContent dom))))
 
-(defn xml->sxml [s]
-  (let [parser (js/DOMParser.)
-        dom (.parseFromString parser s "application/xml")]
-  (dom->sxml dom)))
+(defn parse-xml [s] (dom->clj (.parseFromString (js/DOMParser.) s "text/xml")))
+(defn parse-html [s] (dom->clj (.parseFromString (js/DOMParser.) s "text/html")))
 
 (defn <film-page [n]
-  (go
-    (let [xml (<! (<ajax 
-                    (str
-                      "http://nationalfilmografien.service.dfi.dk"
-                      "/movie.svc/list?startrow=" n "00&rows=100")
-                    :result :text
-                    ))]
-      (log (xml->sxml xml))
-    [:div
-     xml
-     ])))
+  (go (let [url (str "http://nationalfilmografien.service.dfi.dk"
+                     "/movie.svc/list?startrow=" n "00&rows=100")
+            xml (parse-xml (<! (<ajax url :result :text)))]
+        [:div (map (fn [o] [:div 
+                            (-> o :children (nth 0) :children first)
+                            (-> o :children (nth 1) :children first)])
+                   (:children (first (:children xml))))])))
+
 (defn film-page-list []
   (into
     [:div]
@@ -158,5 +168,4 @@
            :html 
            (case (second path)
              "pages" (<! (<film-page (nth path 2)))
-             "" [film-page-list])}))
-    ))
+             "" [film-page-list])}))))
