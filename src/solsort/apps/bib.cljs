@@ -62,7 +62,8 @@
               :width (* (:ratio %) boxes-height))
       boxes)))
 
-(def boxes 
+(defn box-layout []
+ (def boxes 
   (->> (take 32 (range))
        (map
          (fn [i]
@@ -86,7 +87,6 @@
 
 (js/console.log (clj->js (width-partition boxes 8)))
 
-(defn box-layout []
   [:div
    {:style {:display "block"
             :position "relative"
