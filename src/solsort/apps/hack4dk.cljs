@@ -60,7 +60,9 @@
                                    (map #(get % "assetUrlSizeMedium"))
                                    (filter #(< 0 (count %)))
                                    (first)))
-                      imgs)]
+                      imgs)
+            imgs (reverse imgs)
+            ]
         (or imgs []))))
 
 (register-handler 

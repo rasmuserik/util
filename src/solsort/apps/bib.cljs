@@ -17,6 +17,121 @@
 
 ; NB: http://ogp.me/, http://schema.org, dublin-core, https://en.wikipedia.org/wiki/RDFa
 
+
+
+; - search
+;   - søgehistorik
+;   - søgeresultater
+;   - materialevisning
+; - patron
+;   - lånerstatus
+;   - åbn e-bog etc
+; - libraries
+;   - find biblioteker
+;   - dette bibliotek
+; - ask
+;   - Spørg en bibliotekar
+
+(defn add-width-pos [boxes]
+  (loop [box (first boxes)
+         boxes (rest boxes)
+         acc []
+         w 0]
+    (log 'atw box w)
+    (if (nil? box)
+      acc
+      (recur (first boxes)
+             (rest boxes) 
+             (conj acc
+                   (assoc box
+                          :width-pos
+                          w))
+             (+ w (:ratio box))))))
+(defn width-partition [boxes n]
+  (let [total-width (+ (:width-pos (last boxes))
+                       (:ratio (last boxes)))]
+        (group-by #(js/Math.floor (/ (* n (:width-pos %)) total-width))
+                  boxes)))
+
+(defn width-height [boxes w]
+  (let [boxes-width (reduce #(+ %1 (:ratio %2)) 0 boxes)
+        boxes-height (/ w boxes-width)]
+    (map 
+      #(assoc %
+              :height boxes-height
+              :width (* (:ratio %) boxes-height))
+      boxes)))
+
+(defn box-layout []
+ (def boxes 
+  (->> (take 32 (range))
+       (map
+         (fn [i]
+           (let [x (js/Math.random)
+                 y (js/Math.random)
+                 ]
+             {:id i
+              :coords [x y]
+              :x x
+              :y y
+              :color (str "rgba(" (js/Math.floor (* 256 x)) "," (js/Math.floor (* 256 y)) ",128,1)")
+              :ratio (+ 0.5 (js/Math.random))})
+           ))
+       (sort 
+         (fn [a b]
+           (- (:x a) (:x b))
+           )) 
+       (add-width-pos)
+       ))
+
+
+(js/console.log (clj->js (width-partition boxes 8)))
+
+  [:div
+   {:style {:display "block"
+            :position "relative"
+            }}
+   "blah"
+   (into
+     [:div]
+      (map
+        (fn [o]
+          [:div "row"]
+          )
+        (map
+        #(width-height % (- js/window.innerWidth 3))
+        (width-partition boxes 8))
+        )
+      
+      
+     )
+   (into 
+     [:div
+      {:style {:display "block"
+               :position "relative"}}
+      
+      ]
+     (map 
+       (fn [o]
+         [:div {:style {:position "absolute"
+                        :display "inline-block"
+                        :top (* 200 (:y o))
+                        :left (* 500 (:x o))
+                        :box-shadow "1px 1px 1px black"
+                        :height 50
+                        :width (* (:ratio o) 50)
+                        :background-color (:color o)}}
+          (str (:id o))])
+       boxes))])
+
+(route 
+  "boxlayout"
+  (fn [o]
+    (go
+      {:type :html
+       :html [box-layout]
+       }
+      )))
 ;; #  
 
 (defn bibobj [lid]
@@ -27,16 +142,16 @@
 (defn related-link [lid]
   (go
     #_(let [o (<! (bibobj lid))]
-      (when o
-        [:li
-         [:a {:href (str "/bibdata/lid/" lid)
-              }
-          (first (or (o "title") [""]))
-          (conj (into [:span " ("]
-                      (interpose " & " (or (o "creator") [])))
-                ")")
-          ]]))
-   ; TODO 
+        (when o
+          [:li
+           [:a {:href (str "/bibdata/lid/" lid)
+                }
+            (first (or (o "title") [""]))
+            (conj (into [:span " ("]
+                        (interpose " & " (or (o "creator") [])))
+                  ")")
+            ]]))
+    ; TODO 
     [:span " " [:a {:href (str "/bibdata/lid/" lid)} lid]]))
 
 
@@ -84,7 +199,7 @@
                        (<! (<seq<! (map related-link (take 30 (rest vs))))))
                  "(anbefalingerne mangler midlertidigt titler, skyldes en større "
                  "omstrukturering in progress, - vil indeholde titler igen senere på måneden)" 
-                 
+
                  ]
       [:div k (str vs)])))
 
