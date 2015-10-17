@@ -204,5 +204,30 @@
    {:background "#fff7e0"}
    :.container 
    {:margin "0em 1em 0em 1em" }
-   }
-  )
+   })
+
+(route 
+  "tinkuy/behandler-list"
+  (fn [o]
+    (log o)
+    {:type :html
+     :html 
+     [:div
+      [:h1 "Professionelle"]
+      "[liste over behandlere, coaches, dansere, undervisere, ... kommer her, real soon now]"
+      [:hr]]}))
+(route 
+  "tinkuy/user-edit"
+  (fn [o]
+    (log o)
+    {:type :html
+     :html 
+     [:div
+      [:h1 "Behandler-info"]
+      "[... in progress, not functional yet...]"
+      [:div [:input {:type :checkbox}] " behandlerprofil" ]
+      [:div [:img {:alt "billede"}] [:input {:type :file}]]
+      [:div [:b "Titel/type: "] [:br] [:input {:type :text}]]
+      [:div [:b "Beskrivelse:"] [:br] [:textarea {:value "hi"}]]
+      
+      ]}))

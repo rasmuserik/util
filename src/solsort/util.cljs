@@ -14,9 +14,12 @@
   (style/load-default-style!)
   (router/start))
 
-(if (= "complete" js/document.readyState)
+(if (or
+      (= "interactive" js/document.readyState)
+      (= "complete" js/document.readyState)) 
   (js/setTimeout start 0)
   (js/document.addEventListener "DOMContentLoaded" start))
+(js/document.addEventListener "page:load" start) 
 (js/window.addEventListener "hashchange" start)
 
 (def host net/host)

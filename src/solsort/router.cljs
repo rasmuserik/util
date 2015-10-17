@@ -88,6 +88,7 @@
         (if (chan? content) (<! content) content))))
 
 (defn start []
+  (log "start")
   (when (and js/window.process js/process.env (aget  js/process.env "SOLSORT_ROUTE"))
     (go 
       (log "EXECUTING: " (aget js/process.env "SOLSORT_ROUTE"))
@@ -137,5 +138,7 @@
           {:type "text/html"
            :content (html->content data)}))))
 
+(when (exists? Turbolinks)
+  (.addEventListener js/document "page:load" start))
 ;; # actual routes
 (route "style" (fn [] {:type "text/css"   :content (default-style-str)}))
