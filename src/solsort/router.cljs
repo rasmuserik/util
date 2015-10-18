@@ -88,7 +88,6 @@
         (if (chan? content) (<! content) content))))
 
 (defn start []
-  (log "start")
   (when (and js/window.process js/process.env (aget  js/process.env "SOLSORT_ROUTE"))
     (go 
       (log "EXECUTING: " (aget js/process.env "SOLSORT_ROUTE"))
@@ -102,18 +101,22 @@
                      (js/document.body.appendChild)))  
           args (url->route (.slice js/location.hash 9))]
       (doall (for [[k v] args] (.setAttribute elem (str "data-" k) v)))))
+  (let [page-data
+        (reduce into {} 
+                (map html-data 
+                     (js-seq (js/document.getElementsByClassName "solsort-data"))))]
   (doall 
     (for [elem (js-seq (js/document.getElementsByClassName "solsort-widget"))]
       (go (let [id (aget elem "id")
                 id (aset elem "id" 
                          (if (blank? id) (unique-id) id))
-                data (<! (<extract-route (assoc (html-data elem) 
+                data (<! (<extract-route (assoc (into page-data (html-data elem)) 
                                                 :id (aget elem "id")
                                                 :reactive true)))]
             (case (:type data)
               :html (reagent/render-component (:html data) elem)
               :json (reagent/render-component [:pre (js/JSON.stringify (:json data))] elem)     
-              (reagent/render-component [:pre (:content data)] elem)))))))
+              (reagent/render-component [:pre (:content data)] elem))))))))
 
 
 (defn html->content [data]
