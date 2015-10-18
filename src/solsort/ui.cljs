@@ -43,20 +43,26 @@
 (register-sub :form-value (fn [db [_ s]] (reaction (get-in @db [:form s]))))
 (register-handler :form-value (fn [db [_ s v]] 
                                 (assoc-in db [:form s] v)))
-(defn input [& {:keys [type data name value class placeholder style]
+(defn input [& {:keys [type data name value class placeholder style id rows]
                 :or {type "text"
                      name "missing-name" }}]
-  (let [class  (str "solsort-input solsort-input-" type " " class) ]
-    [:input {:type type 
+  (let [class  (str "solsort-input solsort-input-" type " " class) 
+        parent-id (unique-id)]
+    [:span {:id unique-id}
+     [(if (= type "textarea") :textarea :input) 
+     {:type type 
+             :id (str name "-input")
              :value @(subscribe [:form-value name])
              :placeholder placeholder
              :on-focus #(dispatch [:show-bars false])
              :on-blur #(go (<! (timeout 300)) (dispatch [:show-bars true]))
+             :rows rows
              :style style
              :class class
-             :on-change #(dispatch-sync [:form-value name (-> % .-target .-value)]) }]))
+             :on-change #(dispatch-sync [:form-value name (-> % .-target .-value)]) }]]))
 
 (def add-style add-default-style)
+
 (add-default-style 
   {:button
    {:background "rgba(255,255,255,0.75);" 
@@ -65,13 +71,26 @@
     :padding 5
 
     }
+   :.solsort-input-checkbox 
+   {:display :inline-block
+    :background "red"
+    :transform "scale(1.5)"
+    :margin "10px"
+    }
+   ".solsort-input:focus" 
+   {:outline "0"
+    :border "1px solid #48f"
+    :box-shadow "0px 0px 7px rgba(50,100,255,0.5)"
+    
+    }
    :.solsort-input 
-   {:border "none"
-    :background "rgba(255,255,255,0.75);"
+   {:background "#fff"
+    :border-radius 4
+    :border "1px solid #ccc"
     :padding "0.5em"
-    :margin ".5em"
-    :box-shadow (str default-shadow " inset")
+    ;:margin ".5em"
+    ;:box-shadow (str default-shadow " inset")
 
     ;:box-shadow "1px 1px 5px rgba(0,0,0,0.7) inset"
     :vertical-align "baseline"
-    :text-color "red"}})
+   }})

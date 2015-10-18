@@ -206,6 +206,7 @@
    {:margin "0em 1em 0em 1em" }
    })
 
+;; # Tinkuy widgets
 (route 
   "tinkuy/behandler-list"
   (fn [o]
@@ -213,7 +214,7 @@
     {:type :html
      :html 
      [:div
-      [:h1 "Professionelle"]
+      [:h1 ""]
       "[liste over behandlere, coaches, dansere, undervisere, ... kommer her, real soon now]"
       [:hr]]}))
 (route 
@@ -223,11 +224,30 @@
     {:type :html
      :html 
      [:div
-      [:h1 "Behandler-info"]
-      "[... in progress, not functional yet...]"
-      [:div [:input {:type :checkbox}] " behandlerprofil" ]
-      [:div [:img {:alt "billede"}] [:input {:type :file}]]
-      [:div [:b "Titel/type: "] [:br] [:input {:type :text}]]
-      [:div [:b "Beskrivelse:"] [:br] [:textarea {:value "hi"}]]
-      
+      [:p 
+       [input :name "profile-is-public" :type "checkbox"] 
+       [:label {:for "profile-is-public-input"}
+        " offentlig profil, - kan ses af alle på hjemmesiden"]]
+      [:p 
+       [:label {:for "profile-image-input"}
+        [:img {:alt "billede"}]] 
+       [input 
+        :name "profile-image" :type "file"]]
+      [:p [:label {:for "profile-title-input"} "Titel/type: "] [:br] 
+       [input 
+        :name "profile-title" 
+        :type "text" 
+        :style {:width "100%"}]]
+      [:p [:label {:for "profile-description-input"} "Beskrivelse:"] [:br] 
+       [input 
+        :name "profile-description"
+        :type "textarea" 
+        :rows 8
+        :style {:width "100%"}]]
+      [:p [:label {:for "profile-url-input"} "Url (hjemmeside eller anden kontaktinfo):"] [:br] 
+       [input 
+        :name "profile-url" 
+        :type "text" 
+        :style {:width "100%"}]]
+
       ]}))
