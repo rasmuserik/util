@@ -14,10 +14,11 @@
   (style/load-default-style!)
   (router/start))
 
+(def next-tick misc/next-tick)
 (if (or
       (= "interactive" js/document.readyState)
       (= "complete" js/document.readyState)) 
-  (js/setTimeout start 0)
+  (next-tick start)
   (js/document.addEventListener "DOMContentLoaded" start))
 (js/document.addEventListener "page:load" start) 
 (js/window.addEventListener "hashchange" start)

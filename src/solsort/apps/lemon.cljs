@@ -23,7 +23,7 @@
 ;; In the following there will be the actual code, intermixed with a description
 ;; of the ideas behind it.
 ;;
-;; ## Namespace definition
+;; # Namespace definition
 ;;
 ;; Define the module, and declare the dependencies. Use the standard ClojureScript modules
 (ns solsort.apps.lemon
@@ -45,11 +45,26 @@
     ;; And some of my own utility functions, that I share among projects.
     ;; Routing, platform-abstraction, utilities, etc.
     [solsort.util :refer [route log unique-id <p]]
+    [solsort.misc :refer [next-tick]]
     [solsort.net :refer [<ajax]]
+    [solsort.db :refer [db-url]]
     [solsort.ui :refer [app input default-shadow add-style icon]]
     ))
 
-;; ## API-mock
+;; # DB
+(defn db-init []
+  (defonce tinkuy-users
+    (do
+      (let [tinkuy-users (js/PouchDB. "tinkuy-users" #js {:auto_compaction true})]
+        (.sync tinkuy-users (db-url "tinkuy-users") #js {:live true})
+        tinkuy-users))) 
+  (defonce tinkuy-db 
+    (do
+      (let [tinkuy-db (js/PouchDB. "tinkuy" #js {:auto_compaction true})]
+        (.sync tinkuy-db (db-url "tinkuy") #js {:live true})
+        tinkuy-db))))
+
+;; # API-mock
 ;;
 
 (defn extract-solsort-data []
@@ -67,7 +82,7 @@
                            (js->clj)))))))
 (defn current-user-id []
   (go (get (extract-solsort-data) "userid")))
-;; ## Sample/getting started code
+;; # Sample/getting started code
 ;;
 ;; This is just a small hello-world app, will be replaced by the actual code soon.
 (defn login-page []
@@ -93,18 +108,19 @@
 
   )
 
-(defonce tinkuy-db (js/PouchDB. "tinkuy"))
 (defn <upsert [db k f]
   (go (let [doc (<! (<p (.get db k)))
-            doc (or (clj->js {:_id k}))
+            doc (or doc (clj->js {:_id k}))
             doc (f doc)]
         (<p (.put db doc)))))
+
 (register-sub :tinkuy-events (fn [db _] (reaction (:tinkuy-events @db))))
 (register-handler 
   :tinkuy-events 
   (fn [db [_ events]] 
     (assoc db :tinkuy-events events)))
 (go 
+  (db-init)
   (let [events  (<! (<p (.get tinkuy-db "events")))]
     (dispatch [:tinkuy-events (get (js->clj events)"all")])))
 
@@ -171,11 +187,13 @@
    :about [about]} 
   )
 
+
 (defn view []
   (get views @(subscribe [:view]) [calendar]))
 (route
   "lemon"
   (fn []
+    (db-init)
     (defonce init
       (go 
         (let [events (<! (<ajax "https://www.tinkuy.dk/events.json"))]
@@ -217,37 +235,82 @@
       [:h1 ""]
       "[liste over behandlere, coaches, dansere, undervisere, ... kommer her, real soon now]"
       [:hr]]}))
+
+(defonce user-sync 
+  (fn [o id]
+    (memoize
+      (fn [k]
+        (dispatch-sync [:form-value k (o k)])
+        (ratom/run! 
+          (let [v @(subscribe [:form-value k])]
+            (<upsert tinkuy-users id (fn [o] (aset o k v) o))))))))
+
+(defn sync-name [userid]
+  (go
+    (let [firstname-elem (js/document.getElementById "user_firstname") 
+          lastname-elem  (js/document.getElementById "user_surname") 
+          firstname (.-value firstname-elem)
+          lastname (.-value lastname-elem)]
+      (<! (<upsert tinkuy-users userid (fn [o] 
+                                         (aset o "firstname" firstname)
+                                         (aset o "lastname" lastname)
+                                         o))))))
 (route 
   "tinkuy/user-edit"
   (fn [o]
-    (log o)
-    {:type :html
-     :html 
-     [:div
-      [:p 
-       [input :name "profile-is-public" :type "checkbox"] 
-       [:label {:for "profile-is-public-input"}
-        " offentlig profil, - kan ses af alle på hjemmesiden"]]
-      [:p 
-       [:label {:for "profile-image-input"}
-        [:img {:alt "billede"}]] 
-       [input 
-        :name "profile-image" :type "file"]]
-      [:p [:label {:for "profile-title-input"} "Titel/type: "] [:br] 
-       [input 
-        :name "profile-title" 
-        :type "text" 
-        :style {:width "100%"}]]
-      [:p [:label {:for "profile-description-input"} "Beskrivelse:"] [:br] 
-       [input 
-        :name "profile-description"
-        :type "textarea" 
-        :rows 8
-        :style {:width "100%"}]]
-      [:p [:label {:for "profile-url-input"} "Url (hjemmeside eller anden kontaktinfo):"] [:br] 
-       [input 
-        :name "profile-url" 
-        :type "text" 
-        :style {:width "100%"}]]
+    (go 
+      (db-init)
+      (assert (re-matches #"tinkuy:[0-9]*" (o "userid")))
+      (let [userid (o "userid")
+            obj (or (<! (<p (.get tinkuy-users userid))) #js {})
+            obj (js->clj obj)]
+        (try
+          (let [firstname-elem (js/document.getElementById "user_firstname") 
+                lastname-elem  (js/document.getElementById "user_surname") 
+                firstname (.-value firstname-elem)
+                lastname (.-value lastname-elem)]
 
-      ]}))
+            (when (or (not= firstname (o "firstname")) 
+                      (not= lastname (o "lastname")))
+              (<! (sync-name userid)))
+            (aset firstname-elem "onchange" #(sync-name userid))
+            (aset lastname-elem "onchange" #(sync-name userid))
+            (log 'first-last firstname lastname))
+          (catch js/Object e (log 'error e)))
+        (doall (map
+                 (user-sync obj userid)
+                 ["profile-is-public"
+                  "profile-title"
+                  "profile-description"
+                  "profile-url"]))
+        (log o)
+        {:type :html
+         :html 
+         [:div
+          [:p 
+           [input :name "profile-is-public" :type "checkbox"] 
+           [:label {:for "profile-is-public-input"}
+            " \u00a0 offentlig profil, - kan ses af alle på hjemmesiden"]]
+          #_[:p 
+             [:label {:for "profile-image-input"}
+              [:img {:alt "billede"}]] 
+             [input 
+              :name "profile-image" :type "file"]]
+          [:p [:label {:for "profile-title-input"} "Titel/type: "] [:br] 
+           [input 
+            :name "profile-title" 
+            :type "text" 
+            :style {:width "100%"}]]
+          [:p [:label {:for "profile-description-input"} "Beskrivelse:"] [:br] 
+           [input 
+            :name "profile-description"
+            :type "textarea" 
+            :rows 8
+            :style {:width "100%"}]]
+          [:p [:label {:for "profile-url-input"} "Url (hjemmeside eller anden kontaktinfo):"] [:br] 
+           [input 
+            :name "profile-url" 
+            :type "text" 
+            :style {:width "100%"}]]
+
+          ]}))))

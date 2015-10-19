@@ -13,6 +13,6 @@
     "socket.io-p2p": "^2.1.1",
     "socket.io-p2p-server": "^1.2.0"
   },
-  "scripts": {"start": "nw"},
+  "scripts": {"start": "killall node; nw"},
   "main": "resources/public/index.html#solsort:hello"
 }

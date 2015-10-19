@@ -18,6 +18,7 @@
 (enable-console-print!)
 
 
+(defn next-tick [f] (js/setTimeout f 0))
 (declare log)
 (register-sub :log (fn [db _] (reaction (:log @db))))
 (defn unatom [o] (if (satisfies? IAtom o) @o o))

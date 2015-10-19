@@ -125,17 +125,32 @@
           (if (= @prev-middleware (aget (aget stack i) "handle"))
             (aset (aget app "_router") "stack" (.concat (.slice stack 0 i) (.slice stack (inc i))))
             (recur (inc i)))))))
-  (defn add-middleware []
-    (log 'add-middleware)
-    (when (some? @prev-middleware) (remove-middleware @prev-middleware))
-    (reset! prev-middleware middleware)
-    (.use app middleware)
+(defn add-middleware []
+  (log 'add-middleware)
+  (when (some? @prev-middleware) (remove-middleware @prev-middleware))
+  (reset! prev-middleware middleware)
+  (.use app middleware)
 
-    (defonce start-server
-      (do
-        (log 'starting-server port)
+  (defonce start-server
+    (do
+      (log 'starting-server port)
       (.use io p2p-server)
-      (.use app "/db" (proxy "localhost:5984" #js {"forwardPath" #(aget % "url")}))
+      (.use app "/db" 
+            (proxy "localhost:5984" 
+              #js {"limit" "256mb"
+                   "forwardPath" 
+                   (fn [req res] 
+                     (.header res "Access-Control-Allow-Origin" (or (-> req (aget "headers") (aget "origin")) "*"))
+                     (.header res "Access-Control-Allow-Credentials" "true")
+                     (.header res "Access-Control-Allow-Headers" "Content-Type")
+                     (aget req "url"))
+                   ;"intercept"
+                   ;(fn [rsp data req res callback] 
+                     ;(.header res "Access-Control-Allow-Origin" (or (-> req (aget "headers") (aget "origin")) "*"))
+                     ;(.header res "Access-Control-Allow-Credentials" "true")
+                     ;(.header res "Access-Control-Allow-Headers" "Content-Type")
+                   ;  (callback nil data))
+                   }))
       (.on io "connection" #(new-socket-connection %))
       (.listen server port)
       (log "started server")
@@ -255,24 +270,24 @@
     c))
 ;; # autorestart
 #_(when (and 
-        false
-        (some? js/window.require)
-        (some? (js/window.require "fs")))
-  (let [fs (js/require "fs")
-        script-file  "/solsort/html/solsort.js"  
-        ]
-    (when (.existsSync fs script-file)
-      (.watchFile fs script-file
-                  (fn []
-                    (log 'XXXXX 'restarting-changed script-file)
-                    (go (<! (timeout 10000))
-                        (js/process.exit))))))
+          false
+          (some? js/window.require)
+          (some? (js/window.require "fs")))
+    (let [fs (js/require "fs")
+          script-file  "/solsort/html/solsort.js"  
+          ]
+      (when (.existsSync fs script-file)
+        (.watchFile fs script-file
+                    (fn []
+                      (log 'XXXXX 'restarting-changed script-file)
+                      (go (<! (timeout 10000))
+                          (js/process.exit))))))
 
-  (route "update-html"
-         (fn []
-           (go
-             (log "updating html")
-             (log "updated sites"
-                  (<! (<exec "for path in /solsort/sites/*; do cd $path; git pull; done")))
-             (log "updated html" (<! (<exec "cd /solsort/html && git pull")))
-             ))))
+    (route "update-html"
+           (fn []
+             (go
+               (log "updating html")
+               (log "updated sites"
+                    (<! (<exec "for path in /solsort/sites/*; do cd $path; git pull; done")))
+               (log "updated html" (<! (<exec "cd /solsort/html && git pull")))
+               ))))
