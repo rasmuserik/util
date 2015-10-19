@@ -47,19 +47,25 @@
                 :or {type "text"
                      name "missing-name" }}]
   (let [class  (str "solsort-input solsort-input-" type " " class) 
-        parent-id (unique-id)]
+        parent-id (unique-id)
+        value-key (case type
+                    ("checkbox") "checked"
+                    "value")
+        ]
     [:span {:id unique-id}
      [(if (= type "textarea") :textarea :input) 
      {:type type 
              :id (str name "-input")
-             :value @(subscribe [:form-value name])
+             (keyword value-key) @(subscribe [:form-value name])
              :placeholder placeholder
              :on-focus #(dispatch [:show-bars false])
              :on-blur #(go (<! (timeout 300)) (dispatch [:show-bars true]))
              :rows rows
              :style style
              :class class
-             :on-change #(dispatch-sync [:form-value name (-> % .-target .-value)]) }]]))
+             :on-change 
+             (fn [e] 
+               (dispatch-sync [:form-value name (-> e .-target (aget value-key))])) }]]))
 
 (def add-style add-default-style)
 
@@ -68,9 +74,7 @@
    {:background "rgba(255,255,255,0.75);" 
     :box-shadow default-shadow
     :border :none
-    :padding 5
-
-    }
+    :padding 5 }
    :.solsort-input-checkbox 
    {:display :inline-block
     :background "red"

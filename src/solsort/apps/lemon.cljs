@@ -61,7 +61,7 @@
   (defonce tinkuy-db 
     (do
       (let [tinkuy-db (js/PouchDB. "tinkuy" #js {:auto_compaction true})]
-        (.sync tinkuy-db (db-url "tinkuy") #js {:live true})
+        ;(.sync tinkuy-db (db-url "tinkuy") #js {:live true})
         tinkuy-db))))
 
 ;; # API-mock
@@ -165,8 +165,6 @@
 (defn show-log []
   [:div.container
    [:h3 "Debugging log:"]
-
-
    (into [:div]
          (map
            (fn [e] [:p {:key (unique-id)} (.slice (str e) 1 -1)])
@@ -190,6 +188,7 @@
 
 (defn view []
   (get views @(subscribe [:view]) [calendar]))
+
 (route
   "lemon"
   (fn []
@@ -228,22 +227,55 @@
 (route 
   "tinkuy/behandler-list"
   (fn [o]
-    (log o)
+  (go
+    (let [profiles 
+          (->>  (-> tinkuy-users 
+            (.allDocs (clj->js {:include_docs true})) 
+            (<p) (<!) (js->clj) 
+            (get "rows"))
+             (map #(get % "doc"))
+             (filter #(get % "profile-is-public")))]
     {:type :html
      :html 
      [:div
-      [:h1 ""]
-      "[liste over behandlere, coaches, dansere, undervisere, ... kommer her, real soon now]"
-      [:hr]]}))
+      (into 
+        [:div]
+        (map
+          (fn [o]
+          [:div {:style {:display :inline-block
+                         :vertical-align :top
+                         :margin 5
+                         :width 150 :height 150
+                         :overflow :hidden
+                         }}
+           #_[:div [:img {:alt "billeder kommer senere"
+                  :width 150
+                  :height 150
+                  }]]
+           [:div (o "firstname") " " (o "lastname")]
+           [:strong (o "profile-title")]
+           [:div [:a {:href (o "profile-url")} (o "profile-url")]]
+           [:div (map (fn [s] [:div s]) (.split (str (o "profile-description")) "\n"))]
+           ])
+          (shuffle profiles)))
+      [:hr]]}))))
 
+(defonce usersynced (atom #{}))
 (defonce user-sync 
   (fn [o id]
-    (memoize
-      (fn [k]
+    (fn [k]
+      (when-not (@usersynced [id k])
+        (swap! usersynced conj [id k])
         (dispatch-sync [:form-value k (o k)])
         (ratom/run! 
           (let [v @(subscribe [:form-value k])]
-            (<upsert tinkuy-users id (fn [o] (aset o k v) o))))))))
+            (go
+              (let [doc (<! (<p (.get tinkuy-users id)))
+                    doc  (or doc  (clj->js  {:_id k}))]
+                (when (not= (aget doc k) v)
+                  (aset doc k v)
+                  (.put tinkuy-users doc))
+                ))))))))
 
 (defn sync-name [userid]
   (go
@@ -261,6 +293,8 @@
     (go 
       (db-init)
       (assert (re-matches #"tinkuy:[0-9]*" (o "userid")))
+      
+        
       (let [userid (o "userid")
             obj (or (<! (<p (.get tinkuy-users userid))) #js {})
             obj (js->clj obj)]
@@ -274,8 +308,7 @@
                       (not= lastname (o "lastname")))
               (<! (sync-name userid)))
             (aset firstname-elem "onchange" #(sync-name userid))
-            (aset lastname-elem "onchange" #(sync-name userid))
-            (log 'first-last firstname lastname))
+            (aset lastname-elem "onchange" #(sync-name userid)))
           (catch js/Object e (log 'error e)))
         (doall (map
                  (user-sync obj userid)
@@ -283,7 +316,6 @@
                   "profile-title"
                   "profile-description"
                   "profile-url"]))
-        (log o)
         {:type :html
          :html 
          [:div
