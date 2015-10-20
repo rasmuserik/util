@@ -1,5 +1,43 @@
 This document keeps track of the 3-day development sprints at solsort.com, across different projects. The content will also be posted on the solsort blog.
 
+# 2015-10-20 Tinkuy.dk and ClojureScript Infrastructure
+
+This sprint I focus on tinkuy.dk and my ClojureScript infrastructure
+
+Results:
+
+- tinkuy.dk
+  - editable profile details
+  - list of public profiles
+  - merged fix of issue #69, #74, and #79 into master
+  - deployed to tinkuy-staging for testing
+  - fix date-dependent part of blackbox-testing, was issue #30
+- started looking into better DB-abstraction for cljs-apps
+  - Installed LevelDB in nwjs as storage backend
+  - Designed API for new version of MuBackend, http://solsort.com/2015/10/20/mubackend-revisited/
+  - TODO: Trying out watching sync'ed reactive in-memory clojurescript atom for access
+
+Tools:
+
+- Ruby/Rails, CouchDB, ClojureScript, nw-gyp/nwjs
+
+Starting point:
+
+- Previousely created a similar recommendation calculation
+- Have taught eigenvector analysis etc., but never applied it to problems this large before
+
+Takeways:
+
+- CPouchDB does not really perform / feels unnatural
+- nw-gyp for native modules in node-webkit
+
+References:
+
+- http://solsort.com/2015/10/20/mubackend-revisited/
+- https://github.com/NewCircleMovement/tinkuy
+- https://github.com/rasmuserik/solsort-util
+- http://tinkuy-staging.heroku.com
+
 # 2015-10-15 Library data
 
 Preprocessed/analysed some library data, to build an app upon later on:
