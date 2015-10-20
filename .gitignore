@@ -7,3 +7,4 @@ target/
 .repl
 docs
 pom.xml
+npm-debug.log

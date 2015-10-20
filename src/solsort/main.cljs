@@ -36,6 +36,7 @@
     [solsort.apps.icons]
     [solsort.apps.lemon]
     [solsort.apps.btrie]
+    [solsort.apps.server]
     [solsort.apps.rasmuserik]
     [solsort.apps.install-sites]
     [solsort.apps.hack4dk]
