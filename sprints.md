@@ -15,7 +15,7 @@ Results:
 - started looking into better DB-abstraction for cljs-apps
   - Installed LevelDB in nwjs as storage backend
   - Designed API for new version of MuBackend, http://solsort.com/2015/10/20/mubackend-revisited/
-  - TODO: Trying out watching sync'ed reactive in-memory clojurescript atom for access
+  - Trying out watching sync'ed reactive in-memory clojurescript atom for access, as research for viability of autosync'ed database, looks good
 
 Tools:
 
