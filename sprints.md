@@ -19,12 +19,10 @@ Results:
 
 Tools:
 
-- Ruby/Rails, CouchDB, ClojureScript, nw-gyp/nwjs
+- Ruby/Rails, CouchDB, ClojureScript, nw-gyp/nwjs, reagent
 
 Starting point:
 
-- Previousely created a similar recommendation calculation
-- Have taught eigenvector analysis etc., but never applied it to problems this large before
 
 Takeways:
 
