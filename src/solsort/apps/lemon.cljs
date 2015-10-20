@@ -28,11 +28,12 @@
 ;; Define the module, and declare the dependencies. Use the standard ClojureScript modules
 (ns solsort.apps.lemon
   (:require-macros
-    [reagent.ratom :as ratom :refer [reaction]]
     [cljs.core.async.macros :refer  [go alt!]])
   (:require
+    [reagent.ratom :as ratom :refer-macros [reaction]]
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]
+    [clojure.data :refer [diff]]
 
     ;; It uses the re-frame framework.
     ;;
@@ -82,7 +83,47 @@
                            (js->clj)))))))
 (defn current-user-id []
   (go (get (extract-solsort-data) "userid")))
-;; # Sample/getting started code
+;; # db-sync-experiments
+
+#_ (
+(declare db-syncer) 
+(when (exists? db-syncer)
+  (ratom/dispose! db-syncer))
+
+(register-sub :db-access (fn [db _] (reaction @db)))
+(register-handler 
+  :db-access
+  (fn [db1 [_ db2]] 
+    db1
+    ))
+
+(defonce db-needs-update (atom false))
+(defonce db-update-running (atom false))
+(defonce saved-db (atom {}))
+(defn update-db [db]
+  (if @db-update-running
+    (reset! db-needs-update db)
+    (go (loop [db db]
+          (reset! db-needs-update false)
+          (reset! db-update-running true)
+          (<! (timeout 1000)) ; imagine we save to db here
+          (reset! saved-db db)
+          (reset! db-update-running false)
+          (when @db-needs-update
+            (recur @db-needs-update))
+          ))))
+
+(def db-syncer
+  (ratom/run!
+    (let [db @(subscribe [:db-access])]
+      (js/console.log (str (first (diff db @saved-db))))
+      (update-db db)
+      )))
+
+)
+
+
+;; # lemon app
 ;;
 ;; This is just a small hello-world app, will be replaced by the actual code soon.
 (defn login-page []
@@ -227,38 +268,38 @@
 (route 
   "tinkuy/behandler-list"
   (fn [o]
-  (go
-    (let [profiles 
-          (->>  (-> tinkuy-users 
-            (.allDocs (clj->js {:include_docs true})) 
-            (<p) (<!) (js->clj) 
-            (get "rows"))
-             (map #(get % "doc"))
-             (filter #(get % "profile-is-public")))]
-    {:type :html
-     :html 
-     [:div
-      (into 
-        [:div]
-        (map
-          (fn [o]
-          [:div {:style {:display :inline-block
-                         :vertical-align :top
-                         :margin 5
-                         :width 150 :height 150
-                         :overflow :hidden
-                         }}
-           #_[:div [:img {:alt "billeder kommer senere"
-                  :width 150
-                  :height 150
-                  }]]
-           [:div (o "firstname") " " (o "lastname")]
-           [(if (o "profile-therapist") :strong :span) (o "profile-title")]
-           [:div [:a {:href (o "profile-url")} (o "profile-url")]]
-           [:div (map (fn [s] [:div s]) (.split (str (o "profile-description")) "\n"))]
-           ])
-          (sort-by #(str (if (% "profile-therapist") "a" "b") (.toUpperCase (% "firstname"))) profiles)))
-      [:hr]]}))))
+    (go
+      (let [profiles 
+            (->>  (-> tinkuy-users 
+                      (.allDocs (clj->js {:include_docs true})) 
+                      (<p) (<!) (js->clj) 
+                      (get "rows"))
+                 (map #(get % "doc"))
+                 (filter #(get % "profile-is-public")))]
+        {:type :html
+         :html 
+         [:div
+          (into 
+            [:div]
+            (map
+              (fn [o]
+                [:div {:style {:display :inline-block
+                               :vertical-align :top
+                               :margin 5
+                               :width 150 :height 150
+                               :overflow :hidden
+                               }}
+                 #_[:div [:img {:alt "billeder kommer senere"
+                                :width 150
+                                :height 150
+                                }]]
+                 [:div (o "firstname") " " (o "lastname")]
+                 [(if (o "profile-therapist") :strong :span) (o "profile-title")]
+                 [:div [:a {:href (o "profile-url")} (o "profile-url")]]
+                 [:div (map (fn [s] [:div s]) (.split (str (o "profile-description")) "\n"))]
+                 ])
+              (sort-by #(str (if (% "profile-therapist") "a" "b") (.toUpperCase (% "firstname"))) profiles)))
+          [:hr]]}))))
 
 (defonce usersynced (atom #{}))
 (defonce user-sync 
@@ -293,8 +334,8 @@
     (go 
       (db-init)
       (assert (re-matches #"tinkuy:[0-9]*" (o "userid")))
-      
-        
+
+
       (let [userid (o "userid")
             obj (or (<! (<p (.get tinkuy-users userid))) #js {})
             obj (js->clj obj)]
@@ -312,7 +353,7 @@
           (catch js/Object e (log 'error e)))
         (doall (map
                  (user-sync obj userid)
-                  ["profile-therapist"
+                 ["profile-therapist"
                   "profile-is-public"
                   "profile-title"
                   "profile-description"
