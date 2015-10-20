@@ -253,11 +253,11 @@
                   :height 150
                   }]]
            [:div (o "firstname") " " (o "lastname")]
-           [:strong (o "profile-title")]
+           [(if (o "profile-therapist") :strong :span) (o "profile-title")]
            [:div [:a {:href (o "profile-url")} (o "profile-url")]]
            [:div (map (fn [s] [:div s]) (.split (str (o "profile-description")) "\n"))]
            ])
-          (shuffle profiles)))
+          (sort-by #(str (if (% "profile-therapist") "a" "b") (.toUpperCase (% "firstname"))) profiles)))
       [:hr]]}))))
 
 (defonce usersynced (atom #{}))
@@ -312,13 +312,18 @@
           (catch js/Object e (log 'error e)))
         (doall (map
                  (user-sync obj userid)
-                 ["profile-is-public"
+                  ["profile-therapist"
+                  "profile-is-public"
                   "profile-title"
                   "profile-description"
                   "profile-url"]))
         {:type :html
          :html 
          [:div
+          [:p 
+           [input :name "profile-therapist" :type "checkbox"] 
+           [:label {:for "profile-therapist"}
+            " \u00a0 er behandler"]]
           [:p 
            [input :name "profile-is-public" :type "checkbox"] 
            [:label {:for "profile-is-public-input"}
