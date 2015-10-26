@@ -1,5 +1,29 @@
 This document keeps track of the 3-day development sprints at solsort.com, across different projects. The content will also be posted on the solsort blog.
 
+# 2015 uccorg
+
+- mismatch mellem skærme der ikke sker noget på
+  - deploy
+- researches etc.
+- odroids views locally
+
+Observations:
+
+- Inconsistent view in frontend, (same frontend running parallel, - one has the agents from the backend, and the other doesn't)
+- Researchers consistently missing in frontend
+- Apparently misscoped variables in frontend: `attribAlias`, `targetNode`, `anotherAgent`, and possibly `P`, `lines`, `k`, `v`, and `e`. Might lead to bug/instability
+- Repeatable missing agents, after switching view back and forth 
+
+Results:
+
+- Make frontend work/build on case-sensitive file systems
+- Example screens are the same as the odroids
+- Bugfix: researchers
+- see git log
+- set up api-proxy for testing
+- build+hosted version of frontend with fixes for testing
+
+
 # 2015-10-20 Tinkuy.dk and ClojureScript Infrastructure
 
 This sprint I focus on tinkuy.dk and my ClojureScript infrastructure
