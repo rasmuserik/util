@@ -34,21 +34,22 @@ The
 - New agents might arrive, during the day. 
 
 
-I have been looking missing agents in the frontend and it turns out:
+Have been looking missing agents in the frontend and it turns out:
 
-- Agents without a study programme does not spawn, (and not every agent has a study programme): https://github.com/UCC-Organism/ucc-organism/blob/097936e8bda78b876cdb37cfae6922e652492135/src/ucc/sys/agentSpawnSys.js#L88
-- Agents that are not part of the initial state, but arrives with events later, are silently ignored, instead of added: https://github.com/UCC-Organism/ucc-organism/blob/097936e8bda78b876cdb37cfae6922e652492135/src/ucc/data/Client.js#L107
+- Agents without a study programme does not spawn, (and not every agent has a study programme): https://github.com/UCC-Organism/ucc-organism/blob/097936e8bda78b876cdb37cfae6922e652492135/src/ucc/sys/agentSpawnSys.js#L88 (probably fixed)
+- Agents that are not part of the initial state, but arrives with events later, are silently ignored, instead of added: https://github.com/UCC-Organism/ucc-organism/blob/097936e8bda78b876cdb37cfae6922e652492135/src/ucc/data/Client.js#L107 (fixed)
 - Something is odd about the data model, ie. the type/kind of agent seems to be expected to be stored in `programme`, which in the data represent the study program. https://github.com/UCC-Organism/ucc-organism/097936e8bda78b876cdb37cfae6922e652492135/master/src/ucc/sys/agentSpawnSys.js#L25
-- Programme does not get assigned. https://github.com/UCC-Organism/ucc-organism/blob/097936e8bda78b876cdb37cfae6922e652492135/src/ucc/data/Client.js#L78
+- Programme does not get assigned. https://github.com/UCC-Organism/ucc-organism/blob/097936e8bda78b876cdb37cfae6922e652492135/src/ucc/data/Client.js#L78 (fixed)
 
 I did some quick hacks/workarounds which make the researcher agents etc. appear in frontend, but it does not process the type of agent etc., so needs to be worked through, and it would probably be good to take a general look at the data model.
 
 
-I also spotted:
+Also spotted:
 
 - Agents disappear when switching example screens, - indicates some instability in the data model, that could lead to other errors on the actual clients
-- Many leaks to global scope (missing `var`), which may lead to unexpected bugs, - I'd recommend running some tools to identify scope leaks, and fixing those. ie. https://github.com/UCC-Organism/ucc-organism/blob/097936e8bda78b876cdb37cfae6922e652492135/src/ucc/sys/agentFlockingSys.js#L69 https://github.com/UCC-Organism/ucc-organism/blob/097936e8bda78b876cdb37cfae6922e652492135/src/ucc/stores/MapStore.js#L142 ... 
-- Toilets probably does not work, as toilet location name is different in source code and the mail I got from you.
+- robustness for lost connectivity? Ie. if faye disconnects and reconnects, events during the disconnect is lost, should probably re-initialise agents based on current-state
+- Many leaks to global scope (missing `var`), which may lead to unexpected bugs, - I'd recommend running some tools to identify scope leaks, and fixing those. ie. https://github.com/UCC-Organism/ucc-organism/blob/097936e8bda78b876cdb37cfae6922e652492135/src/ucc/sys/agentFlockingSys.js#L69 https://github.com/UCC-Organism/ucc-organism/blob/097936e8bda78b876cdb37cfae6922e652492135/src/ucc/stores/MapStore.js#L142 ...  (partly fixed)
+- Toilets: "random toilet" "random closet" for janitor, vs "toilet" for going to toilet, - probably some issues.
 - Issues running frontend: it only build/bundled on case-insensitive file systems (fixed, so that works now), and `npm run watch` fails.
 
 
