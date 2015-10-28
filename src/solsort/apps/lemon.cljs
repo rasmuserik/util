@@ -279,7 +279,7 @@
         {:type :html
          :html 
          [:div
-          (into 
+          #_(into 
             [:div]
             (map
               (fn [o]
