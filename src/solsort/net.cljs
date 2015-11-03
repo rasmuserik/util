@@ -183,6 +183,7 @@
   (go
     (when-not (some? js/window.io)
       (<! (load-js (str socket-path "socket.io.js"))))
+    (def socket (js/io socket-path))
     ))
 (socket-connect)
 ;; # Network api
@@ -236,8 +237,23 @@
         (js/p2p.emit "hello" (clj->js [i (str js/navigator.userAgent)]))
         (when (< i 3) (recur (inc i))))))
 
+;; # msg api
+(def browser-crypto (atom false))
+(defn <sha224 [s]
+  (go
+    (when-not @browser-crypto
+      ; check if browser-crypt exists/works or else load https://solsort.com/polycrypt.js
+      ; reset! browser-crypto crypto.subtle || msCrypto.subtle || polycrypt
+      )
+    ; encode string as bytearray
+    ; async (.digest @browser-crypto)
+    )
+  )
+(defn send [realm mbox rrealm rmbox content])
+(defn join [realm secret])
+(defn leave [realm])
+(defn handler [f])
 ;; # <ajax
-
 (defn <ajax [url & {:keys [method data headers timeout credentials result]
                     :or {method "GET"
                          data nil
