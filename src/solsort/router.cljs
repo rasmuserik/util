@@ -41,8 +41,8 @@
     [cljs.core.async :refer  [>! <! chan put! take! timeout close! pipe]]
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch dispatch-sync]]
-    [solsort.style :refer [default-style-str]]
-    (clojure.string :refer [blank?])
+    [solsort.style :as style :refer [default-style-str]]
+    [clojure.string :refer [blank?]]
     [solsort.misc :as misc :refer [function? chan? log js-seq starts-with html-data unique-id]]
     [reagent.core :as reagent :refer  []]))
 
@@ -145,3 +145,4 @@
   (.addEventListener js/document "page:load" start))
 ;; # actual routes
 (route "style" (fn [] {:type "text/css"   :content (default-style-str)}))
+(route "style-kitchensink" (fn [] {:type :html :html style/kitchensink}))
