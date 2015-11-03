@@ -81,6 +81,10 @@
          [:.ccc {:background "#ccc"}]
          [:.button {:margin 5 :padding 5 :borderRadius 5 :border "1px solid black"}]
          [:.hidden {:display "none"}]
+         [:.scontain {:width "100%"
+                     :max-width 960
+                     :margin "auto"
+                     }]
          [:.scol {:padding-left 8 
                   :vertical-align "top"
                   :padding-right 8
@@ -136,7 +140,7 @@
 ;; # kitchen sinkg
 (def 
   kitchensink
-  [:div "Responsive grid:"
+  [:div.scontain "Responsive grid:"
    [:div.srow
     [:div.ws1.scol [:p.ccc "."]]
     [:div.ws2.scol [:p.ccc "12"]]
