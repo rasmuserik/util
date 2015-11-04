@@ -7,6 +7,7 @@
     [reagent.ratom :refer-macros [reaction]]
     [reagent.core :as reagent]
     [goog.net.XhrIo]
+    [clojure.string :as string]
     [solsort.misc :refer [log unique-id <exec]]
     [solsort.router :refer [route-exists? route]]
     [solsort.style :refer [default-style-str]]
@@ -238,6 +239,12 @@
         (when (< i 3) (recur (inc i))))))
 
 ;; # msg api
+;; ## Util
+(defn utf16->utf8 [s] (js/unescape (js/encodeURIComponent s)))
+(defn utf8->utf16 [s] (js/decodeURIComponent(js/escape s)))
+(defn str->arr [s] (js/Uint8Array.from (map #(.charCodeAt % 0) (utf16->utf8 s))))
+(defn arr->str [a] (utf8->utf16 (string/join (map #(js/String.fromCharCode %) (js/Array.prototype.slice.call a)))))
+;; ## Crypto
 (def browser-crypto (atom false))
 (defn <sha224 [s]
   (go
@@ -249,6 +256,7 @@
     ; async (.digest @browser-crypto)
     )
   )
+;; ## Actual api
 (defn send [realm mbox rrealm rmbox content])
 (defn join [realm secret])
 (defn leave [realm])
