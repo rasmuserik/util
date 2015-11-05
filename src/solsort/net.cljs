@@ -8,7 +8,7 @@
     [reagent.core :as reagent]
     [goog.net.XhrIo]
     [clojure.string :as string]
-    [solsort.misc :refer [log unique-id <exec]]
+    [solsort.misc :refer [log unique-id <exec <p]]
     [solsort.router :refer [route-exists? route]]
     [solsort.style :refer [default-style-str]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]
@@ -147,9 +147,9 @@
                      (aget req "url"))
                    ;"intercept"
                    ;(fn [rsp data req res callback] 
-                     ;(.header res "Access-Control-Allow-Origin" (or (-> req (aget "headers") (aget "origin")) "*"))
-                     ;(.header res "Access-Control-Allow-Credentials" "true")
-                     ;(.header res "Access-Control-Allow-Headers" "Content-Type")
+                   ;(.header res "Access-Control-Allow-Origin" (or (-> req (aget "headers") (aget "origin")) "*"))
+                   ;(.header res "Access-Control-Allow-Credentials" "true")
+                   ;(.header res "Access-Control-Allow-Headers" "Content-Type")
                    ;  (callback nil data))
                    }))
       (.on io "connection" #(new-socket-connection %))
@@ -170,7 +170,7 @@
             (str js/location.protocol "//blog.solsort.com/")))
 (def socket-path (str host "socket.io/"))
 
-(defn load-js 
+(defn <load-js 
   "Load a JavaScript file, and emit true on returned channel when done"
   [url]
   (let [c (chan)
@@ -183,7 +183,7 @@
 (defn socket-connect []
   (go
     (when-not (some? js/window.io)
-      (<! (load-js (str socket-path "socket.io.js"))))
+      (<! (<load-js (str socket-path "socket.io.js"))))
     (def socket (js/io socket-path))
     ))
 (socket-connect)
@@ -242,20 +242,41 @@
 ;; ## Util
 (defn utf16->utf8 [s] (js/unescape (js/encodeURIComponent s)))
 (defn utf8->utf16 [s] (js/decodeURIComponent(js/escape s)))
-(defn str->arr [s] (js/Uint8Array.from (map #(.charCodeAt % 0) (utf16->utf8 s))))
-(defn arr->str [a] (utf8->utf16 (string/join (map #(js/String.fromCharCode %) (js/Array.prototype.slice.call a)))))
+(defn buf->utf8-str [a] (string/join (map #(js/String.fromCharCode %) (seq (js/Array.prototype.slice.call (js/Uint8Array. a))))))
+(defn buf->str [a] (utf8->utf16 (buf->utf8-str a)))
+(defn utf8-str->buf [s] 
+  (log 'utf8->buf s)
+  (log (clj->js (map #(.charCodeAt % 0)  s)))
+  (js/Uint8Array.from (clj->js (map #(.charCodeAt % 0) s))))
+(defn str->buf [s] (utf8-str->buf (utf16->utf8 s)))
 ;; ## Crypto
 (def browser-crypto (atom false))
-(defn <sha224 [s]
+(defn <sha256 [buffer]
   (go
+    (js/console.log buffer)
     (when-not @browser-crypto
       ; check if browser-crypt exists/works or else load https://solsort.com/polycrypt.js
       ; reset! browser-crypto crypto.subtle || msCrypto.subtle || polycrypt
-      )
-    ; encode string as bytearray
-    ; async (.digest @browser-crypto)
-    )
-  )
+      (reset!
+        browser-crypto
+        (or (aget 
+              (or js/window.crypto 
+                  js/window.msCrypto 
+                  #js{})
+              "subtle")
+            (do (<! (<load-js "https://solsort.com/js/polycrypt.js"))
+                js/polycrypt))))
+    (log 'here)
+    (<! (<p (.digest @browser-crypto "SHA-256" buffer)))))
+(defn <sha256-str [s] 
+  (go (js/btoa (buf->utf8-str (<! (<sha256  (str->buf s)))))))
+(go 
+  (log 'a)
+  (js/console.log "helo")
+  (js/console.log  #_(utf8-str->buf)  (utf16->utf8 "helo"))
+  (js/console.log "hel1")
+  (log (<! (<sha256-str "hel1")))
+  (log 'b))
 ;; ## Actual api
 (defn send [realm mbox rrealm rmbox content])
 (defn join [realm secret])
