@@ -1,5 +1,33 @@
 This document keeps track of the 3-day development sprints at solsort.com, across different projects. The content will also be posted on the solsort blog.
 
+# 2015-10-15 Library data
+
+
+The focus of this sprint was the infrastructure for solsort platform, plus some practical stuff. 
+
+Results:
+
+- Responsive grid, decision, and implementation. Decided on a 24 column grid, as it is friendly for the golden ratio (15/24) in addition to the usual 12-grid split. Implemented for mobile first with 3 responsive stops (mobile-portrait, mobile-landscape/tablet-portrait, tablet-landscape/desktop), using the same widths as android adaptive UI.
+- Started implementing utility functions for mubackend api, ie. SHA256 etc. using WebCryptography API
+- Refactor documentation
+- Other practical tasks (accounting, tidying, etc.)
+
+Tools:
+
+- ClojureScript, HTML5, CSS
+
+Starting point:
+
+- Previousely created a similar recommendation calculation
+- Have taught eigenvector analysis etc., but never applied it to problems this large before
+
+Takeways:
+
+- Getting experience with WebCryptography API
+- Need to allocate more time in calender for coding, in my own sprint where there are also other tasks.
+
+References:
+
 # 2015-10-28 uccorg
 
 Something was wrong between frontend and the backend in the digital art project at UCC. As I had written the code for the backend, I was asked to step in and help solve it:
