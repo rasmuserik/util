@@ -261,11 +261,12 @@
       ))
 
 (defn bibitem [info o]
-  (js/console.log "HERE" (clj->js o))
   {:type :html
    :html [:div.scontain
-          [:h1 "BibApp"]
-          [show-item info o] ] })
+          [show-item info o] 
+          [:hr]
+          [:p
+           [:small Biblioteks-app-prototype (in progress) . Data stammer fra DBC: enten åbne data, eller via webservice på dev.vejlebib.dk. Forsideillustrationer vises via links links til dev.vejlebib.dk, eller bogpriser.dk, og hostes ikke direkte fra dette site.]]] })
 
 ; # route bibdata
 (defn <lid [lid] (<ajax  (db-url  (str "bib-old/" lid) ) :result :json))
