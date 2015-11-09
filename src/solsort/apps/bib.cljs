@@ -189,11 +189,11 @@
     "Billedbog" "Bog"
     "Dvd" "Film"
     "Tidskriftasaf" "Artikel"
-    "Værk"))
+    (first (o "type"))))
 
 (defn itemtype [o]
   (str "http://schema.org/"
-       (case (first (o "type"))
+       (case (typename o)
          "Bog" "Book"
          "Film" "Movie"
          "Artikel" "Article"
@@ -232,9 +232,8 @@
 (defn show-obj [o]
   (let [isbn (first (o "isbn"))
         title (first (o "title"))
-        cover-src (if (and isbn (not (o "missing-bogpris-cover")))
+        cover-src (if (and isbn (o "bogprisCover"))
                     (str "//www.bogpriser.dk/Covers/" (.slice isbn -3) "/" isbn ".jpg")
-
                     )
         ks (filter o ["title" "creator" "date" "abstract"
                       ;"classification" ;"serieTitle"
