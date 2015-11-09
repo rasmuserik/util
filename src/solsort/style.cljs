@@ -81,6 +81,9 @@
          [:.ccc {:background "#ccc"}]
          [:.button {:margin 5 :padding 5 :borderRadius 5 :border "1px solid black"}]
          [:.hidden {:display "none"}]
+         [:.noclear {:clear "none"}]
+         [:.right {:float "right"}]
+         [:.left {:float "left"}]
          [:.scontain {:width "100%"
                      :max-width 960
                      :margin "auto"

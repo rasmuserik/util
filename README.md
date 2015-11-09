@@ -43,6 +43,7 @@ not really released yet, do not get started
 # Case study: Library app
 
 ## Plan
+
 Indhold:
 
 - search
@@ -76,6 +77,9 @@ General:
   - distance measure
   - evt search engine
 
+- data cleanup:
+  - DK5 separate field
+  - en/da type
 
 # Platform notes (Not fully implemented yet)
 
