@@ -266,8 +266,40 @@
           [show-item info o] 
           [:hr]
           [:p
-           [:small Biblioteks-app-prototype (in progress) . Data stammer fra DBC: enten åbne data, eller via webservice på dev.vejlebib.dk. Forsideillustrationer vises via links links til dev.vejlebib.dk, eller bogpriser.dk, og hostes ikke direkte fra dette site.]]] })
+           [:small 
+            "Biblioteks-app-prototype (in progress). Data stammer fra DBC: 
+            enten åbne data, eller via webservice på dev.vejlebib.dk. 
+            Forsideillustrationer vises via links links til dev.vejlebib.dk, 
+            eller bogpriser.dk, og hostes ikke direkte fra dette site."]]] })
 
+; # hello
+(defn <hello [o]
+  (go 
+    (let [meta (<! (<bibobj "meta"))
+          ids (shuffle (meta "annotated")) ]
+      (js/console.log "HERE" (clj->js ids))
+      (js/console.log 
+        "isbns" 
+        (clj->js 
+          (loop [id (first ids)
+             ids (rest (take 1000 ids))
+             isbns #{}]
+        (if id
+          (recur
+            (first ids)
+            (rest ids)
+            (let 
+              [more-isbns (get (<! (<bibobj id)) "isbn" [])]
+              (into isbns more-isbns))
+            )
+          isbns
+          ))))
+      (js/console.log (clj->js meta))
+      {:type "text/plain"
+       :content "hello"
+       }
+      
+      )))
 ; # route bibdata
 (defn <lid [lid] (<ajax  (db-url  (str "bib-old/" lid) ) :result :json))
 (defn <lidjson [part lid]
@@ -287,8 +319,8 @@
                 (-> id (<lid) (<!)
                     (aget "info") (aget "id") (aget 0)
                     (<bibobj) (<!))))
-      "ting" 
-      (go (bibitem info (<! (<bibobj id))))
+      "ting" (go (bibitem info (<! (<bibobj id))))
+      "hello" (<hello info)
       (<default))))
 
 (route "bib" route-fn)
