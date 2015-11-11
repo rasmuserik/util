@@ -144,7 +144,7 @@
       ]
      ["location /wp-json " [:try_files "$uri" "$uri/" "/index.php?$args"]]
      ["location ~ ^/20.*" [:try_files "$uri" "$uri/" "/index.php?$args"]]
-     [(str "location ~ ^/(db|" (join "|" (all-routes)) ")") 
+     [(str "location ~ ^/(es|db|" (join "|" (all-routes)) ")") 
       [:try_files "$uri" "$uri/" "@server"]]
      ["location @server"
       [:proxy_set_header  "x-solsort-remote-addr"  "$remote_addr"]

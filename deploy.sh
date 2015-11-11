@@ -7,5 +7,5 @@ cp resources/public/solsort.js ~/html/solsort.js
 cp package.json ~/html/package.json
 cd ~/html/ 
 npm install && npm start
-echo "now if everything is ok:"
-echo "git commit -am solsort.js ; git push ; cd ~/solsort"
+git commit -am solsort.js ; git push ; cd ~/solsort
+curl jhjhjhjhjh.solsort.com/site-update
