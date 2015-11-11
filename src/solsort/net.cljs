@@ -21,12 +21,90 @@
   (if js/window.process
     (js/parseInt (or (-> js/process .-env (aget "PORT")) "4321") 10)
     4321))  
+
+(defn <load-js 
+  "Load a JavaScript file, and emit true on returned channel when done"
+  [url]
+  (let [c (chan)
+        elem (js/document.createElement "script")]
+    (js/document.head.appendChild elem)
+    (aset elem "onload" (fn [] (put! c true)))
+    (aset elem "src" url)
+    c))
+
+;; ## Util
+(defn utf16->utf8 [s] (js/unescape (js/encodeURIComponent s)))
+(defn utf8->utf16 [s] (js/decodeURIComponent(js/escape s)))
+(defn buf->utf8-str [a] (string/join (map #(js/String.fromCharCode %) (seq (js/Array.prototype.slice.call (js/Uint8Array. a))))))
+(defn buf->str [a] (utf8->utf16 (buf->utf8-str a)))
+(defn utf8-str->buf [s] (js/Uint8Array.from (clj->js (map #(.charCodeAt % 0) s))))
+(defn str->buf [s] (utf8-str->buf (utf16->utf8 s)))
+;; ## Crypto - <sha256-str
+(def browser-crypto (atom false))
+(defn <sha256 [buffer]
+  (go
+    (js/console.log buffer)
+    (when-not @browser-crypto
+      ; check if browser-crypt exists/works or else load https://solsort.com/polycrypt.js
+      ; reset! browser-crypto crypto.subtle || msCrypto.subtle || polycrypt
+      (reset!
+        browser-crypto
+        (or (aget 
+              (or js/window.crypto 
+                  js/window.msCrypto 
+                  #js{})
+              "subtle")
+            (do (<! (<load-js "https://solsort.com/js/polycrypt.js"))
+                js/polycrypt))))
+    (<! (<p (.digest @browser-crypto "SHA-256" buffer)))))
+(defn <sha256-str [s] 
+  (go (js/btoa (buf->utf8-str (<! (<sha256  (str->buf s)))))))
+
+;; # mubackend
+;; ## socket.io
+
+(defonce client-rooms (atom {}))
+(defonce client-connections (atom {}))
+(defonce rooms (atom {}))
+
+(defn mubackend-socket [socket]
+  (let [client-id (.-id socket)]
+    (log 'connect client-id)
+    (.on socket "join"
+         (fn [secret] 
+           (go
+             (let [room-id (<! (<sha256-str secret))]
+               (swap! client-rooms #(assoc % client-id (conj (get % client-id #{}) room-id)))
+               (swap! rooms #(assoc % room-id (conj (get % room-id #{}) client-id)))
+               (swap! client-connections assoc client-id socket)
+               ))))
+    (.on socket "msg"
+         (fn [msg] 
+           (log "msg1" msg )
+           (log "msg2" (aget msg 0) )
+           (log "msg" (rand-nth (seq (get @rooms (aget msg 0) []))) )
+           (let [dst (rand-nth (get rooms (first msg) []))]
+             )))
+    (.on socket "disconnect"
+         (fn []
+           (doall (for [room-id (@client-rooms client-id)]
+                    (swap! rooms
+                           #(let [room (% room-id)
+                                  room (disj room client-id)]
+                              (if (empty? room)
+                                (dissoc @rooms room-id)
+                                (assoc @rooms room-id room))))))
+           (swap! client-rooms dissoc client-id)
+           (swap! client-connections dissoc client-id)
+           (log "disconnect" client-id))))
+  )
+
 ;; # Server
 (when (and (some? js/window.require)
            (some? (js/window.require "express")))
   (log "Running server")
-
-  (defonce clients (atom {}))
+  ;; ## old server
+  (defonce old-clients (atom {}))
   (defonce daemons (atom {}))
 
   (defonce app ((js/require "express")))
@@ -39,12 +117,11 @@
   (def request (js/require "request"))
   (defn auth-token [cookies] (second (re-find #"AuthSession=([^;]*)" (or cookies ""))))
   (defn new-socket-connection [socket]
-    (let [
-          cookie (-> socket (.-handshake) (.-headers) (.-cookie))
+    (mubackend-socket socket)
+    (let [cookie (-> socket (.-handshake) (.-headers) (.-cookie))
           auth (auth-token cookie)
           id (.-id socket)]
       (request
-
         #js {:url (str "http://localhost:" port "/db/_session")
              :headers #js {:cookie cookie}}
         (fn [_ _ data]
@@ -55,16 +132,16 @@
                               (aget "name"))
                           (catch :default e nil))]
             (when (= "daemon" user) (swap! daemons assoc auth id))
-            (swap! clients assoc id {:id id :user user :auth auth :socket socket})
+            (swap! old-clients assoc id {:id id :user user :auth auth :socket socket})
             (log 'daemons @daemons)
-            (log 'client-connect (@clients id))))))
+            (log 'client-connect (@old-clients id))))))
     (.on socket "disconnect"
          (fn []
            (let [id (.-id socket) 
-                 client (@clients id)]
+                 client (@old-clients id)]
              (log 'disconnect id)
              (swap! daemons dissoc (:auth client))
-             (swap! clients dissoc id)))))
+             (swap! old-clients dissoc id)))))
 
   (defn html->http [route data]
     (let [title (:title data)
@@ -126,6 +203,7 @@
           (if (= @prev-middleware (aget (aget stack i) "handle"))
             (aset (aget app "_router") "stack" (.concat (.slice stack 0 i) (.slice stack (inc i))))
             (recur (inc i)))))))
+
 (defn add-middleware []
   (log 'add-middleware)
   (when (some? @prev-middleware) (remove-middleware @prev-middleware))
@@ -176,126 +254,35 @@
 (add-middleware))
 
 ;; # Client connection
-(def is-dev (or
-              (= "file:" js/location.protocol)
-              (re-find #"localhost" js/location.hostname)
-              (contains? #{"3449" "3000"} js/location.port)))
+(def is-dev (or (= "file:" js/location.protocol)
+                (re-find #"localhost" js/location.hostname)
+                (contains? #{"3449" "3000"} js/location.port)))
 (def location-hostname (if (= "" js/location.hostname) "localhost" js/location.hostname))
 (def host (if is-dev 
             (str "http://" location-hostname ":" port "/")
-            (str js/location.protocol "//blog.solsort.com/")))
-(def socket-path (str host "socket.io/"))
+            (str "https://blog.solsort.com/")))
 
-(defn <load-js 
-  "Load a JavaScript file, and emit true on returned channel when done"
-  [url]
-  (let [c (chan)
-        elem (js/document.createElement "script")]
-    (js/document.head.appendChild elem)
-    (aset elem "onload" (fn [] (put! c true)))
-    (aset elem "src" url)
-    c))
-
-(defn socket-connect []
+; TODO keep track on connected rooms, and rejoin on reconnect
+(def socket (atom false))
+(defn socket-emit [a b]
   (go
-    (when-not (some? js/window.io)
-      (<! (<load-js (str socket-path "socket.io.js"))))
-    (def socket (js/io socket-path))
-    ))
-(socket-connect)
-;; # Network api
-; TODO
-(defn sub
-  ([chan-id subscribe-key] (chan)) ; TODO
-  ([chan-id] (sub chan-id nil))) 
-(defn id [] (unique-id)) ; might be optimised for routing later on
-(defn pub! [chan-id msg] ) ; put! to named channel, goes to an arbitrary subscriber
-
-;; ## Experiments
-(when js/window.socket
-  (js/socket.removeAllListeners "http-request")
-  (js/socket.removeAllListeners "http-response-log")
-  (js/socket.removeAllListeners "socket-connect")
-  (js/socket.removeAllListeners "socket-disconnect")
-  (js/socket.on
-    "http-request"
-    (fn [o] (log "http-request" o)
-      (js/socket.emit
-        "http-response"
-        #js {:url (aget o "url")
-             :key (aget o "key")
-             :content (str "Hello " (aget o "url"))})
-      ))
-  (js/socket.on
-    "http-response-log"
-    (fn [o] (log "http-response" o)))
-  (js/socket.on
-    "socket-connect"
-    (fn [o] (log "connect" o)))
-  (js/socket.on
-    "socket-disconnect"
-    (fn [o] (log "discon" o)))
-
-  (js/p2p.on
-    "ready"
-    ;(aset js/p2p "usePeerConnection" true)
-    (log 'p2p-ready)
-    ;(js/p2p.emit "hello" #js {:peerId js/navigator.userAgent})
-    )
-
-  (js/p2p.removeAllListeners "hello")
-  (js/p2p.on
-    "hello"
-    (fn [o] (log o))
-    )
-
-  (go (loop [i 0]
-        (<! (timeout 5000))
-        (js/p2p.emit "hello" (clj->js [i (str js/navigator.userAgent)]))
-        (when (< i 3) (recur (inc i))))))
+    (log 'socket-emit a b)
+    (when-not @socket
+      (when-not (some? js/window.io)
+        (<! (<load-js (str host "socket.io/socket.io.js"))))
+      (when-not @socket (reset! socket (js/io host))))
+    (.emit @socket a b)))
 
 ;; # msg api
-;; ## Util
-(defn utf16->utf8 [s] (js/unescape (js/encodeURIComponent s)))
-(defn utf8->utf16 [s] (js/decodeURIComponent(js/escape s)))
-(defn buf->utf8-str [a] (string/join (map #(js/String.fromCharCode %) (seq (js/Array.prototype.slice.call (js/Uint8Array. a))))))
-(defn buf->str [a] (utf8->utf16 (buf->utf8-str a)))
-(defn utf8-str->buf [s] 
-  (log 'utf8->buf s)
-  (log (clj->js (map #(.charCodeAt % 0)  s)))
-  (js/Uint8Array.from (clj->js (map #(.charCodeAt % 0) s))))
-(defn str->buf [s] (utf8-str->buf (utf16->utf8 s)))
-;; ## Crypto
-(def browser-crypto (atom false))
-(defn <sha256 [buffer]
-  (go
-    (js/console.log buffer)
-    (when-not @browser-crypto
-      ; check if browser-crypt exists/works or else load https://solsort.com/polycrypt.js
-      ; reset! browser-crypto crypto.subtle || msCrypto.subtle || polycrypt
-      (reset!
-        browser-crypto
-        (or (aget 
-              (or js/window.crypto 
-                  js/window.msCrypto 
-                  #js{})
-              "subtle")
-            (do (<! (<load-js "https://solsort.com/js/polycrypt.js"))
-                js/polycrypt))))
-    (log 'here)
-    (<! (<p (.digest @browser-crypto "SHA-256" buffer)))))
-(defn <sha256-str [s] 
-  (go (js/btoa (buf->utf8-str (<! (<sha256  (str->buf s)))))))
-(go 
-  (log 'a)
-  (js/console.log "helo")
-  (js/console.log  #_(utf8-str->buf)  (utf16->utf8 "helo"))
-  (js/console.log "hel1")
-  (log (<! (<sha256-str "hel1")))
-  (log 'b))
 ;; ## Actual api
-(defn send [realm mbox rrealm rmbox content])
-(defn join [realm secret])
+(defn msg 
+  ([realm mbox rrealm rmbox content] (socket-emit "msg" #js[realm mbox rrealm rmbox content]))
+  ([realm mbox content] (msg realm mbox nil nil content)))
+(defn join 
+  "Connect to a realm. The realm-id is the hash of the secret, and is returned"
+  [secret]
+  (socket-emit "join" secret)
+  )
 (defn leave [realm])
 (defn handler [f])
 ;; # <ajax
@@ -352,3 +339,16 @@
                     (<! (<exec "for path in /solsort/sites/*; do cd $path; git pull; done")))
                (log "updated html" (<! (<exec "cd /solsort/html && git pull")))
                ))))
+;; # Experiments
+
+#_
+((join "blah")
+(go
+  (let [realm (<! (<sha256-str "blah"))]
+    (msg realm "hello" "blah")
+    
+    )
+  
+  )
+(socket-emit "msg" "hello123")
+(msg "foo" "bar" "baz"))
