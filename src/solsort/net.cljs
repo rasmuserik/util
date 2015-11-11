@@ -136,6 +136,22 @@
     (do
       (log 'starting-server port)
       (.use io p2p-server)
+      (.use app "/es" 
+            (proxy "localhost:9200" 
+              #js {"limit" "256mb"
+                   "forwardPath" 
+                   (fn [req res] 
+                     (.header res "Access-Control-Allow-Origin" (or (-> req (aget "headers") (aget "origin")) "*"))
+                     (.header res "Access-Control-Allow-Credentials" "true")
+                     (.header res "Access-Control-Allow-Headers" "Content-Type")
+                     (aget req "url"))
+                   ;"intercept"
+                   ;(fn [rsp data req res callback] 
+                   ;(.header res "Access-Control-Allow-Origin" (or (-> req (aget "headers") (aget "origin")) "*"))
+                   ;(.header res "Access-Control-Allow-Credentials" "true")
+                   ;(.header res "Access-Control-Allow-Headers" "Content-Type")
+                   ;  (callback nil data))
+                   }))
       (.use app "/db" 
             (proxy "localhost:5984" 
               #js {"limit" "256mb"
