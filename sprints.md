@@ -1,6 +1,28 @@
 This document keeps track of the 3-day development sprints at solsort.com, across different projects. The content will also be posted on the solsort blog.
 
-# 2015-10-15 Library data
+# 2015-11-11 Library app 
+
+
+Results:
+
+- Extracting isbns of books in dataset which has cover on bogpriser.dk
+- new version of /bibdata, use ting-id instead of lid, - and use new database
+- set up elasticsearch server + start index items with cover pages on dev.vejlebib.dk
+
+Tools:
+
+- ElasticSearch, ClojureScript, Python
+
+Starting point:
+
+
+Takeways:
+
+
+References:
+
+
+# 2015-11-06 solsort platform and practical stuff
 
 
 The focus of this sprint was the infrastructure for solsort platform, plus some practical stuff. 
