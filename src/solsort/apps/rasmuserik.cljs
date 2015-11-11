@@ -91,7 +91,7 @@
     [:br] "Updated Summer 2015"]]
   )
 
-(route "rasmuserik"
+(route "rasmuserikvoeljensen"
        (fn []
          {:type :html
           :offline true
