@@ -1,13 +1,16 @@
 This document keeps track of the 3-day development sprints at solsort.com, across different projects. The content will also be posted on the solsort blog.
 
-# 2015-11-11 Library app 
+# 2015-11-11 Library app infrastructure progress
 
 
 Results:
 
-- Extracting isbns of books in dataset which has cover on bogpriser.dk
-- new version of /bibdata, use ting-id instead of lid, - and use new database
-- set up elasticsearch server + start index items with cover pages on dev.vejlebib.dk
+- ElasticSearch service running with bibliographic data for materials with covers in brønd
+- Figured out which books in the dataset that have cover on bogpriser.dk
+- Merge `/bib` and `/bibdata` web services
+- Make semantic marked-up html on `/bib` be based on the new data set / data model.
+
+Productivity: Low - used a day on non-related computer science research (mainly programming language theory)
 
 Tools:
 
@@ -15,12 +18,19 @@ Tools:
 
 Starting point:
 
+- Had base data from previous sprint, which just needed some cleanup / filtering by covers before put into ElasticSearch
+- Already had the semantic markup code from the previous version of `/bibdata`, which just needed to run on the new DB
 
 Takeways:
+
+- More experience with ElasticSearch
+- Thoughts on mobile language: Currying and typed lambda calculus leads to functions with closures as first class values, which can also be the building block of loops etc. Abstraction simplifies.
 
 
 References:
 
+- http://solsort.com/es/bib/ting/_search?q=murakami&pretty=true
+- http://solsort.com/bibdata/ting/870970-basis:23645564
 
 # 2015-11-06 solsort platform and practical stuff
 
@@ -33,6 +43,8 @@ Results:
 - Started implementing utility functions for mubackend api, ie. SHA256 etc. using WebCryptography API
 - Refactor documentation
 - Other practical tasks (accounting, tidying, etc.)
+
+Productivity: Low - practical stuff took focus
 
 Tools:
 
@@ -59,6 +71,8 @@ Results:
 - Found and fixed bug with missing agents in frontend visualisation code
 - Solved the obscure problem with the connections not working. Turned out that all the odroids had the same MAC-address, which really messed up the network.
 - Various fixes in the frontend code
+
+Productivity: Normal
 
 Tools:
 
@@ -94,6 +108,8 @@ Results:
   - Designed API for new version of MuBackend, http://solsort.com/2015/10/20/mubackend-revisited/
   - Trying out watching sync'ed reactive in-memory clojurescript atom for access, as research for viability of autosync'ed database, looks good
 
+Productivity: Normal
+
 Tools:
 
 - Ruby/Rails, CouchDB, ClojureScript, nw-gyp/nwjs, reagent
@@ -124,6 +140,8 @@ Results:
 - Easy to use data model (triples a la LOD) from different source, - and loaded into CouchDB
 - Compressed local copy/backup of data
 
+Productivity: Normal
+
 Tools:
 
 - python, leveldb, gensim, couchdb
@@ -151,6 +169,8 @@ Results:
 
 - An embeddable viewer for 360º rotational images from the collection of the National Museum, which makes it easier for people to share these rotational images.
 - Semantic markup of data from Det Danske Filminstitut, which will make the data discoverable by search-engines, robots, etc.
+
+Producitivity: Normal
 
 Tools:
 
