@@ -19,11 +19,13 @@ The goal this sprint is to follow up on several practical things:
 - evt. split into cdn/wp + API-server
 - evt. wordpress-template
 - evt. writings
-  - mubackend: auth + `{public:{},private:{},incoming:[],outgoing:[]}` reactive database
+  - mubackend: auth + `{public:{...},private:{...},incoming:[...],outgoing:{$RECEPIENT:[],...}` reactive database
   - database on top of ipfs
   - mobile language
   - virtues now and then
   - distributed ledger
+  - portfolio posts
+- evt. post-categories: 3-day sprints, Portfolio, IT, General
 
 
 # 2015-11-11 BibApp Infrastructure
