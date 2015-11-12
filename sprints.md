@@ -14,10 +14,13 @@ The goal this sprint is to follow up on several practical things:
   - Solsort platform
 - regning
 - automated backups
+
+- evt. BibApp code
 - evt. split into cdn/wp + API-server
 - evt. wordpress-template
 - evt. writings
-  - mubackend: auth + `{public:{},private:{},incoming:{}}` reactive database
+  - mubackend: auth + `{public:{},private:{},incoming:[],outgoing:[]}` reactive database
+  - database on top of ipfs
   - mobile language
   - virtues now and then
   - distributed ledger
