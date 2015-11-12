@@ -1,6 +1,31 @@
 This document keeps track of the 3-day development sprints at solsort.com, across different projects. The content will also be posted on the solsort blog.
 
-# 2015-11-11 Library app infrastructure progress
+# 2015-11-18 
+
+# 2015-11-15 
+
+The goal this sprint is to follow up on several practical things:
+
+- Create/use new ssl certificate letsencrypt
+- page-content on solsort.com
+  - solsort.com: Software development
+  - Product: 3-day sprint
+  - Product: Hosting
+  - Solsort platform
+- regning
+- automated backups
+- evt. split into cdn/wp + API-server
+- evt. wordpress-template
+- evt. writings
+  - mubackend: auth + `{public:{},private:{},incoming:{}}` reactive database
+  - mobile language
+  - virtues now and then
+  - distributed ledger
+
+
+# 2015-11-11 BibApp Infrastructure
+
+This sprint is about building building search service, and start building Bibliographic App.
 
 
 Results:
@@ -8,7 +33,7 @@ Results:
 - ElasticSearch service running with bibliographic data for materials with covers in brønd
 - Figured out which books in the dataset that have cover on bogpriser.dk
 - Merge `/bib` and `/bibdata` web services
-- Make semantic marked-up html on `/bib` be based on the new data set / data model.
+- Make semantic marked-up html on `/bib` be based on the new data set / data model (this is the base for showing bibliographic data later on).
 
 Productivity: Low - used a day on non-related computer science research (mainly programming language theory)
 
