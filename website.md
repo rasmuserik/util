@@ -7,9 +7,9 @@ Visit http://solsort.com/ for the canonical up to date version. The content belo
 
 ## solsort.com
 
-I write, debug, and optimise code, 
-  build prototypes and HTML5-widgets,
-  collaborate with all kinds of stakeholders.
+I write, debug, and optimise code,  <br>
+&nbsp;  build prototypes and HTML5-widgets, <br>
+&nbsp;  collaborate with all kinds of stakeholders.
 
 Contact: RasmusErik Voel Jensen, +45 60703081
 
@@ -29,21 +29,9 @@ Selected professional experience:
 - Runtime x86-machine code analysis for partial evaluation. Performance optimisation of mathematical simulation.
 
 
-----
-
-Preferred toolbox:
-
-- Languages: English, Danish(native), ClojureScript/Clojure, JavaScript, Python, C/C++, ...
-- Platforms and libraries: HTML5, Linux, WordPress, re-frame/reagent/react, SciPy, ...
-- Storage: LevelDB, CouchDB, PouchDB, PostgreSQL, ElasticSearch, ...
-- Infrastructure: github, travis-ci, agile/scrum-like, open source, transparency
-
-I have worked professionally in 10+ programming languages, and do write code in Java, PHP, or deploy on Windows, etc., when necessary ;-)
-
-
 ## Product: 3-day sprint
 
-We work on your project Monday-Wednesday or Friday-Sunday.
+I work on your project Monday-Wednesday or Friday-Sunday.
 
 - Collaboration on-site / in person, with clarification of needs, knowledge sharing etc.
 - Concrete delivery: the sprint ends out with delivery of concrete progress, and a written documentation of what has been done.
@@ -66,13 +54,53 @@ Why 3-day sprints:
 - Quick iterations within larger project, means lower risk, better communication.
 - Deadline enforces efficiency, both in planning, execution and delivery.
 - Fits within business week, as well as part-time startups(weekend-projects) 
-- Long enough to yield concrete progress/delivery.
+- Enough time to make concrete progress/delivery.
 
 ## Product: Hosting
 
+When I make solutions that runs on top of the solsort platform, I also offer to take of operations (hosting / keeping it running etc). 
 
-## App Platform
+The price is DKK480/€64 monthly, or DKK4800/€640 yearly, which includes
+
+- Running backend for the solsort platform
+- A WordPress instance (if the solution needs content management).
+- Regular updates, etc.
+
+
+----
+
+Everything is open source, so you can also host it yourself if you have a linux instance, and be responsible of keeping it up to date etc.
+
+
+## The Solsort Platform
+
+I am working on a solution that makes it easier to quickly create HTML5 apps and widgets.
+
+It is currently under development, and I am using it for various prototypes.
+
+Intended key features and technologies:
+
+- Targeting mobile-first offline-first HTML5 apps
+- Minimal backend, will provied authentication, storage-sync, communication, and hosting of semi-static resources
+- Coded in primary in ClojureScript, - language support for functional programming, communicating sequential process, reactive programming, persitent data structures, etc. actually makes me more productive
+- Content management in WordPress (just accessed via the API, makes it easy to integrate with other existing solutions, and many end-users will already knows it)
+
 ## RasmusErik
+
+![RasmusErik](//solsort.com/icons/rasmuserik.jpg)
+
+Independent computer scientist and software developer.
+
+Tingskrivervej 21, 3tv <br>
+2400 København NV <br>
++45 60703081 <br>
+hej@solsort.com
+
+[...]
+
+
+
+
 ## Posts
 
 # 3-day sprints
