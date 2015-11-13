@@ -1,8 +1,84 @@
-This document keeps track of the 3-day development sprints at solsort.com, across different projects. The content will also be posted on the solsort blog.
+This document is used for drafting the content for solsort.com.
 
-# 2015-11-18 
+Visit http://solsort.com/ for the canonical up to date version. The content below probably includes notes that are not applicable yet.
 
-# 2015-11-15 
+
+# Pages
+
+## solsort.com
+
+I write, debug, and optimise code, 
+  build prototypes and HTML5-widgets,
+  collaborate with all kinds of stakeholders.
+
+Contact: RasmusErik Voel Jensen, +45 60703081
+
+
+----
+
+
+Selected professional experience:
+
+- HTML5 widgets, such as 360º-viewer, and graph visualisation of library data.
+- Backends, such as combining datasources to live event strem, and mining usage-data yielding recommendation service.
+- Problem solving for web agency, ie. performance+portability+mobile optimisation, implementing visual effects
+- Bugfixing JavaScript engines Rhino(Java), SpiderMonkey(Firefox), - also implemented my own JavaScript dialect for low-end devices
+- Creating/teaching university courses, and doing conference presentations
+- Getting search engine into production, including automating acceptance tests from stake-holders, implementing query optimisations etc.
+- Project management in digitisation project, hiring, making software for improving workflow, etc.
+- Runtime x86-machine code analysis for partial evaluation. Performance optimisation of mathematical simulation.
+
+
+----
+
+Preferred toolbox:
+
+- Languages: English, Danish(native), ClojureScript/Clojure, JavaScript, Python, C/C++, ...
+- Platforms and libraries: HTML5, Linux, WordPress, re-frame/reagent/react, SciPy, ...
+- Storage: LevelDB, CouchDB, PouchDB, PostgreSQL, ElasticSearch, ...
+- Infrastructure: github, travis-ci, agile/scrum-like, open source, transparency
+
+I have worked professionally in 10+ programming languages, and do write code in Java, PHP, or deploy on Windows, etc., when necessary ;-)
+
+
+## Product: 3-day sprint
+
+We work on your project Monday-Wednesday or Friday-Sunday.
+
+- Collaboration on-site / in person, with clarification of needs, knowledge sharing etc.
+- Concrete delivery: the sprint ends out with delivery of concrete progress, and a written documentation of what has been done.
+- Satisfaction guarantee: money-back if not satisfied with result (excluding cost of transport and similar expenses).
+
+Next available sprint is: December 7.
+
+Typical price for a 3-day sprint is DKK 19.200 (within Denmark) or €2880 (within EU).
+
+
+----
+
+
+Why 3-day sprints:
+
+- Fixed-length unit of work makes scope of delivery more predictable 
+  - See documentation of previous 3-day sprints, to get impression of expected delivery
+- Focus 100% on the sprint, as interruptions etc. can be postponed a couple of days.
+- Possible to include short planning/demo/retrospective without too much overhead.
+- Quick iterations within larger project, means lower risk, better communication.
+- Deadline enforces efficiency, both in planning, execution and delivery.
+- Fits within business week, as well as part-time startups(weekend-projects) 
+- Long enough to yield concrete progress/delivery.
+
+## Product: Hosting
+
+
+## App Platform
+## RasmusErik
+## Posts
+
+# 3-day sprints
+## 2015-11-18 
+
+## 2015-11-15 
 
 The goal this sprint is to follow up on several practical things:
 
@@ -28,7 +104,7 @@ The goal this sprint is to follow up on several practical things:
 - evt. post-categories: 3-day sprints, Portfolio, IT, General
 
 
-# 2015-11-11 BibApp Infrastructure
+## 2015-11-11 BibApp Infrastructure
 
 This sprint is about building building search service, and start building Bibliographic App.
 
@@ -62,7 +138,7 @@ References:
 - http://solsort.com/es/bib/ting/_search?q=murakami&pretty=true
 - http://solsort.com/bibdata/ting/870970-basis:23645564
 
-# 2015-11-06 solsort platform and practical stuff
+## 2015-11-06 solsort platform and practical stuff
 
 
 The focus of this sprint was the infrastructure for solsort platform, plus some practical stuff. 
@@ -92,7 +168,7 @@ Takeways:
 
 References:
 
-# 2015-10-28 uccorg
+## 2015-10-28 uccorg
 
 Something was wrong between frontend and the backend in the digital art project at UCC. As I had written the code for the backend, I was asked to step in and help solve it:
 
@@ -121,7 +197,7 @@ References:
 - https://github.com/UCC-Organism/ucc-organism/compare/53fb1c50210fe0bccbff2dbd5477ffbd623276da...b48d16b6a15f03609d7036b9e41872ddd87c105e
 - temporary: http://ssl.solsort.com:8080/ http://ssl.solsort.com/uccorg/
 
-# 2015-10-20 Tinkuy.dk and ClojureScript Infrastructure
+## 2015-10-20 Tinkuy.dk and ClojureScript Infrastructure
 
 This sprint I focus on tinkuy.dk and my ClojureScript infrastructure
 
@@ -159,7 +235,7 @@ References:
 - https://github.com/rasmuserik/solsort-util
 - http://tinkuy-staging.heroku.com
 
-# 2015-10-15 Library data
+## 2015-10-15 Library data
 
 Preprocessed/analysed some library data, to build an app upon later on:
 
@@ -191,7 +267,7 @@ References:
 - Sample result data: https://solsort.com/db/bib/870970-basis:26480388
 - Code: http://github.com/rasmuserik/bib-data
 
-# 2015-10-04 Hack4DK
+## 2015-10-04 Hack4DK
 
 Participated in the yearly danish culural heritage hackathon:
 
