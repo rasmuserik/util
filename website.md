@@ -8,23 +8,25 @@ Visit http://solsort.com/ for the canonical up to date version. The content belo
 ## solsort.com
 
 I write, debug, and optimise code,  <br>
-&nbsp;  build prototypes and HTML5-widgets, <br>
-&nbsp;  collaborate with all kinds of stakeholders.
+&nbsp;  analyse data, and make HTML5-widgets, <br>
+&nbsp;  collaborate with all levels of stakeholders.
 
-Contact: RasmusErik Voel Jensen, +45 60703081
-
-
-----
+Contact: RasmusErik Voel Jensen, +45 60703081, re@solsort.com
 
 
-Selected professional experience:
+
+
+
+
+
+Selected professional experiences:
 
 - HTML5 widgets, such as 360º-viewer, and graph visualisation of library data.
 - Backends, such as combining datasources to live event strem, and mining usage-data yielding recommendation service.
 - Problem solving for web agency, ie. performance+portability+mobile optimisation, implementing visual effects
 - Bugfixing JavaScript engines Rhino(Java), SpiderMonkey(Firefox), - also implemented my own JavaScript dialect for low-end devices
 - Creating/teaching university courses, and doing conference presentations
-- Getting search engine into production, including automating acceptance tests from stake-holders, implementing query optimisations etc.
+- Getting search engine into production, including automating acceptance tests from stakeholders, implementing query optimisations etc.
 - Project management in digitisation project, hiring, making software for improving workflow, etc.
 - Runtime x86-machine code analysis for partial evaluation. Performance optimisation of mathematical simulation.
 
@@ -42,7 +44,9 @@ Next available sprint is: December 7.
 Typical price for a 3-day sprint is DKK 19.200 (within Denmark) or €2880 (within EU).
 
 
-----
+
+
+
 
 
 Why 3-day sprints:
@@ -67,7 +71,8 @@ The price is DKK480/€64 monthly, or DKK4800/€640 yearly, which includes
 - Regular updates, etc.
 
 
-----
+
+
 
 Everything is open source, so you can also host it yourself if you have a linux instance, and be responsible of keeping it up to date etc.
 
