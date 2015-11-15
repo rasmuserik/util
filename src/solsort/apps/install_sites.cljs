@@ -121,8 +121,8 @@
      [:index "index.html index.php"]
      [:listen 80]
      [:listen 443 "ssl"]
-     [:ssl_certificate "/etc/letsencrypt/live/solsort.com/fullchain.pem"]
-     [:ssl_certificate_key "/etc/letsencrypt/live/solsort.com/privkey.pem"]
+     [:ssl_certificate "/solsort/static/ssl/server.crt"]
+     [:ssl_certificate_key "/solsort/static/ssl/server.key"]
      ["location /"
       [:try_files "$uri" "$uri/" "/index.php?args"]]
      ["location ~ \\.php"
