@@ -111,30 +111,42 @@ hej@solsort.com
 # 3-day sprints
 ## 2015-11-18 
 
-## 2015-11-15 
+## 2015-11-15 Company Content
 
-The goal this sprint is to follow up on several practical things:
+The focus of this 3-day sprint has mainly been administrative company stuff, and writing, - as a platform for marketing.
 
-- Create/use new ssl certificate letsencrypt
-- page-content on solsort.com
-  - solsort.com: Software development
-  - Product: 3-day sprint
-  - Product: Hosting
-  - Solsort platform
-- regning
-- automated backups
 
-- evt. BibApp code
-- evt. split into cdn/wp + API-server
-- evt. wordpress-template
-- evt. writings
-  - mubackend: auth + `{public:{...},private:{...},incoming:[...],outgoing:{$RECEPIENT:[],...}` reactive database
-  - database on top of ipfs
-  - mobile language
-  - virtues now and then
-  - distributed ledger
-  - portfolio posts
-- evt. post-categories: 3-day sprints, Portfolio, IT, General
+
+Results:
+
+- Clear statement of the services/products that solsort.com offers, for easier sale
+- solsort.com brand + service definition on laptop, for implicit marketing when I work in a public location
+- WordPress theme development, - created customised theme for solsort.com
+- Issued new server certificates via https://letsencrypt.org
+- Automated backups
+- Many new blog posts, and restructures blog content
+- Other practical stuff
+
+
+Productivity: Normal
+
+Tools:
+
+- WordPress, PHP, JavaScript, Sass, letsencrypt
+
+Starting point:
+
+- Had already site running, thought some of the ideas for content
+
+Takeways:
+
+- letsencrypt.org is awesome
+- Experience with modern WordPress theme development
+
+References:
+
+- https://solsort.com/
+- https://solsort.com/2015/11/14/laptop-branding/
 
 
 ## 2015-11-11 BibApp Infrastructure
