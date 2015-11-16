@@ -40,15 +40,15 @@ not really released yet, do not get started
 
 # Case study: LemonGold
 
-# Case study: Library app
-
+# Case study: BibApp
 ## Plan
 
 Indhold:
 
 - search
+  - forside
   - (søge)historik (vægtet m. popularitet)
-    - tidligere søgninger/visninger
+    - tidligere søgninger/visninger/biblioteker
   - søgeresultater
     - klyngede forsider, add more, evt. zoom
   - materialevisning
