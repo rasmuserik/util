@@ -109,7 +109,124 @@ hej@solsort.com
 ## Posts
 
 # 3-day sprints
-## 2015-11-18 
+## 2015-12-01
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Starting point:
+
+- ..
+- ..
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
+## 2015-11-29
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Starting point:
+
+- ..
+- ..
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
+## 2015-11-25
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Starting point:
+
+- ..
+- ..
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
+## 2015-11-18 BibApp
+
+The goal of this sprint is to make a running prototype of the UI for the BibApp
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Starting point:
+
+- ..
+- ..
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
 
 ## 2015-11-15 Company Content
 
@@ -128,11 +245,9 @@ Results:
 - Other practical stuff
 
 
-Productivity: Normal
+Productivity: Normal, 19
 
-Tools:
-
-- WordPress, PHP, JavaScript, Sass, letsencrypt
+Tools: WordPress, PHP, JavaScript, Sass, letsencrypt
 
 Starting point:
 
@@ -161,11 +276,9 @@ Results:
 - Merge `/bib` and `/bibdata` web services
 - Make semantic marked-up html on `/bib` be based on the new data set / data model (this is the base for showing bibliographic data later on).
 
-Productivity: Low - used a day on non-related computer science research (mainly programming language theory)
+Productivity: Low - used a day on non-related computer science research (mainly programming language theory) 13
 
-Tools:
-
-- ElasticSearch, ClojureScript, Python
+Tools: ElasticSearch, ClojureScript, Python
 
 Starting point:
 
@@ -197,9 +310,7 @@ Results:
 
 Productivity: Low - practical stuff took focus
 
-Tools:
-
-- ClojureScript, HTML5, CSS
+Tools: ClojureScript, HTML5, CSS
 
 Starting point:
 
@@ -225,9 +336,7 @@ Results:
 
 Productivity: Normal
 
-Tools:
-
-- JavaScript, CoffeeScript, odroids/android/ssh/arp/...
+Tools: JavaScript, CoffeeScript, odroids/android/ssh/arp/...
 
 Starting point:
 
@@ -261,9 +370,7 @@ Results:
 
 Productivity: Normal
 
-Tools:
-
-- Ruby/Rails, CouchDB, ClojureScript, nw-gyp/nwjs, reagent
+Tools: Ruby/Rails, CouchDB, ClojureScript, nw-gyp/nwjs, reagent
 
 Starting point:
 
@@ -293,9 +400,7 @@ Results:
 
 Productivity: Normal
 
-Tools:
-
-- python, leveldb, gensim, couchdb
+Tools: python, leveldb, gensim, couchdb
 
 Starting point:
 
@@ -323,9 +428,7 @@ Results:
 
 Producitivity: Normal
 
-Tools:
-
-- ClojureScript, HTML5, re-frame/reagent/react
+Tools: ClojureScript, HTML5, re-frame/reagent/react
 
 Starting point:
 
