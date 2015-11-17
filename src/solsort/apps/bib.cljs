@@ -47,12 +47,19 @@
        "1566917070" "8791947216" "8778875235" "8723030658" "1592537822"
        "0375857829" "0870707674" "0747810520" "0745660905" "0571220090"])))
 ; ##
+(defn pointer-up [] (log 'pointer-up ))
+(defn pointer-move [x y] (log 'pointer-move [x y]))
+(defn pointer-down [oid x y] (log 'pointer-down [x y] oid))
 (def background-color "black")
 (defn book-elem ; ###
   [o x-step y-step]
   (let []
     [:span 
-     {:on-mouse-down #(log "event1" (:id o))       
+     {:on-mouse-down (fn [e] 
+                       (pointer-down (:id o) 
+                                    (aget e "screenX")
+                                    (aget e "screenY"))
+                                    (.preventDefault e))
       :style 
       (into 
         {:position :absolute
@@ -147,7 +154,11 @@
           (map #(into %2 {:id %1}) (drop (count back-books) (range)))
           (map #(into % {:w 1.7 :h 1.7 :img (nth isbn-urls (:id %))})))
      ]
-    [:div {:on-mouse-move #(log "event2")
+    [:div {:on-mouse-move (fn [e]  (pointer-move
+                              (aget e "screenX")
+                              (aget e "screenY"))
+                              (.preventDefault e))
+           :on-mouse-up #(pointer-up)
            :style {:display :inline-block
                    :width (* x-step 16)
                    :height (* y-step 20)
