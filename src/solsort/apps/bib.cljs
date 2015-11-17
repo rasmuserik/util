@@ -50,24 +50,25 @@
 (def background-color "black")
 (defn book-elem ; ###
   [o x-step y-step]
-  (let [type (:type o)] 
+  (let []
     [:span 
-     {:on-mouse-down #(log "event")
+     {:on-mouse-down #(log "event1" (:id o))       
       :style 
       (into 
         {:position :absolute
          :display :inline-block 
+         :z-index ({:hidden 0 :back 1 :front 2 :saved 3 :active 4} (:pos o))    
          :left (* x-step (- (:x o) (/ (:w o) 2)))
          :top (* y-step (- (:y o) (/ (:h o) 2))) 
-         :width (* x-step (:w o))
-         :height (* y-step (:h o))
+         :width (- (* x-step (:w o)) 1)
+         :height (- (* y-step (:h o)) 1)
          :outline (str "1px solid " background-color)}
         (case (:pos o)
           :front {:box-shadow "5px 5px 10px black"}
           :back {} 
-          :saved { :outline "1px solid white"
-                  :box-shadow "0px -5px 10px black"}))}
-     [:img {:src (:img o) :width "100%" :height "100%"}]
+          :saved { :outline "1px solid white" }))}
+     [:img {:src (:img o) :width "100%" :height "100%"
+            }]
      (when (= :back (:pos o))
        [:div {:style {:position "absolute"
                       :display "inline-block"
@@ -110,54 +111,44 @@
      view-height 20
      ww js/window.innerWidth
      wh js/window.innerHeight
-     xy-ratio 1.4
-     x-step 
-     (js/Math.min
+     xy-ratio (->
+                (/ (/ wh view-height)
+                 (/ ww view-width))
+                (js/Math.min 1.7)
+                (js/Math.max 1.3)
+                )
+     x-step (js/Math.min
        (/ ww view-width)
        (/ wh view-height xy-ratio)
        )
-     y-step (* 1.4 x-step)
+     y-step (* xy-ratio x-step)
      back-books 
-     (->>
-       (if false
-         [
-          {:x 5 :y 1} {:x 7 :y 1} {:x 13 :y 1} {:x 15 :y 1} 
-          {:x 4 :y 3} {:x 6 :y 3} {:x 8 :y 3} {:x 12 :y 3} {:x 14 :y 3}
-          {:x 1 :y 5} {:x 3 :y 5} {:x 9 :y 5} {:x 11 :y 5} 
-          {:x 4 :y 7} {:x 6 :y 7} {:x 8 :y 7} {:x 12 :y 7} {:x 14 :y 7}
-          {:x 5 :y 9} {:x 7 :y 9} {:x 13 :y 9} {:x 15 :y 9} 
-          {:x 1 :y 11} {:x 3 :y 11} {:x 9 :y 11} {:x 11 :y 11} 
-          {:x 4 :y 13} {:x 6 :y 13} {:x 8 :y 13} {:x 12 :y 13} {:x 14 :y 13}
-          {:x 5 :y 15} {:x 7 :y 15} {:x 13 :y 15} {:x 15 :y 15} 
-          ]
-         (map (fn [x y] {:x x :y y})
-              (cycle (concat (range 1 17 2) (range 0 17 2)))
-              (concat
-                (repeat 8 1) (repeat 9 3)
-                (repeat 8 5) (repeat 9 7)
-                (repeat 8 9) (repeat 9 11)
-                (repeat 8 13) (repeat 9 15))))
-       (map #(into % {:pos :back}))
-       (map #(into %2 {:id %1}) (range))
-       (map #(into % {:w 2 :h 2 :img (nth isbn-urls (:id %))})))
+     (->> (map (fn [x y] {:x x :y y})
+               (cycle (concat (range 1 17 2) (range 0 17 2)))
+               (concat (repeat 8 1) (repeat 9 3)
+                       (repeat 8 5) (repeat 9 7)
+                       (repeat 8 9) (repeat 9 11)
+                       (repeat 8 13) (repeat 9 15)))
+          (map #(into % {:pos :back}))
+          (map #(into %2 {:id %1}) (range))
+          (map #(into % {:w 2 :h 2 :img (nth isbn-urls (:id %))})))
      front-books
-     (->>
-       [{:x 2 :y 2} {:x 10 :y 2}
-        {:x 6 :y 5} {:x 14 :y 5}
-        {:x 2 :y 8} {:x 10 :y 8}
-        {:x 6 :y 11} {:x 14 :y 11}
-        {:x 2 :y 14} {:x 10 :y 14}]
-       (map #(into % {:pos :front}))
-       (map #(into %2 {:id %1}) (drop (count back-books) (range)))
-       (map #(into % {:w 3 :h 3 :img (nth isbn-urls (:id %))})))
+     (->> [{:x 2 :y 2} {:x 10 :y 2}
+           {:x 6 :y 5} {:x 14 :y 5}
+           {:x 2 :y 8} {:x 10 :y 8}
+           {:x 6 :y 11} {:x 14 :y 11}
+           {:x 2 :y 14} {:x 10 :y 14}]
+          (map #(into % {:pos :front}))
+          (map #(into %2 {:id %1}) (drop (count back-books) (range)))
+          (map #(into % {:w 3 :h 3 :img (nth isbn-urls (:id %))})))
      saved-books
-     (->>
-       (map (fn [x] {:x x :y 17}) (range 1 17 2))
-       (map #(into % {:pos :saved}))
-       (map #(into %2 {:id %1}) (drop (count back-books) (range)))
-       (map #(into % {:w 1.7 :h 1.7 :img (nth isbn-urls (:id %))})))
+     (->> (map (fn [x] {:x x :y 17}) (range 1 17 2))
+          (map #(into % {:pos :saved}))
+          (map #(into %2 {:id %1}) (drop (count back-books) (range)))
+          (map #(into % {:w 1.7 :h 1.7 :img (nth isbn-urls (:id %))})))
      ]
-    [:div {:style {:display :inline-block
+    [:div {:on-mouse-move #(log "event2")
+           :style {:display :inline-block
                    :width (* x-step 16)
                    :height (* y-step 20)
                    :margin-left (* x-step -8)
@@ -173,20 +164,11 @@
                    :top (* 2 y-step)
                    :left 0}
                   }]
-           (concat
+           (shuffle (concat
              (map #(book-elem % x-step y-step) back-books)
-             #_[[:div {:style 
-                       {:display :inline-block
-                        :width (* x-step 16)
-                        :height (* y-step 16)
-                        :background "rgba(255,255,255,0.5)"
-                        :position :absolute
-                        :top 0
-                        :left 0
-                        }}]]
              (map #(book-elem % x-step y-step) front-books)
              (map #(book-elem % x-step y-step) saved-books)
-             ))
+             )))
      ])
   )
 ; #notes
