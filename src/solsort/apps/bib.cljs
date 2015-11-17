@@ -60,7 +60,10 @@
 ; ### load books into db 
 (dispatch-sync 
   [:reset-books 
-   (let [back-books 
+   (into {}
+    (log
+     (map (fn [o] [(:id o) o])
+    (let [back-books 
          (->> (map (fn [x y] {:x x :y y})
                    (cycle (concat (range 1 17 2) (range 0 17 2)))
                    (concat (repeat 8 1) (repeat 9 3)
@@ -84,12 +87,28 @@
               (map #(into % {:pos :saved}))
               (map #(into %2 {:id %1}) (drop (count (concat back-books front-books)) (range)))
               (map #(into % {:w 1.7 :h 1.7 :img (nth isbn-urls (:id %))})))]
-     (concat back-books front-books saved-books))])
+     (concat back-books front-books saved-books)))))])
 ; ### pointer events
 (register-sub 
   :pointer-down
   (fn [db] (reaction (get-in @db [:pointer :down]))))
 
+(register-handler
+  :pointer-up
+  (fn [db _]
+       (let [oid (get-in db [:pointer :oid])
+            book (get-in db [:books oid])]
+    (-> db
+      (assoc-in [:pointer :down] false)
+        (assoc-in 
+          [:books oid]
+          (-> book
+            (assoc :pos (:prev-pos book))
+            (assoc :delta-pos [0 0])))  
+        ))
+    
+    )
+  )
 (register-handler
   :pointer-down
   (fn [db [_ oid x y]] 
@@ -98,6 +117,7 @@
       (assoc-in [:pointer :oid] oid)
       (assoc-in [:pointer :pos0] [x y]) )
     ))
+
 (register-handler
   :pointer-move
   (fn [db [_ x y]] 
@@ -106,13 +126,19 @@
             [dx dy] [(- x x0) (- y y0)]
             oid (get-in db [:pointer :oid])
             book (get-in db [:books oid])]
+        (log 'pointer-move dx dy book)
       (-> db
         (assoc-in 
           [:books oid]
-          (assoc book :delta-pos [dx dy]))))
+          (-> book
+            (assoc :pos :active)
+            (assoc :prev-pos (or (:prev-pos book) (:pos book)))
+              (assoc :delta-pos [dx dy])))))
       db)))
 
-(defn pointer-up [] (log 'pointer-up ))
+(defn pointer-up [] 
+  (dispatch-sync [:pointer-up])
+  (log 'pointer-up ))
 (defn pointer-move [x y] 
   (dispatch-sync [:pointer-move x y])
   (log 'pointer-move [x y]))
@@ -121,10 +147,11 @@
   (log 'pointer-down [x y] oid))
 (defn book-elem ; ###
   [o x-step y-step]
-  (log 'book-elem o)
-  (let []
+  ;(log 'book-elem o)
+  (let [[dx dy] (get o :delta-pos [0 0])]
     [:span 
-     {:on-mouse-down (fn [e] 
+     {:on-mouse-down 
+      (fn [e] 
                        (pointer-down (:id o) 
                                      (aget e "screenX")
                                      (aget e "screenY"))
@@ -135,15 +162,18 @@
          :display :inline-block 
          :z-index ({:hidden 0 :back 1 :front 2 :saved 3 :active 4} 
                    (:pos o))
-         :left (* x-step (- (:x o) (/ (:w o) 2)))
-         :top (* y-step (- (:y o) (/ (:h o) 2))) 
+         :left (+ (* x-step (- (:x o) (/ (:w o) 2))) dx)
+         :top (+ (* y-step (- (:y o) (/ (:h o) 2))) dy) 
          :width (- (* x-step (:w o)) 1)
          :height (- (* y-step (:h o)) 1)
          :outline (str "1px solid " background-color)}
         (case (:pos o)
-          :front {:box-shadow "5px 5px 10px black"}
+          :hidden {} 
           :back {} 
-          :saved { :outline "1px solid white" }))}
+          :front {:box-shadow "5px 5px 10px black"}
+          :saved { :outline "1px solid white" }
+          :active{:box-shadow "10px 10px 20px black"}
+          ))}
      [:img {:src (:img o) :width "100%" :height "100%"
             }]
      (when (= :back (:pos o))
@@ -219,7 +249,8 @@
                    :left 0}
                   }]
            ;(log @(subscribe [:books]))
-           (map #(book-elem % x-step y-step) @(subscribe [:books]))
+           (map #(book-elem % x-step y-step) 
+                (map second (seq @(subscribe [:books]))))
            )
      ])
   )
