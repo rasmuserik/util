@@ -87,7 +87,10 @@
               (map #(into % {:pos :saved}))
               (map #(into %2 {:id %1}) (drop (count (concat back-books front-books)) (range)))
               (map #(into % {:w 1.7 :h 1.7 :img (nth isbn-urls (:id %))})))]
-     (concat back-books front-books saved-books)))))])
+              (map 
+     #(into % {:y (+ 2 (:y %))})  
+     (concat back-books front-books saved-books)
+     )))))])
 ; ### status for debug
 (register-sub :status (fn [db] (reaction (get @db :status))))
 (register-handler :status (fn [db [_ status]] (assoc db :status status)))
@@ -145,7 +148,6 @@
             [dx dy] [(- x x0) (- y y0)]
             oid (get-in db [:pointer :oid])
             book (get-in db [:books oid])]
-        (log 'pointer-move dx dy book)
       (-> db
         (assoc-in [:status] [:move x y])
         (assoc-in [:pointer :pos] [x y])
@@ -156,14 +158,11 @@
       db)))
 
 (defn pointer-up [] 
-  (dispatch-sync [:pointer-up])
-  (log 'pointer-up ))
+  (dispatch-sync [:pointer-up]))
 (defn pointer-move [x y] 
-  (dispatch-sync [:pointer-move x y])
-  (log 'pointer-move [x y]))
+  (dispatch-sync [:pointer-move x y]))
 (defn pointer-down [oid x y] 
-  (dispatch-sync [:pointer-down oid x y])
-  (log 'pointer-down [x y] oid))
+  (dispatch-sync [:pointer-down oid x y]))
 (defn book-elem ; ###
   [o x-step y-step]
   ;(log 'book-elem o)
@@ -257,7 +256,9 @@
               (/ wh view-height xy-ratio))
      y-step (* xy-ratio x-step)]
     (dispatch-sync [:step-size [x-step y-step]])
-    [:div {:on-mouse-move (fn [e]  
+
+    (into 
+      [:div {:on-mouse-move (fn [e]  
              (pointer-move (aget e "clientX") 
                            (aget e "clientY"))
                             (.preventDefault e))
@@ -279,18 +280,11 @@
                    :overflow :hidden
                    :color "white"
                    }}
-     [bibapp-header x-step y-step]
-     (into [:div {:id "content"
-                  :style
-                  {:position "absolute"
-                   :top (* 2 y-step)
-                   :left 0}
-                  }]
-           ;(log @(subscribe [:books]))
-           (map #(book-elem % x-step y-step) 
+     [bibapp-header x-step y-step]]
+     (map #(book-elem % x-step y-step) 
                 (map second (seq @(subscribe [:books]))))
-           )
-     ])
+      
+      ))
   )
 ; #notes
 ; NB: http://ogp.me/, http://schema.org, dublin-core, https://en.wikipedia.org/wiki/RDFa
