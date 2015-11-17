@@ -91,7 +91,10 @@
 ; ### status for debug
 (register-sub :status (fn [db] (reaction (get @db :status))))
 (register-handler :status (fn [db [_ status]] (assoc db :status status)))
-               
+; ### :step-size sub/handler
+(register-sub :step-size (fn [db] (reaction (get @db :step-size))))
+(register-handler :step-size (fn [db [_ status]] 
+                               (assoc db :step-size status)))
 ; ### pointer events
 (register-sub 
   :pointer-down
@@ -102,9 +105,17 @@
   :pointer-up
   (fn [db _]
        (let [oid (get-in db [:pointer :oid])
-            book (get-in db [:books oid])]
+            book (get-in db [:books oid])
+            [x y] (get-in db [:pointer :pos])
+            x (- x (.-offsetLeft js/bibappcontainer))
+            y (- y (.-offsetTop js/bibappcontainer))
+            [x-step y-step] (get db :step-size [1 1])
+            x (js/Math.round (/ x x-step))
+            y (js/Math.round (/ y y-step))
+            ]
     (-> db
-      (assoc-in [:status]  [:up])
+      (assoc-in [:status]  [:up x y])
+      (assoc-in [:release] [x y])
       (assoc-in [:pointer :down] false)
         (assoc-in 
           [:books oid]
@@ -137,6 +148,7 @@
         (log 'pointer-move dx dy book)
       (-> db
         (assoc-in [:status] [:move x y])
+        (assoc-in [:pointer :pos] [x y])
         (assoc-in 
           [:books oid]
           (-> book
@@ -160,15 +172,15 @@
      {:on-mouse-down 
       (fn [e] 
                        (pointer-down (:id o) 
-                                     (aget e "screenX")
-                                     (aget e "screenY"))
+                                     (aget e "clientX")
+                                     (aget e "clientY"))
                        (.preventDefault e))
       :on-touch-start
       (fn [e] 
         (let [touch (aget (aget e "touches") 0)]
                        (pointer-down (:id o) 
-                                     (aget touch "screenX")
-                                     (aget touch "screenY")))
+                                     (aget touch "clientX")
+                                     (aget touch "clientY")))
                        (.preventDefault e))
       :style 
       (into 
@@ -244,18 +256,20 @@
               (/ ww view-width)
               (/ wh view-height xy-ratio))
      y-step (* xy-ratio x-step)]
+    (dispatch-sync [:step-size [x-step y-step]])
     [:div {:on-mouse-move (fn [e]  
-             (pointer-move (aget e "screenX") 
-                           (aget e "screenY"))
+             (pointer-move (aget e "clientX") 
+                           (aget e "clientY"))
                             (.preventDefault e))
           :on-touch-move
           (fn [e] 
         (let [touch (aget (aget e "touches") 0)]
-             (pointer-move (aget touch "screenX") 
-                           (aget touch "screenY")))
+             (pointer-move (aget touch "clientX") 
+                           (aget touch "clientY")))
                        (.preventDefault e))
            :on-mouse-up #(pointer-up)
            :on-touch-end #(pointer-up)
+           :id "bibappcontainer"
            :style {:display :inline-block
                    :width (* x-step 16)
                    :height (* y-step 20)
