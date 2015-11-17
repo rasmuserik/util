@@ -88,10 +88,15 @@
               (map #(into %2 {:id %1}) (drop (count (concat back-books front-books)) (range)))
               (map #(into % {:w 1.7 :h 1.7 :img (nth isbn-urls (:id %))})))]
      (concat back-books front-books saved-books)))))])
+; ### status for debug
+(register-sub :status (fn [db] (reaction (get @db :status))))
+(register-handler :status (fn [db [_ status]] (assoc db :status status)))
+               
 ; ### pointer events
 (register-sub 
   :pointer-down
-  (fn [db] (reaction (get-in @db [:pointer :down]))))
+  (fn [db] 
+    (reaction (get-in @db [:pointer :down]))))
 
 (register-handler
   :pointer-up
@@ -99,24 +104,21 @@
        (let [oid (get-in db [:pointer :oid])
             book (get-in db [:books oid])]
     (-> db
+      (assoc-in [:status]  [:up])
       (assoc-in [:pointer :down] false)
         (assoc-in 
           [:books oid]
           (-> book
-            (assoc :pos (:prev-pos book))
-            (assoc :delta-pos [0 0])))  
-        ))
-    
-    )
-  )
+            (assoc :pos (or (:prev-pos book) (:pos book)))
+            (assoc :delta-pos [0 0]))))) ))
 (register-handler
   :pointer-down
   (fn [db [_ oid x y]] 
     (-> db
+      (assoc-in [:status]  [:down x y oid])
       (assoc-in [:pointer :down] true)
       (assoc-in [:pointer :oid] oid)
-      (assoc-in [:pointer :pos0] [x y]) )
-    ))
+      (assoc-in [:pointer :pos0] [x y]) )))
 
 (register-handler
   :pointer-move
@@ -128,6 +130,7 @@
             book (get-in db [:books oid])]
         (log 'pointer-move dx dy book)
       (-> db
+        (assoc-in [:status] [:move x y])
         (assoc-in 
           [:books oid]
           (-> book
@@ -155,6 +158,13 @@
                        (pointer-down (:id o) 
                                      (aget e "screenX")
                                      (aget e "screenY"))
+                       (.preventDefault e))
+      :on-touch-start
+      (fn [e] 
+        (let [touch (aget (aget e "touches") 0)]
+                       (pointer-down (:id o) 
+                                     (aget touch "screenX")
+                                     (aget touch "screenY")))
                        (.preventDefault e))
       :style 
       (into 
@@ -197,7 +207,7 @@
                   :border-radius (* .2 y-step)
                   }}
     "søg"]
-   [:input {:value (str @(subscribe [:width]))
+   [:input {:value (str @(subscribe [:status]))
             :style {:display :inline-block
                     :width (* 11 x-step)
                     :font-size y-step
@@ -227,11 +237,18 @@
               (/ ww view-width)
               (/ wh view-height xy-ratio))
      y-step (* xy-ratio x-step)]
-    [:div {:on-mouse-move (fn [e]  (pointer-move
-                                     (aget e "screenX")
-                                     (aget e "screenY"))
+    [:div {:on-mouse-move (fn [e]  
+             (pointer-move (aget e "screenX") 
+                           (aget e "screenY"))
                             (.preventDefault e))
+          :on-touch-move
+          (fn [e] 
+        (let [touch (aget (aget e "touches") 0)]
+             (pointer-move (aget touch "screenX") 
+                           (aget touch "screenY")))
+                       (.preventDefault e))
            :on-mouse-up #(pointer-up)
+           :on-touch-end #(pointer-up)
            :style {:display :inline-block
                    :width (* x-step 16)
                    :height (* y-step 20)
