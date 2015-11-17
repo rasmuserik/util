@@ -114,11 +114,17 @@
 (register-handler
   :pointer-down
   (fn [db [_ oid x y]] 
+    (let [book  (get-in db  [:books oid])]
     (-> db
       (assoc-in [:status]  [:down x y oid])
       (assoc-in [:pointer :down] true)
       (assoc-in [:pointer :oid] oid)
-      (assoc-in [:pointer :pos0] [x y]) )))
+     (assoc-in 
+          [:books oid]
+          (-> book
+            (assoc :pos :active)
+            (assoc :prev-pos (or (:prev-pos book) (:pos book)))))
+      (assoc-in [:pointer :pos0] [x y]) ))))
 
 (register-handler
   :pointer-move
@@ -134,8 +140,6 @@
         (assoc-in 
           [:books oid]
           (-> book
-            (assoc :pos :active)
-            (assoc :prev-pos (or (:prev-pos book) (:pos book)))
               (assoc :delta-pos [dx dy])))))
       db)))
 
@@ -170,7 +174,7 @@
       (into 
         {:position :absolute
          :display :inline-block 
-         :z-index ({:hidden 0 :back 1 :front 2 :saved 3 :active 4} 
+         :z-index ({:hidden 1 :back 2 :front 3 :saved 4 :active 5} 
                    (:pos o))
          :left (+ (* x-step (- (:x o) (/ (:w o) 2))) dx)
          :top (+ (* y-step (- (:y o) (/ (:h o) 2))) dy) 
@@ -186,13 +190,16 @@
           ))}
      [:img {:src (:img o) :width "100%" :height "100%"
             }]
-     (when (= :back (:pos o))
+     
        [:div {:style {:position "absolute"
                       :display "inline-block"
                       :top 0 :left 0
                       :width "100%" :height "100%"
-                      :background "rgba(255,255,255,0.5)"
-                      }}])]))
+                      :background 
+                      (if (= :back (:pos o))
+                      "rgba(255,255,255,0.5)"
+                      "rgba(0,0,0,0)")
+                      }}]]))
 (defn bibapp-header [x-step y-step] ; ###
   [:div 
    [:div {:style {:display :inline-block

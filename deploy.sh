@@ -11,3 +11,4 @@ npm install && npm start
 git commit -am solsort.js ; git push ; cd ~/solsort
 curl jhjhjhjhjh.solsort.com/site-update
 cd ~/solsort/
+lein clean
