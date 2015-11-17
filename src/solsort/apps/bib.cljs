@@ -1,6 +1,6 @@
 (ns solsort.apps.bib ; #
   (:require-macros
-    [reagent.ratom :as ratom]
+    [reagent.ratom :as ratom :refer [reaction]]
     [cljs.core.async.macros :refer  [go alt!]])
 
   (:require
@@ -47,24 +47,94 @@
        "1566917070" "8791947216" "8778875235" "8723030658" "1592537822"
        "0375857829" "0870707674" "0747810520" "0745660905" "0571220090"])))
 ; ##
-(defn pointer-up [] (log 'pointer-up ))
-(defn pointer-move [x y] (log 'pointer-move [x y]))
-(defn pointer-down [oid x y] (log 'pointer-down [x y] oid))
 (def background-color "black")
+
+; ### :books subscription
+(register-sub 
+  :books 
+  (fn [db] (reaction (get @db :books []))))
+(register-handler
+  :reset-books
+  (fn [db [_ books]] (assoc db :books books)))
+
+; ### load books into db 
+(dispatch-sync 
+  [:reset-books 
+   (let [back-books 
+         (->> (map (fn [x y] {:x x :y y})
+                   (cycle (concat (range 1 17 2) (range 0 17 2)))
+                   (concat (repeat 8 1) (repeat 9 3)
+                           (repeat 8 5) (repeat 9 7)
+                           (repeat 8 9) (repeat 9 11)
+                           (repeat 8 13) (repeat 9 15)))
+              (map #(into % {:pos :back}))
+              (map #(into %2 {:id %1}) (range))
+              (map #(into % {:w 2 :h 2 :img (nth isbn-urls (:id %))})))
+         front-books
+         (->> [{:x 2 :y 2} {:x 10 :y 2}
+               {:x 6 :y 5} {:x 14 :y 5}
+               {:x 2 :y 8} {:x 10 :y 8}
+               {:x 6 :y 11} {:x 14 :y 11}
+               {:x 2 :y 14} {:x 10 :y 14}]
+              (map #(into % {:pos :front}))
+              (map #(into %2 {:id %1}) (drop (count back-books) (range)))
+              (map #(into % {:w 3 :h 3 :img (nth isbn-urls (:id %))})))
+         saved-books
+         (->> (map (fn [x] {:x x :y 17}) (range 1 17 2))
+              (map #(into % {:pos :saved}))
+              (map #(into %2 {:id %1}) (drop (count (concat back-books front-books)) (range)))
+              (map #(into % {:w 1.7 :h 1.7 :img (nth isbn-urls (:id %))})))]
+     (concat back-books front-books saved-books))])
+; ### pointer events
+(register-sub 
+  :pointer-down
+  (fn [db] (reaction (get-in @db [:pointer :down]))))
+
+(register-handler
+  :pointer-down
+  (fn [db [_ oid x y]] 
+    (-> db
+      (assoc-in [:pointer :down] true)
+      (assoc-in [:pointer :oid] oid)
+      (assoc-in [:pointer :pos0] [x y]) )
+    ))
+(register-handler
+  :pointer-move
+  (fn [db [_ x y]] 
+    (if (get-in db [:pointer :down])
+      (let [[x0 y0] (get-in db [:pointer :pos0])
+            [dx dy] [(- x x0) (- y y0)]
+            oid (get-in db [:pointer :oid])
+            book (get-in db [:books oid])]
+      (-> db
+        (assoc-in 
+          [:books oid]
+          (assoc book :delta-pos [dx dy]))))
+      db)))
+
+(defn pointer-up [] (log 'pointer-up ))
+(defn pointer-move [x y] 
+  (dispatch-sync [:pointer-move x y])
+  (log 'pointer-move [x y]))
+(defn pointer-down [oid x y] 
+  (dispatch-sync [:pointer-down oid x y])
+  (log 'pointer-down [x y] oid))
 (defn book-elem ; ###
   [o x-step y-step]
+  (log 'book-elem o)
   (let []
     [:span 
      {:on-mouse-down (fn [e] 
                        (pointer-down (:id o) 
-                                    (aget e "screenX")
-                                    (aget e "screenY"))
-                                    (.preventDefault e))
+                                     (aget e "screenX")
+                                     (aget e "screenY"))
+                       (.preventDefault e))
       :style 
       (into 
         {:position :absolute
          :display :inline-block 
-         :z-index ({:hidden 0 :back 1 :front 2 :saved 3 :active 4} (:pos o))    
+         :z-index ({:hidden 0 :back 1 :front 2 :saved 3 :active 4} 
+                   (:pos o))
          :left (* x-step (- (:x o) (/ (:w o) 2)))
          :top (* y-step (- (:y o) (/ (:h o) 2))) 
          :width (- (* x-step (:w o)) 1)
@@ -97,7 +167,8 @@
                   :border-radius (* .2 y-step)
                   }}
     "søg"]
-   [:input {:style {:display :inline-block
+   [:input {:value (str @(subscribe [:width]))
+            :style {:display :inline-block
                     :width (* 11 x-step)
                     :font-size y-step
                     :padding-top (* .20 y-step)
@@ -116,48 +187,20 @@
   (let 
     [view-width 16
      view-height 20
-     ww js/window.innerWidth
-     wh js/window.innerHeight
-     xy-ratio (->
-                (/ (/ wh view-height)
-                 (/ ww view-width))
-                (js/Math.min 1.7)
-                (js/Math.max 1.3)
-                )
+     ww @(subscribe [:width])
+     wh @(subscribe [:height])
+     xy-ratio (-> (/ (/ wh view-height)
+                     (/ ww view-width))
+                  (js/Math.min 1.6)
+                  (js/Math.max 1.3))
      x-step (js/Math.min
-       (/ ww view-width)
-       (/ wh view-height xy-ratio)
-       )
-     y-step (* xy-ratio x-step)
-     back-books 
-     (->> (map (fn [x y] {:x x :y y})
-               (cycle (concat (range 1 17 2) (range 0 17 2)))
-               (concat (repeat 8 1) (repeat 9 3)
-                       (repeat 8 5) (repeat 9 7)
-                       (repeat 8 9) (repeat 9 11)
-                       (repeat 8 13) (repeat 9 15)))
-          (map #(into % {:pos :back}))
-          (map #(into %2 {:id %1}) (range))
-          (map #(into % {:w 2 :h 2 :img (nth isbn-urls (:id %))})))
-     front-books
-     (->> [{:x 2 :y 2} {:x 10 :y 2}
-           {:x 6 :y 5} {:x 14 :y 5}
-           {:x 2 :y 8} {:x 10 :y 8}
-           {:x 6 :y 11} {:x 14 :y 11}
-           {:x 2 :y 14} {:x 10 :y 14}]
-          (map #(into % {:pos :front}))
-          (map #(into %2 {:id %1}) (drop (count back-books) (range)))
-          (map #(into % {:w 3 :h 3 :img (nth isbn-urls (:id %))})))
-     saved-books
-     (->> (map (fn [x] {:x x :y 17}) (range 1 17 2))
-          (map #(into % {:pos :saved}))
-          (map #(into %2 {:id %1}) (drop (count back-books) (range)))
-          (map #(into % {:w 1.7 :h 1.7 :img (nth isbn-urls (:id %))})))
-     ]
+              (/ ww view-width)
+              (/ wh view-height xy-ratio))
+     y-step (* xy-ratio x-step)]
     [:div {:on-mouse-move (fn [e]  (pointer-move
-                              (aget e "screenX")
-                              (aget e "screenY"))
-                              (.preventDefault e))
+                                     (aget e "screenX")
+                                     (aget e "screenY"))
+                            (.preventDefault e))
            :on-mouse-up #(pointer-up)
            :style {:display :inline-block
                    :width (* x-step 16)
@@ -168,18 +211,16 @@
                    :overflow :hidden
                    :color "white"
                    }}
-     (bibapp-header x-step y-step)
+     [bibapp-header x-step y-step]
      (into [:div {:id "content"
                   :style
                   {:position "absolute"
                    :top (* 2 y-step)
                    :left 0}
                   }]
-           (shuffle (concat
-             (map #(book-elem % x-step y-step) back-books)
-             (map #(book-elem % x-step y-step) front-books)
-             (map #(book-elem % x-step y-step) saved-books)
-             )))
+           ;(log @(subscribe [:books]))
+           (map #(book-elem % x-step y-step) @(subscribe [:books]))
+           )
      ])
   )
 ; #notes
@@ -500,7 +541,7 @@
                    :text-align :center
                    :background "black"}
                   }
-                 (bibapp)]}
+                 [bibapp]]}
       (<default))))
 
 (route "bib" route-fn)
