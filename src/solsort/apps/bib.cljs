@@ -21,6 +21,9 @@
 ; ## configuration
 (def background-color "black")
 (def header-space 2)
+(def view-width 16)
+(def view-height (+ header-space 18.5))
+(def widget-height (- view-height header-space 2.5))
 
 ; ## list of cover image urls for prototyping
 (def isbn-urls
@@ -71,7 +74,11 @@
 (register-handler :step-size (fn [db [_ status]] (assoc db :step-size status)))
 
 ; ## :*-positions :books initialisation
-(defn set-id [type os] (map #(into %1 {:id [type %2]}) os (range)))
+(defn epsilon [] (* 0.00001 (- (js/Math.random) (js/Math.random))))
+
+(defn set-id [type os] 
+  (map #(into %1 {:id [type %2] :x (+ (:x %1) (epsilon)) :y (+ (:y %1) (epsilon))}) 
+       os (range)))
 
 (dispatch-sync 
   [:back-positions
@@ -93,7 +100,7 @@
                     {:x 2 :y 8} {:x 10 :y 8}
                     {:x 6 :y 11} {:x 14 :y 11}
                     {:x 2 :y 14} {:x 10 :y 14}])
-              (map (fn [x] {:x x :y (+ header-space 17) :size 1.7 :pos :saved}) 
+              (map (fn [x] {:x x :y (- view-height 1) :size 1.8 :pos :saved}) 
                    (range 1 17 2))))])
 
 (dispatch-sync
@@ -102,6 +109,17 @@
                  (map #(into %2 {:img (nth isbn-urls %1)}) (range))
                  (map (fn [o] [(:id o) o]))))])
 
+(defn square [a] (* a a))
+(defn front-nearest [x y] ; ##
+  (:id (apply min-key
+    #(+ (square (- x (:x %)))
+        (square (- y (:y %))))
+    @(subscribe [:front-positions]))))
+(defn <search [s] ; ##
+  (go (map #(% "_id")
+        (get-in (<! (<ajax (str "http://solsort.com/es/bib/ting/_search?q=" s)))
+               ["hits" "hits"]))))
+; (go (log (<! (<search "harry potter"))))
 ; ## pointer events
 (register-sub
   :pointer-down
@@ -208,10 +226,17 @@
                     :display "inline-block"
                     :top 0 :left 0
                     :width "100%" :height "100%"
+                    :color "black"
+                    :padding 0
+                    :margin 0
+                    :overflow "hidden"
+                    :font-size 10
                     :background
                     (if (= :back (:pos o))
                       "rgba(255,255,255,0.5)"
-                      "rgba(0,0,0,0)")}}]]))
+                      "rgba(0,0,0,0)")}}
+      (str (front-nearest (:x o) (:y o)))
+      ]]))
 
 (defn bibapp-header [x-step y-step] ; ##
   [:div
@@ -243,9 +268,7 @@
 
 (defn bibapp [] ; ##
   (let
-    [view-width 16
-     view-height 20
-     ww @(subscribe [:width])
+    [ww @(subscribe [:width])
      wh @(subscribe [:height])
      xy-ratio (-> (/ (/ wh view-height) (/ ww view-width))
                   (js/Math.min 1.6)
@@ -271,8 +294,8 @@
              :on-touch-end #(pointer-up)
              :id "bibappcontainer"
              :style {:display :inline-block
-                     :width (* x-step 16)
-                     :height (* y-step 20)
+                     :width (* x-step view-width)
+                     :height (* y-step view-height)
                      :margin-left (* x-step -8)
                      :background background-color
                      :position :absolute
