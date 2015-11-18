@@ -7,8 +7,9 @@
     [cljs.test :refer-macros  [deftest testing is]]
     [goog.net.XhrIo]
     [goog.net.Jsonp]
+    [goog.object]
     [solsort.util :refer [log <ajax host route]]
-    [solsort.misc :refer [<seq<!]]
+    [solsort.misc :refer [<seq<! unique-id]]
     [re-frame.core :as re-frame :refer  [register-sub subscribe register-handler dispatch dispatch-sync]]
     [solsort.db :refer [db-url]]
     [clojure.string :as string]
@@ -115,11 +116,46 @@
     #(+ (square (- x (:x %)))
         (square (- y (:y %))))
     @(subscribe [:front-positions]))))
-(defn <search [s] ; ##
+; ## API-access
+(defn cover-api-url [id]
+  (str "https://dev.vejlebib.dk/ting-visual-relation/get-ting-object/" id) )
+(defn <jsonp [url] ; ### custom jsonp needed due to bug in dev.vejlebib.dk jsonp-implementation
+    (let [url (str url "?callback=")
+          c (chan)
+          id (unique-id)]
+      (aset js/window id
+            (fn [o]
+              (if o 
+                (put! c (js->clj o))
+                (close! c))
+              (goog.object.remove js/window id)))
+      (let [tag (js/document.createElement "script")]
+        (aset tag "src" (str url id))
+        (js/document.head.appendChild tag))
+      c))
+
+(defn <search [s] ; ###
   (go (map #(% "_id")
         (get-in (<! (<ajax (str "http://solsort.com/es/bib/ting/_search?q=" s)))
                ["hits" "hits"]))))
-; (go (log (<! (<search "harry potter"))))
+;(go (log (<! (<search "harry potter"))))
+
+(defn <info [id] ; ###
+  (go (let [o (<! (<ajax (str "http://solsort.com/db/bib/" id)))] 
+    {:title (first (o "title"))
+     :creator (string/join " & "(o "creator"))
+     :related (->> (o "related") (drop 1) (map first))
+     :vector (js/Float32Array.from 
+               (.map (.split (first (o "vector")) ",") #(js/Number %)))})))
+;(go (js/console.log (clj->js (<! (<info "870970-basis:24945669")))))
+
+(defn <cover-url [id] ; ###
+  (go (get (first 
+             (filter #(= "cover" (get % "property"))
+                      (<! (<jsonp (cover-api-url id))))) 
+           "value")))
+;(go (log (<! (<cover-url "870970-basis:24945669"))))
+
 ; ## pointer events
 (register-sub
   :pointer-down
