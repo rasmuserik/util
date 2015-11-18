@@ -17,9 +17,11 @@
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
 
 ; # BibApp
+; TODO: extract common styling to classes
 ; ## configuration
 (def background-color "black")
 (def header-space 2)
+
 ; ## list of cover image urls for prototyping
 (def isbn-urls
   "urls of sample cover pages, used during development"
@@ -49,6 +51,7 @@
        "8799339815" "8777026348" "1416984528" "1598800180" "8770626507"
        "1566917070" "8791947216" "8778875235" "8723030658" "1592537822"
        "0375857829" "0870707674" "0747810520" "0745660905" "0571220090"])))
+
 ; ## subscriptions: :books :back-positions :front-positions :saved-positions :step-size :status
 (register-sub :books (fn [db] (reaction (get @db :books []))))
 (register-handler :reset-books (fn [db [_ books]] (assoc db :books books)))
@@ -66,11 +69,13 @@
 
 (register-sub :step-size (fn [db] (reaction (get @db :step-size))))
 (register-handler :step-size (fn [db [_ status]] (assoc db :step-size status)))
+
 ; ## :*-positions :books initialisation
-(defn set-idx [type os] (map #(into %1 {:idx [type %2]}) os (range)))
+(defn set-id [type os] (map #(into %1 {:id [type %2]}) os (range)))
+
 (dispatch-sync 
   [:back-positions
-   (set-idx :back
+   (set-id :back
             (map (fn [x y] {:x x :y (+ y header-space) :size 2 :pos :back})
                  (cycle (concat (range 1 17 2) (range 0 17 2)))
                  (concat (repeat 8 1) (repeat 9 3)
@@ -80,7 +85,7 @@
 
 (dispatch-sync
   [:front-positions
-   (set-idx :front
+   (set-id :front
             (concat
               (map #(into % {:y (+ header-space (:y %)) :size 3 :pos :front})
                    [{:x 2 :y 2} {:x 10 :y 2}
@@ -94,8 +99,9 @@
 (dispatch-sync
   [:reset-books
    (into {} (->> (concat @(subscribe [:front-positions]) @(subscribe [:back-positions]))
-                 (map #(into %2 {:id %1 :img (nth isbn-urls %1)}) (range))
+                 (map #(into %2 {:img (nth isbn-urls %1)}) (range))
                  (map (fn [o] [(:id o) o]))))])
+
 ; ## pointer events
 (register-sub
   :pointer-down
@@ -112,17 +118,17 @@
           y (- y (.-offsetTop js/bibappcontainer))
           [x-step y-step] (get db :step-size [1 1])
           x (js/Math.round (/ x x-step))
-          y (js/Math.round (/ y y-step))
-          ]
+          y (js/Math.round (/ y y-step))]
       (-> db
-          (assoc-in [:status]  [:up (:idx book)])
+          (assoc-in [:status]  [:up (:id book)])
           (assoc-in [:release] [x y])
           (assoc-in [:pointer :down] false)
           (assoc-in
             [:books oid]
             (-> book
                 (assoc :pos (or (:prev-pos book) (:pos book)))
-                (assoc :delta-pos [0 0]))))) ))
+                (assoc :delta-pos [0 0])))))))
+
 (register-handler
   :pointer-down
   (fn [db [_ oid x y]]
@@ -136,7 +142,7 @@
             (-> book
                 (assoc :pos :active)
                 (assoc :prev-pos (or (:prev-pos book) (:pos book)))))
-          (assoc-in [:pointer :pos0] [x y]) ))))
+          (assoc-in [:pointer :pos0] [x y])))))
 
 (register-handler
   :pointer-move
@@ -155,19 +161,21 @@
                   (assoc :delta-pos [dx dy])))))
       db)))
 
+; TODO: refactor this away:
 (defn pointer-up []
   (dispatch-sync [:pointer-up]))
 (defn pointer-move [x y]
   (dispatch-sync [:pointer-move x y]))
 (defn pointer-down [oid x y]
   (dispatch-sync [:pointer-down oid x y]))
+
 (defn book-elem ; ##
   [o x-step y-step]
-  ;(log 'book-elem o)
   (let [[dx dy] (get o :delta-pos [0 0])]
     [:span
      {:on-mouse-down
       (fn [e]
+        ; TODO: this can be refactored:
         (pointer-down (:id o)
                       (aget e "clientX")
                       (aget e "clientY"))
@@ -183,8 +191,7 @@
       (into
         {:position :absolute
          :display :inline-block
-         :z-index ({:hidden 1 :back 2 :front 3 :saved 4 :active 5}
-                   (:pos o))
+         :z-index ({:hidden 1 :back 2 :front 3 :saved 4 :active 5} (:pos o))
          :left (+ (* x-step (- (:x o) (/ (:size o) 2))) dx)
          :top (+ (* y-step (- (:y o) (/ (:size o) 2))) dy)
          :width (- (* x-step (:size o)) 1)
@@ -195,11 +202,8 @@
           :back {}
           :front {:box-shadow "5px 5px 10px black"}
           :saved { :outline "1px solid white" }
-          :active{:box-shadow "10px 10px 20px black"}
-          ))}
-     [:img {:src (:img o) :width "100%" :height "100%"
-            }]
-
+          :active{:box-shadow "10px 10px 20px black"}))}
+     [:img {:src (:img o) :width "100%" :height "100%"}] 
      [:div {:style {:position "absolute"
                     :display "inline-block"
                     :top 0 :left 0
@@ -207,8 +211,8 @@
                     :background
                     (if (= :back (:pos o))
                       "rgba(255,255,255,0.5)"
-                      "rgba(0,0,0,0)")
-                    }}]]))
+                      "rgba(0,0,0,0)")}}]]))
+
 (defn bibapp-header [x-step y-step] ; ##
   [:div
    [:div {:style {:display :inline-block
@@ -231,22 +235,19 @@
                     :padding-bottom (* .20 y-step)
                     :margin (* .20 y-step)
                     :background :black
-                    ;:border-top (str "1px solid " background-color)
-                    ;:border-left (str "1px solid " background-color)
-                    ;:border-right (str "1px solid " background-color)
                     :border-top "0px"
                     :border-left "0px"
                     :border-right "0px"
                     :border-bottom "1px solid white"
                     }}]])
+
 (defn bibapp [] ; ##
   (let
     [view-width 16
      view-height 20
      ww @(subscribe [:width])
      wh @(subscribe [:height])
-     xy-ratio (-> (/ (/ wh view-height)
-                     (/ ww view-width))
+     xy-ratio (-> (/ (/ wh view-height) (/ ww view-width))
                   (js/Math.min 1.6)
                   (js/Math.max 1.3))
      x-step (js/Math.min
@@ -254,9 +255,9 @@
               (/ wh view-height xy-ratio))
      y-step (* xy-ratio x-step)]
     (dispatch-sync [:step-size [x-step y-step]])
-
     (into
       [:div {:on-mouse-move (fn [e]
+        ; TODO: this can be refactored:
                               (pointer-move (aget e "clientX")
                                             (aget e "clientY"))
                               (.preventDefault e))
@@ -280,10 +281,8 @@
                      }}
        [bibapp-header x-step y-step]]
       (map #(book-elem % x-step y-step)
-           (map second (seq @(subscribe [:books]))))
+           (map second (seq @(subscribe [:books])))))))
 
-      ))
-  )
 ; #notes
 ; NB: http://ogp.me/, http://schema.org, dublin-core, https://en.wikipedia.org/wiki/RDFa
 
