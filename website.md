@@ -199,7 +199,7 @@ References:
 - ..
 
 
-## 2015-11-18 BibApp
+## 2015-11-18 BibApp Progress
 
 The goal of this sprint is to make a running prototype of the UI for the BibApp
 
