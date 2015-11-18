@@ -205,27 +205,29 @@ The goal of this sprint is to make a running prototype of the UI for the BibApp
 
 Results:
 
-- ..
-- ..
+- Wireframing of traditional library app
+- Total pivot on application scope: do not make traditional library app, but focus on new kind of touch-based search/exploration
+- Make/implement draft design of new app
+- Implement basic touch/mouse interaction with app
+- Sensible/extendable underlying data structures, 
+- Determining release-location+api-client (not yet used)
 
-Productivity: Normal
+Productivity: Good, 21
 
-Tools: ...
+Tools: ClojureScript, re-frame/reagent/react
 
 Starting point:
 
-- ..
-- ..
+- Restarting from fresh, due to new ideas
+- Has(but not yet used) underlying data
 
 Takeways:
 
-- ..
-- ..
+- Just steady progress
 
 References:
 
-- ..
-- ..
+- http://solsort.com/app.html#solsort:bib/bibapp (resize browser window, to make it initialise/show)
 
 
 ## 2015-11-15 Company Content
