@@ -215,32 +215,19 @@
                   (assoc :delta-pos [dx dy])))))
       db)))
 
-; TODO: refactor this away:
-(defn pointer-up []
-  (dispatch-sync [:pointer-up]))
-(defn pointer-move [x y]
-  (dispatch-sync [:pointer-move x y]))
-(defn pointer-down [oid x y]
-  (dispatch-sync [:pointer-down oid x y]))
+(defn pointer-move [e pointer]
+  (dispatch-sync [:pointer-move (aget pointer "clientX") (aget pointer "clientY")]) 
+  (.preventDefault e))
+(defn pointer-down [o e pointer]
+  (dispatch-sync [:pointer-down (:id o) (aget pointer "clientX") (aget pointer "clientY")])
+  (.preventDefault e))
 
 (defn book-elem ; ##
   [o x-step y-step]
   (let [[dx dy] (get o :delta-pos [0 0])]
     [:span
-     {:on-mouse-down
-      (fn [e]
-        ; TODO: this can be refactored:
-        (pointer-down (:id o)
-                      (aget e "clientX")
-                      (aget e "clientY"))
-        (.preventDefault e))
-      :on-touch-start
-      (fn [e]
-        (let [touch (aget (aget e "touches") 0)]
-          (pointer-down (:id o)
-                        (aget touch "clientX")
-                        (aget touch "clientY")))
-        (.preventDefault e))
+     {:on-mouse-down #(pointer-down o % %)
+      :on-touch-start #(pointer-down o % (aget (aget % "touches") 0))
       :style
       (into
         {:position :absolute
@@ -315,19 +302,10 @@
      y-step (* xy-ratio x-step)]
     (dispatch-sync [:step-size [x-step y-step]])
     (into
-      [:div {:on-mouse-move (fn [e]
-        ; TODO: this can be refactored:
-                              (pointer-move (aget e "clientX")
-                                            (aget e "clientY"))
-                              (.preventDefault e))
-             :on-touch-move
-             (fn [e]
-               (let [touch (aget (aget e "touches") 0)]
-                 (pointer-move (aget touch "clientX")
-                               (aget touch "clientY")))
-               (.preventDefault e))
-             :on-mouse-up #(pointer-up)
-             :on-touch-end #(pointer-up)
+      [:div {:on-mouse-move #(pointer-move % %)
+             :on-touch-move #(pointer-move % (aget (aget % "touches") 0))
+             :on-mouse-up #(dispatch-sync [:pointer-up])  
+             :on-touch-end #(dispatch-sync [:pointer-up])  
              :id "bibappcontainer"
              :style {:display :inline-block
                      :width (* x-step view-width)
