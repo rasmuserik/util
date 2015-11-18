@@ -46,51 +46,53 @@
        "8799339815" "8777026348" "1416984528" "1598800180" "8770626507"
        "1566917070" "8791947216" "8778875235" "8723030658" "1592537822"
        "0375857829" "0870707674" "0747810520" "0745660905" "0571220090"])))
-; ##
+; ## BibApp
 (def background-color "black")
 
-; ### :books subscription
-(register-sub
-  :books
-  (fn [db] (reaction (get @db :books []))))
-(register-handler
-  :reset-books
-  (fn [db [_ books]] (assoc db :books books)))
+; ### :books :back-positions :front-positions :saved-positions
+; #### db-subscriptions
+(register-sub :books (fn [db] (reaction (get @db :books []))))
+(register-handler :reset-books (fn [db [_ books]] (assoc db :books books)))
 
-; ### load books into db
+(register-sub :back-positions (fn [db] (reaction (get @db :back-positions []))))
+(register-handler :back-positions 
+                  (fn [db [_ back-positions]] (assoc db :back-positions back-positions)))
+
+(register-sub :front-positions (fn [db] (reaction (get @db :front-positions []))))
+(register-handler :front-positions 
+                  (fn [db [_ front-positions]] (assoc db :front-positions front-positions)))
+
+; #### initialisation
+(def header-space 2)
+(defn set-idx [type os] (map #(into %1 {:idx [type %2]}) os (range)))
+(dispatch-sync 
+  [:back-positions
+   (set-idx :back
+     (map (fn [x y] {:x x :y (+ y header-space) :size 2 :pos :back})
+        (cycle (concat (range 1 17 2) (range 0 17 2)))
+        (concat (repeat 8 1) (repeat 9 3)
+                (repeat 8 5) (repeat 9 7)
+                (repeat 8 9) (repeat 9 11)
+                (repeat 8 13) (repeat 9 15))))])
+
+(dispatch-sync
+  [:front-positions
+   (set-idx :front
+   (concat
+    (map #(into % {:y (+ header-space (:y %)) :size 3 :pos :front})
+        [{:x 2 :y 2} {:x 10 :y 2}
+         {:x 6 :y 5} {:x 14 :y 5}
+         {:x 2 :y 8} {:x 10 :y 8}
+         {:x 6 :y 11} {:x 14 :y 11}
+         {:x 2 :y 14} {:x 10 :y 14}])
+   (map (fn [x] {:x x :y (+ header-space 17) :size 1.7 :pos :saved}) 
+        (range 1 17 2))))])
+
 (dispatch-sync
   [:reset-books
-   (into {}
-         (log
-           (map (fn [o] [(:id o) o])
-                (let [back-books
-                      (->> (map (fn [x y] {:x x :y y})
-                                (cycle (concat (range 1 17 2) (range 0 17 2)))
-                                (concat (repeat 8 1) (repeat 9 3)
-                                        (repeat 8 5) (repeat 9 7)
-                                        (repeat 8 9) (repeat 9 11)
-                                        (repeat 8 13) (repeat 9 15)))
-                           (map #(into % {:pos :back}))
-                           (map #(into %2 {:id %1}) (range))
-                           (map #(into % {:w 2 :h 2 :img (nth isbn-urls (:id %))})))
-                      front-books
-                      (->> [{:x 2 :y 2} {:x 10 :y 2}
-                            {:x 6 :y 5} {:x 14 :y 5}
-                            {:x 2 :y 8} {:x 10 :y 8}
-                            {:x 6 :y 11} {:x 14 :y 11}
-                            {:x 2 :y 14} {:x 10 :y 14}]
-                           (map #(into % {:pos :front}))
-                           (map #(into %2 {:id %1}) (drop (count back-books) (range)))
-                           (map #(into % {:w 3 :h 3 :img (nth isbn-urls (:id %))})))
-                      saved-books
-                      (->> (map (fn [x] {:x x :y 17}) (range 1 17 2))
-                           (map #(into % {:pos :saved}))
-                           (map #(into %2 {:id %1}) (drop (count (concat back-books front-books)) (range)))
-                           (map #(into % {:w 1.7 :h 1.7 :img (nth isbn-urls (:id %))})))]
-                  (map
-                    #(into % {:y (+ 2 (:y %))})
-                    (concat back-books front-books saved-books)
-                    )))))])
+   (into {} (->> (concat @(subscribe [:front-positions]) @(subscribe [:back-positions]))
+                 (map #(into %2 {:id %1 :img (nth isbn-urls %1)}) (range))
+                 (map (fn [o] [(:id o) o]))))])
 ; ### status for debug
 (register-sub :status (fn [db] (reaction (get @db :status))))
 (register-handler :status (fn [db [_ status]] (assoc db :status status)))
@@ -187,10 +189,10 @@
          :display :inline-block
          :z-index ({:hidden 1 :back 2 :front 3 :saved 4 :active 5}
                    (:pos o))
-         :left (+ (* x-step (- (:x o) (/ (:w o) 2))) dx)
-         :top (+ (* y-step (- (:y o) (/ (:h o) 2))) dy)
-         :width (- (* x-step (:w o)) 1)
-         :height (- (* y-step (:h o)) 1)
+         :left (+ (* x-step (- (:x o) (/ (:size o) 2))) dx)
+         :top (+ (* y-step (- (:y o) (/ (:size o) 2))) dy)
+         :width (- (* x-step (:size o)) 1)
+         :height (- (* y-step (:size o)) 1)
          :outline (str "1px solid " background-color)}
         (case (:pos o)
           :hidden {}
