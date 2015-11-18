@@ -17,6 +17,9 @@
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
 
 ; # BibApp
+; ## configuration
+(def background-color "black")
+(def header-space 2)
 ; ## list of cover image urls for prototyping
 (def isbn-urls
   "urls of sample cover pages, used during development"
@@ -46,11 +49,7 @@
        "8799339815" "8777026348" "1416984528" "1598800180" "8770626507"
        "1566917070" "8791947216" "8778875235" "8723030658" "1592537822"
        "0375857829" "0870707674" "0747810520" "0745660905" "0571220090"])))
-; ## BibApp
-(def background-color "black")
-
-; ### :books :back-positions :front-positions :saved-positions
-; #### db-subscriptions
+; ## subscriptions: :books :back-positions :front-positions :saved-positions :step-size :status
 (register-sub :books (fn [db] (reaction (get @db :books []))))
 (register-handler :reset-books (fn [db [_ books]] (assoc db :books books)))
 
@@ -62,45 +61,42 @@
 (register-handler :front-positions 
                   (fn [db [_ front-positions]] (assoc db :front-positions front-positions)))
 
-; #### initialisation
-(def header-space 2)
+(register-sub :status (fn [db] (reaction (get @db :status))))
+(register-handler :status (fn [db [_ status]] (assoc db :status status)))
+
+(register-sub :step-size (fn [db] (reaction (get @db :step-size))))
+(register-handler :step-size (fn [db [_ status]] (assoc db :step-size status)))
+; ## :*-positions :books initialisation
 (defn set-idx [type os] (map #(into %1 {:idx [type %2]}) os (range)))
 (dispatch-sync 
   [:back-positions
    (set-idx :back
-     (map (fn [x y] {:x x :y (+ y header-space) :size 2 :pos :back})
-        (cycle (concat (range 1 17 2) (range 0 17 2)))
-        (concat (repeat 8 1) (repeat 9 3)
-                (repeat 8 5) (repeat 9 7)
-                (repeat 8 9) (repeat 9 11)
-                (repeat 8 13) (repeat 9 15))))])
+            (map (fn [x y] {:x x :y (+ y header-space) :size 2 :pos :back})
+                 (cycle (concat (range 1 17 2) (range 0 17 2)))
+                 (concat (repeat 8 1) (repeat 9 3)
+                         (repeat 8 5) (repeat 9 7)
+                         (repeat 8 9) (repeat 9 11)
+                         (repeat 8 13) (repeat 9 15))))])
 
 (dispatch-sync
   [:front-positions
    (set-idx :front
-   (concat
-    (map #(into % {:y (+ header-space (:y %)) :size 3 :pos :front})
-        [{:x 2 :y 2} {:x 10 :y 2}
-         {:x 6 :y 5} {:x 14 :y 5}
-         {:x 2 :y 8} {:x 10 :y 8}
-         {:x 6 :y 11} {:x 14 :y 11}
-         {:x 2 :y 14} {:x 10 :y 14}])
-   (map (fn [x] {:x x :y (+ header-space 17) :size 1.7 :pos :saved}) 
-        (range 1 17 2))))])
+            (concat
+              (map #(into % {:y (+ header-space (:y %)) :size 3 :pos :front})
+                   [{:x 2 :y 2} {:x 10 :y 2}
+                    {:x 6 :y 5} {:x 14 :y 5}
+                    {:x 2 :y 8} {:x 10 :y 8}
+                    {:x 6 :y 11} {:x 14 :y 11}
+                    {:x 2 :y 14} {:x 10 :y 14}])
+              (map (fn [x] {:x x :y (+ header-space 17) :size 1.7 :pos :saved}) 
+                   (range 1 17 2))))])
 
 (dispatch-sync
   [:reset-books
    (into {} (->> (concat @(subscribe [:front-positions]) @(subscribe [:back-positions]))
                  (map #(into %2 {:id %1 :img (nth isbn-urls %1)}) (range))
                  (map (fn [o] [(:id o) o]))))])
-; ### status for debug
-(register-sub :status (fn [db] (reaction (get @db :status))))
-(register-handler :status (fn [db [_ status]] (assoc db :status status)))
-; ### :step-size sub/handler
-(register-sub :step-size (fn [db] (reaction (get @db :step-size))))
-(register-handler :step-size (fn [db [_ status]]
-                               (assoc db :step-size status)))
-; ### pointer events
+; ## pointer events
 (register-sub
   :pointer-down
   (fn [db]
@@ -119,7 +115,7 @@
           y (js/Math.round (/ y y-step))
           ]
       (-> db
-          (assoc-in [:status]  [:up x y])
+          (assoc-in [:status]  [:up (:idx book)])
           (assoc-in [:release] [x y])
           (assoc-in [:pointer :down] false)
           (assoc-in
@@ -165,7 +161,7 @@
   (dispatch-sync [:pointer-move x y]))
 (defn pointer-down [oid x y]
   (dispatch-sync [:pointer-down oid x y]))
-(defn book-elem ; ###
+(defn book-elem ; ##
   [o x-step y-step]
   ;(log 'book-elem o)
   (let [[dx dy] (get o :delta-pos [0 0])]
@@ -213,7 +209,7 @@
                       "rgba(255,255,255,0.5)"
                       "rgba(0,0,0,0)")
                     }}]]))
-(defn bibapp-header [x-step y-step] ; ###
+(defn bibapp-header [x-step y-step] ; ##
   [:div
    [:div {:style {:display :inline-block
                   :width (* 3 x-step)
@@ -243,7 +239,7 @@
                     :border-right "0px"
                     :border-bottom "1px solid white"
                     }}]])
-(defn bibapp [] ; ###
+(defn bibapp [] ; ##
   (let
     [view-width 16
      view-height 20
