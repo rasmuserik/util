@@ -308,22 +308,26 @@
       (log results positions books))))
 (defn bibapp-header [x-step y-step] ; ##
   [:div
-   [:div 
-    {:on-mouse-down search
+   [:input
+    {:type "submit"
+     :on-mouse-down search
      :on-touch-start search
+     :on-submit search
+     :value "søg"
      :style {:display :inline-block
                   :width (* 3 x-step)
                   :text-align "center"
+                  :background "black"
                   :font-size y-step
                   :float "right"
                   :padding-top (* .20 y-step)
                   :padding-bottom (* .20 y-step)
                   :margin (* .20 y-step)
-                  :border "1px solid white"
+                  :border "2px solid white"
                   :border-radius (* .2 y-step)
-                  }}
-    "søg"]
+                  }}]
    [:input {:value (str @(subscribe [:query]))
+            :on-blur search
             :on-change
             (fn  [e] (dispatch-sync  [:query (-> e .-target  (aget "value"))])) 
             :style {:display :inline-block
@@ -336,7 +340,7 @@
                     :border-top "0px"
                     :border-left "0px"
                     :border-right "0px"
-                    :border-bottom "1px solid white"}}]])
+                    :border-bottom "2px solid white"}}]])
 
 
 (defn bibapp [] ; ##
