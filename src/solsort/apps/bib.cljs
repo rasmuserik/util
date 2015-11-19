@@ -9,6 +9,7 @@
     [goog.net.Jsonp]
     [goog.object]
     [solsort.util :refer [log <ajax host route]]
+    [solsort.ui :refer [input]]
     [solsort.misc :refer [<seq<! unique-id]]
     [re-frame.core :as re-frame :refer  [register-sub subscribe register-handler dispatch dispatch-sync]]
     [solsort.db :refer [db-url]]
@@ -56,7 +57,7 @@
        "1566917070" "8791947216" "8778875235" "8723030658" "1592537822"
        "0375857829" "0870707674" "0747810520" "0745660905" "0571220090"])))
 
-; ## subscriptions: :books :back-positions :front-positions :saved-positions :step-size :status
+; ## subscriptions: :books :back-positions :front-positions :saved-positions :step-size :query
 (register-sub :books (fn [db] (reaction (get @db :books []))))
 (register-handler :reset-books (fn [db [_ books]] (assoc db :books books)))
 
@@ -68,8 +69,8 @@
 (register-handler :front-positions 
                   (fn [db [_ front-positions]] (assoc db :front-positions front-positions)))
 
-(register-sub :status (fn [db] (reaction (get @db :status))))
-(register-handler :status (fn [db [_ status]] (assoc db :status status)))
+(register-sub :query (fn [db] (reaction (get @db :query))))
+(register-handler :query (fn [db [_ status]] (assoc db :query status)))
 
 (register-sub :step-size (fn [db] (reaction (get @db :step-size))))
 (register-handler :step-size (fn [db [_ status]] (assoc db :step-size status)))
@@ -174,7 +175,7 @@
           x (js/Math.round (/ x x-step))
           y (js/Math.round (/ y y-step))]
       (-> db
-          (assoc-in [:status]  [:up (:id book)])
+          (assoc-in [:query]  [:up (:id book)])
           (assoc-in [:release] [x y])
           (assoc-in [:pointer :down] false)
           (assoc-in
@@ -188,7 +189,7 @@
   (fn [db [_ oid x y]]
     (let [book  (get-in db  [:books oid])]
       (-> db
-          (assoc-in [:status]  [:down x y oid])
+          (assoc-in [:query]  [:down x y oid])
           (assoc-in [:pointer :down] true)
           (assoc-in [:pointer :oid] oid)
           (assoc-in
@@ -207,7 +208,7 @@
             oid (get-in db [:pointer :oid])
             book (get-in db [:books oid])]
         (-> db
-            (assoc-in [:status] [:move x y])
+            (assoc-in [:query] [:move x y])
             (assoc-in [:pointer :pos] [x y])
             (assoc-in
               [:books oid]
@@ -243,7 +244,8 @@
           :back {}
           :front {:box-shadow "5px 5px 10px black"}
           :saved { :outline "1px solid white" }
-          :active{:box-shadow "10px 10px 20px black"}))}
+          :active{:box-shadow "10px 10px 20px black"}
+          (log 'ERR-MISSING-POS (:pos o) o) ))}
      [:img {:src (:img o) :width "100%" :height "100%"}] 
      [:div {:style {:position "absolute"
                     :display "inline-block"
@@ -261,9 +263,18 @@
       (str (front-nearest (:x o) (:y o)))
       ]]))
 
+(defn search [] ; ## 
+  (log 'search @(subscribe [:query]))
+  (go
+    (let [results (<! (<search @(subscribe [:query])))]
+      (log results)
+      )))
 (defn bibapp-header [x-step y-step] ; ##
   [:div
-   [:div {:style {:display :inline-block
+   [:div 
+    {:on-mouse-down search
+     :on-touch-start search
+     :style {:display :inline-block
                   :width (* 3 x-step)
                   :text-align "center"
                   :font-size y-step
@@ -275,7 +286,9 @@
                   :border-radius (* .2 y-step)
                   }}
     "søg"]
-   [:input {:value (str @(subscribe [:status]))
+   [:input {:value (str @(subscribe [:query]))
+            :on-change
+            (fn  [e] (dispatch-sync  [:query (-> e .-target  (aget "value"))])) 
             :style {:display :inline-block
                     :width (* 11 x-step)
                     :font-size y-step
@@ -286,8 +299,8 @@
                     :border-top "0px"
                     :border-left "0px"
                     :border-right "0px"
-                    :border-bottom "1px solid white"
-                    }}]])
+                    :border-bottom "1px solid white"}}]])
+
 
 (defn bibapp [] ; ##
   (let
