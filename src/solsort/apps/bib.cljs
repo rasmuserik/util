@@ -62,8 +62,8 @@
        "870970-basis:29238596" "870970-basis:28138504" "870970-basis:22958496"])))
 
 ; ## subscriptions: :books :back-positions :front-positions :saved-positions :step-size :query
-(register-sub :books (fn [db] (reaction (get @db :books []))))
-(register-handler :reset-books (fn [db [_ books]] (assoc db :books books)))
+(register-sub :books (fn [db] (reaction (get @db :books {}))))
+(register-handler :books (fn [db [_ books]] (assoc db :books (into (get db :books {}) books))))
 
 (register-sub :back-positions (fn [db] (reaction (get @db :back-positions []))))
 (register-handler :back-positions 
@@ -118,7 +118,7 @@
                    (range 1 17 2))))])
 
 (dispatch-sync
-  [:reset-books
+  [:books
    (into {} (->> (concat @(subscribe [:front-positions]) @(subscribe [:back-positions]))
                  (map #(into %2 {:ting %1}) ting-objs)
                  ;(map #(into %2 {:img (nth isbn-urls %1)}) (range))
@@ -189,7 +189,6 @@
           y (js/Math.round (/ y y-step))]
       (if book
         (-> db
-          (assoc-in [:query]  [:up (:id book)])
           (assoc-in [:release] [x y])
           (assoc-in [:pointer :down] false)
           (assoc-in
@@ -205,7 +204,6 @@
     (let [book  (get-in db  [:books oid])]
       (log book)
       (-> db
-          (assoc-in [:query]  [:down x y oid])
           (assoc-in [:pointer :down] true)
           (assoc-in [:pointer :oid] oid)
           (assoc-in
@@ -224,7 +222,6 @@
             oid (get-in db [:pointer :oid])
             book (get-in db [:books oid])]
         (-> db
-            (assoc-in [:query] [:move x y])
             (assoc-in [:pointer :pos] [x y])
             (assoc-in
               [:books oid]
@@ -296,8 +293,19 @@
 (defn search [] ; ## 
   (log 'search @(subscribe [:query]))
   (go
-    (let [results (<! (<search @(subscribe [:query])))]
-      (log results))))
+    (let [results (<! (<search @(subscribe [:query])))
+          positions 
+          (->> @(subscribe [:front-positions])
+               (filter #(= :front (:pos %)))
+               )
+          books 
+          (map 
+            (fn [id o] [(:id o) (into o {:ting id})]) 
+            results 
+            (shuffle positions))
+          ]
+      (dispatch [:books books])
+      (log results positions books))))
 (defn bibapp-header [x-step y-step] ; ##
   [:div
    [:div 
