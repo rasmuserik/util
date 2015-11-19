@@ -56,6 +56,40 @@
        "8799339815" "8777026348" "1416984528" "1598800180" "8770626507"
        "1566917070" "8791947216" "8778875235" "8723030658" "1592537822"
        "0375857829" "0870707674" "0747810520" "0745660905" "0571220090"])))
+; ## list of ting ids for prototyping
+(def ting-objs 
+  (cycle
+    (shuffle 
+      ["870970-basis:27398898" "870970-basis:26499518" "870970-basis:26940702"
+       "870970-basis:20757299" "870970-basis:22965492" "870970-basis:26240549"
+       "870970-basis:29525102" "870970-basis:27463061" "870970-basis:28308108"
+       "870970-basis:27193323" "870970-basis:51301242" "870970-basis:21840769"
+       "870970-basis:51571959" "870970-basis:50979075" "870970-basis:29524831"
+       "870970-basis:45305112" "870970-basis:29973512" "870970-basis:51468686"
+       "870970-basis:29741034" "870970-basis:50959082" "870970-basis:26628075"
+       "870970-basis:51689445" "870970-basis:24741133" "870970-basis:22893645"
+       "870970-basis:50712389" "870970-basis:25724100" "870970-basis:26247888"
+       "870970-basis:51128664" "870970-basis:29646066" "870970-basis:28185871"
+       "870970-basis:26768322" "870970-basis:29567956" "870970-basis:29567875"
+       "870970-basis:29879893" "870970-basis:29567980" "870970-basis:27931928"
+       "870970-basis:29040427" "870970-basis:29727198" "870970-basis:25546199"
+       "870970-basis:51413849" "870970-basis:29869014" "870970-basis:27891535"
+       "870970-basis:28644248" "870970-basis:28849532" "870970-basis:28437064"
+       "870970-basis:28943636" "870970-basis:21821470" "870970-basis:20133643"
+       "870970-basis:23500663" "870970-basis:24690423" "870970-basis:23527545"
+       "870970-basis:28421753" "870970-basis:50826880" "870970-basis:24587770"
+       "870970-basis:24653161" "870970-basis:27276806" "870970-basis:24945669"
+       "870970-basis:28995938" "870970-basis:28995849" "870970-basis:28995822"
+       "870970-basis:28995946" "870970-basis:28995814" "830060-katalog:24120236"
+       "870970-basis:28530439" "870970-basis:29094055" "870970-basis:22639862"
+       "870970-basis:51567064" "870970-basis:29687579" "870970-basis:29404313"
+       "870970-basis:28002947" "870970-basis:29239134" "870970-basis:29239142"
+       "870970-basis:50989682" "870970-basis:51076699" "870970-basis:50557499"
+       "870970-basis:27928420" "870970-basis:28417888" "870970-basis:28273177"
+       "870970-basis:28427654" "870970-basis:28474709" "870970-basis:22808370"
+       "870970-basis:22435051" "870970-basis:25915461" "870970-basis:23066475"
+       "870970-basis:24372480" "870970-basis:22208470" "870970-basis:28552408"
+       "870970-basis:29238596" "870970-basis:28138504" "870970-basis:22958496"])))
 
 ; ## subscriptions: :books :back-positions :front-positions :saved-positions :step-size :query
 (register-sub :books (fn [db] (reaction (get @db :books []))))
@@ -174,7 +208,8 @@
           [x-step y-step] (get db :step-size [1 1])
           x (js/Math.round (/ x x-step))
           y (js/Math.round (/ y y-step))]
-      (-> db
+      (if book
+        (-> db
           (assoc-in [:query]  [:up (:id book)])
           (assoc-in [:release] [x y])
           (assoc-in [:pointer :down] false)
@@ -182,7 +217,8 @@
             [:books oid]
             (-> book
                 (assoc :pos (or (:prev-pos book) (:pos book)))
-                (assoc :delta-pos [0 0])))))))
+                (assoc :delta-pos [0 0]))))
+        db))))
 
 (register-handler
   :pointer-down
@@ -245,7 +281,7 @@
           :front {:box-shadow "5px 5px 10px black"}
           :saved { :outline "1px solid white" }
           :active{:box-shadow "10px 10px 20px black"}
-          (log 'ERR-MISSING-POS (:pos o) o) ))}
+          (log {}  'ERR-MISSING-POS (:pos o) o) ))}
      [:img {:src (:img o) :width "100%" :height "100%"}] 
      [:div {:style {:position "absolute"
                     :display "inline-block"
@@ -267,8 +303,7 @@
   (log 'search @(subscribe [:query]))
   (go
     (let [results (<! (<search @(subscribe [:query])))]
-      (log results)
-      )))
+      (log results))))
 (defn bibapp-header [x-step y-step] ; ##
   [:div
    [:div 
