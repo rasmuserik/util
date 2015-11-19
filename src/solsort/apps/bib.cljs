@@ -27,8 +27,7 @@
 (def view-height (+ header-space 18.5))
 (def widget-height (- view-height header-space 2.5))
 
-; ## list of cover image urls for prototyping
-(def isbn-urls
+(def isbn-urls ; ##
   "urls of sample cover pages, used during development"
   (cycle
     (map
@@ -56,13 +55,15 @@
        "8799339815" "8777026348" "1416984528" "1598800180" "8770626507"
        "1566917070" "8791947216" "8778875235" "8723030658" "1592537822"
        "0375857829" "0870707674" "0747810520" "0745660905" "0571220090"])))
-; ## list of ting ids for prototyping
-(def ting-objs 
+(def ting-objs  ; ##
   (cycle
-    (shuffle 
-      ["870970-basis:27398898" "870970-basis:26499518" "870970-basis:26940702"
+      (shuffle 
+        ["870970-basis:28995946" "870970-basis:28995814" "830060-katalog:24120236"
+       "870970-basis:28530439" "870970-basis:29094055" "870970-basis:22639862"
+       "870970-basis:51567064" "870970-basis:29687579" "870970-basis:29404313"
        "870970-basis:20757299" "870970-basis:22965492" "870970-basis:26240549"
        "870970-basis:29525102" "870970-basis:27463061" "870970-basis:28308108"
+       "870970-basis:27398898" "870970-basis:26499518" "870970-basis:26940702"
        "870970-basis:27193323" "870970-basis:51301242" "870970-basis:21840769"
        "870970-basis:51571959" "870970-basis:50979075" "870970-basis:29524831"
        "870970-basis:45305112" "870970-basis:29973512" "870970-basis:51468686"
@@ -80,9 +81,6 @@
        "870970-basis:28421753" "870970-basis:50826880" "870970-basis:24587770"
        "870970-basis:24653161" "870970-basis:27276806" "870970-basis:24945669"
        "870970-basis:28995938" "870970-basis:28995849" "870970-basis:28995822"
-       "870970-basis:28995946" "870970-basis:28995814" "830060-katalog:24120236"
-       "870970-basis:28530439" "870970-basis:29094055" "870970-basis:22639862"
-       "870970-basis:51567064" "870970-basis:29687579" "870970-basis:29404313"
        "870970-basis:28002947" "870970-basis:29239134" "870970-basis:29239142"
        "870970-basis:50989682" "870970-basis:51076699" "870970-basis:50557499"
        "870970-basis:27928420" "870970-basis:28417888" "870970-basis:28273177"
@@ -104,10 +102,18 @@
                   (fn [db [_ front-positions]] (assoc db :front-positions front-positions)))
 
 (register-sub :query (fn [db] (reaction (get @db :query))))
-(register-handler :query (fn [db [_ status]] (assoc db :query status)))
+(register-handler :query (fn [db [_ q]] (assoc db :query q)))
 
 (register-sub :step-size (fn [db] (reaction (get @db :step-size))))
-(register-handler :step-size (fn [db [_ status]] (assoc db :step-size status)))
+(register-handler :step-size (fn [db [_ step-size]] (assoc db :step-size step-size)))
+
+(register-sub 
+  :ting 
+  (fn [db [_ id]] 
+    (reaction (get-in @db [:ting id] {}))))
+(register-handler 
+  :ting (fn [db [_ id o]] 
+          (assoc-in db [:ting id] (into (get-in db [:ting id] {}) o))))
 
 ; ## :*-positions :books initialisation
 (defn epsilon [] (* 0.00001 (- (js/Math.random) (js/Math.random))))
@@ -142,7 +148,8 @@
 (dispatch-sync
   [:reset-books
    (into {} (->> (concat @(subscribe [:front-positions]) @(subscribe [:back-positions]))
-                 (map #(into %2 {:img (nth isbn-urls %1)}) (range))
+                 (map #(into %2 {:ting %1}) ting-objs)
+                 ;(map #(into %2 {:img (nth isbn-urls %1)}) (range))
                  (map (fn [o] [(:id o) o]))))])
 
 (defn square [a] (* a a))
@@ -224,6 +231,7 @@
   :pointer-down
   (fn [db [_ oid x y]]
     (let [book  (get-in db  [:books oid])]
+      (log book)
       (-> db
           (assoc-in [:query]  [:down x y oid])
           (assoc-in [:pointer :down] true)
@@ -259,15 +267,23 @@
   (dispatch-sync [:pointer-down (:id o) (aget pointer "clientX") (aget pointer "clientY")])
   (.preventDefault e))
 
+(defn load-ting [id] ; ##
+  (when (not (:title @(subscribe [:ting id])))
+    (dispatch-sync [:ting id {:title "[loading]"}])  
+    (go (dispatch [:ting id (<! (<info id))]))
+    (go (dispatch [:ting id {:cover (<! (<cover-url id))}]))))
 (defn book-elem ; ##
   [o x-step y-step]
-  (let [[dx dy] (get o :delta-pos [0 0])]
+  (let [[dx dy] (get o :delta-pos [0 0])
+        ting @(subscribe [:ting (:ting o)])]
+    (load-ting (:ting o))
     [:span
      {:on-mouse-down #(pointer-down o % %)
       :on-touch-start #(pointer-down o % (aget (aget % "touches") 0))
       :style
       (into
-        {:position :absolute
+        {:background "#333"
+         :position :absolute
          :display :inline-block
          :z-index ({:hidden 1 :back 2 :front 3 :saved 4 :active 5} (:pos o))
          :left (+ (* x-step (- (:x o) (/ (:size o) 2))) dx)
@@ -282,7 +298,7 @@
           :saved { :outline "1px solid white" }
           :active{:box-shadow "10px 10px 20px black"}
           (log {}  'ERR-MISSING-POS (:pos o) o) ))}
-     [:img {:src (:img o) :width "100%" :height "100%"}] 
+     [:img {:src (:cover ting) :width "100%" :height "100%"}] 
      [:div {:style {:position "absolute"
                     :display "inline-block"
                     :top 0 :left 0
@@ -296,7 +312,12 @@
                     (if (= :back (:pos o))
                       "rgba(255,255,255,0.5)"
                       "rgba(0,0,0,0)")}}
-      (str (front-nearest (:x o) (:y o)))
+      (str 
+        ;(:title ting)
+        ;ting (:ting o)
+        ;(front-nearest (:x o) (:y o))
+        
+        )
       ]]))
 
 (defn search [] ; ## 
