@@ -20,6 +20,7 @@
 
 ; # BibApp
 ; TODO: extract common styling to classes
+(defn jslog [o] (js/console.log (clj->js o)) o)
 ; ## configuration
 (def background-color "black")
 (def header-space 2)
@@ -88,7 +89,10 @@
           (assoc-in db [:ting id] (into (get-in db [:ting id] {}) o))))
 
 ; ## :front-positions :back-positions :books initialisation
-(defn epsilon [] (* 0.00001 (- (js/Math.random) (js/Math.random))))
+(defn epsilon [] 
+  (* 0.00001 (- (js/Math.random) (js/Math.random)))
+  0
+  )
 
 (defn set-id [type os] 
   (map #(into %1 {:id [type %2] :x (+ (:x %1) (epsilon)) :y (+ (:y %1) (epsilon))}) 
@@ -125,11 +129,6 @@
                  (map (fn [o] [(:id o) o]))))])
 
 (defn square [a] (* a a))
-(defn front-nearest [x y] ; ##
-  (:id (apply min-key
-    #(+ (square (- x (:x %)))
-        (square (- y (:y %))))
-    @(subscribe [:front-positions]))))
 ; ## API-access
 (defn cover-api-url [id]
   (str "https://dev.vejlebib.dk/ting-visual-relation/get-ting-object/" id) )
@@ -176,6 +175,29 @@
   (fn [db]
     (reaction (get-in @db [:pointer :down]))))
 
+(defn pos-obj [db [type id]]
+  (nth (if (= type :front)
+    (db :front-positions)
+    (db :back-positions)
+    ) id))
+(defn release [db oid book [x y]]
+  (let [nearest (:id (apply min-key
+    #(+ (square (- x (:x %)))
+        (square (- y (:y %))))
+    (:front-positions db)))
+        nearest-book (get-in db [:books nearest])
+        max-dist (* 0.5 (:size nearest-book))
+        overlap (if (and (> max-dist (js/Math.abs (- x (:x nearest-book)))) 
+                  (> max-dist (js/Math.abs (- y (:y nearest-book)))))
+                  nearest
+                  nil)]
+    (if overlap
+      (-> db
+          (assoc-in [:books overlap] (assoc (pos-obj db overlap) :ting (:ting book)))
+          (assoc-in [:books oid] (assoc (pos-obj db oid) :ting (:ting nearest-book))))
+          (assoc-in db [:books oid] (assoc (pos-obj db oid) :ting (:ting book)))
+      )))
+
 (register-handler
   :pointer-up
   (fn [db _]
@@ -185,13 +207,12 @@
           x (- x (.-offsetLeft js/bibappcontainer))
           y (- y (.-offsetTop js/bibappcontainer))
           [x-step y-step] (get db :step-size [1 1])
-          x (js/Math.round (/ x x-step))
-          y (js/Math.round (/ y y-step))]
+          x (/ x x-step)
+          y (/ y y-step)]
       (if book
-        (-> db
-          (assoc-in [:release] [x y])
+        (-> (release db oid book [x y])
           (assoc-in [:pointer :down] false)
-          (assoc-in
+          #_(assoc-in
             [:books oid]
             (-> book
                 (assoc :pos (or (:prev-pos book) (:pos book)))
@@ -202,7 +223,6 @@
   :pointer-down
   (fn [db [_ oid x y]]
     (let [book  (get-in db  [:books oid])]
-      (log book)
       (-> db
           (assoc-in [:pointer :down] true)
           (assoc-in [:pointer :oid] oid)
@@ -285,7 +305,6 @@
         ;(keys o)
         ;(:title ting)
         ;ting (:ting o)
-        ;(front-nearest (:x o) (:y o))
         
         )
       ]]))
