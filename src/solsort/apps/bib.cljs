@@ -30,8 +30,8 @@
 
 (def ting-objs  ; ##
   (cycle
-      (shuffle 
-        ["870970-basis:28995946" "870970-basis:28995814" "830060-katalog:24120236"
+    (shuffle 
+      ["870970-basis:28995946" "870970-basis:28995814" "830060-katalog:24120236"
        "870970-basis:28530439" "870970-basis:29094055" "870970-basis:22639862"
        "870970-basis:51567064" "870970-basis:29687579" "870970-basis:29404313"
        "870970-basis:20757299" "870970-basis:22965492" "870970-basis:26240549"
@@ -61,6 +61,7 @@
        "870970-basis:22435051" "870970-basis:25915461" "870970-basis:23066475"
        "870970-basis:24372480" "870970-basis:22208470" "870970-basis:28552408"
        "870970-basis:29238596" "870970-basis:28138504" "870970-basis:22958496"])))
+
 
 ; ## subscriptions: :books :back-positions :front-positions :saved-positions :step-size :query
 (register-sub :books (fn [db] (reaction (get @db :books {}))))
@@ -98,28 +99,29 @@
   (map #(into %1 {:id [type %2] :x (+ (:x %1) (epsilon)) :y (+ (:y %1) (epsilon))}) 
        os (range)))
 
-(dispatch-sync 
-  [:back-positions
-   (set-id :back
-            (map (fn [x y] {:x x :y (+ y header-space) :size 2 :pos :back})
-                 (cycle (concat (range 1 17 2) (range 0 17 2)))
-                 (concat (repeat 8 1) (repeat 9 3)
-                         (repeat 8 5) (repeat 9 7)
-                         (repeat 8 9) (repeat 9 11)
-                         (repeat 8 13) (repeat 9 15))))])
-
 (dispatch-sync
   [:front-positions
    (set-id :front
-            (concat
-              (map #(into % {:y (+ header-space (:y %)) :size 3 :pos :front})
-                   [{:x 2 :y 2} {:x 10 :y 2}
-                    {:x 6 :y 5} {:x 14 :y 5}
-                    {:x 2 :y 8} {:x 10 :y 8}
-                    {:x 6 :y 11} {:x 14 :y 11}
-                    {:x 2 :y 14} {:x 10 :y 14}])
-              (map (fn [x] {:x x :y (- view-height 1) :size 1.8 :pos :saved}) 
-                   (range 1 17 2))))])
+           (concat
+             (map #(into % {:y (+ header-space (:y %)) :size 3 :pos :front})
+                  [{:x 2 :y 2} {:x 10 :y 2}
+                   {:x 6 :y 5} {:x 14 :y 5}
+                   {:x 2 :y 8} {:x 10 :y 8}
+                   {:x 6 :y 11} {:x 14 :y 11}
+                   {:x 2 :y 14} {:x 10 :y 14}])
+             (map (fn [x] {:x x :y (- view-height 1) :size 1.8 :pos :saved}) 
+                  (range 1 17 2))))])
+
+(dispatch-sync 
+  [:back-positions
+   (set-id :back
+           (map (fn [x y] {:x x :y (+ y header-space) :size 2 :pos :back})
+                (cycle (concat (range 1 17 2) (range 0 17 2)))
+                (concat (repeat 8 1) (repeat 9 3)
+                        (repeat 8 5) (repeat 9 7)
+                        (repeat 8 9) (repeat 9 11)
+                        (repeat 8 13) (repeat 9 15))))])
+
 
 (dispatch-sync
   [:books
@@ -133,70 +135,72 @@
 (defn cover-api-url [id]
   (str "https://dev.vejlebib.dk/ting-visual-relation/get-ting-object/" id) )
 (defn <jsonp [url] ; ### custom jsonp needed due to bug in dev.vejlebib.dk jsonp-implementation
-    (let [url (str url "?callback=")
-          c (chan)
-          id (unique-id)]
-      (aset js/window id
-            (fn [o]
-              (if o 
-                (put! c (js->clj o))
-                (close! c))
-              (goog.object.remove js/window id)))
-      (let [tag (js/document.createElement "script")]
-        (aset tag "src" (str url id))
-        (js/document.head.appendChild tag))
-      c))
+  (let [url (str url "?callback=")
+        c (chan)
+        id (unique-id)]
+    (aset js/window id
+          (fn [o]
+            (if o 
+              (put! c (js->clj o))
+              (close! c))
+            (goog.object.remove js/window id)))
+    (let [tag (js/document.createElement "script")]
+      (aset tag "src" (str url id))
+      (js/document.head.appendChild tag))
+    c))
 
 (defn <search [s] ; ###
   (go (map #(% "_id")
-        (get-in (<! (<ajax (str "http://solsort.com/es/bib/ting/_search?q=" s)))
-               ["hits" "hits"]))))
+           (get-in (<! (<ajax (str "http://solsort.com/es/bib/ting/_search?q=" s)))
+                   ["hits" "hits"]))))
 ;(go (log (<! (<search "harry potter"))))
 
 (defn <info [id] ; ###
   (go (let [o (<! (<ajax (str "http://solsort.com/db/bib/" id)))] 
-    {:title (first (o "title"))
-     :creator (string/join " & "(o "creator"))
-     :related (->> (o "related") (drop 1) (map first))
-     :vector (js/Float32Array.from 
-               (.map (.split (first (o "vector")) ",") #(js/Number %)))})))
+        {:title (first (o "title"))
+         :creator (string/join " & "(o "creator"))
+         :related (->> (o "related") (drop 1) (map first))
+         :vector (js/Float32Array.from 
+                   (.map (.split (first (o "vector")) ",") #(js/Number %)))})))
 ;(go (js/console.log (clj->js (<! (<info "870970-basis:24945669")))))
 
 (defn <cover-url [id] ; ###
   (go (get (first 
              (filter #(= "cover" (get % "property"))
-                      (<! (<jsonp (cover-api-url id))))) 
+                     (<! (<jsonp (cover-api-url id))))) 
            "value")))
 ;(go (log (<! (<cover-url "870970-basis:24945669"))))
 
+(defn find-nearest [db [x y]] ; ##
+  (:id (apply min-key
+              #(+ (square (- x (:x %)))
+                  (square (- y (:y %))))
+              (:front-positions db))))
+
+(defn calc-back [db] ; ##
+  (let [back-pos (:back-positions db)])
+  )
+(register-handler :calck-back (fn [db _] (calc-back db)))
 ; ## pointer events
-(register-sub
-  :pointer-down
-  (fn [db]
-    (reaction (get-in @db [:pointer :down]))))
+(register-sub :pointer-down (fn [db] (reaction (get-in @db [:pointer :down]))))
 
 (defn pos-obj [db [type id]]
-  (nth (if (= type :front)
-    (db :front-positions)
-    (db :back-positions)
-    ) id))
+  (nth (if (= type :front) (db :front-positions) (db :back-positions)) id))
+
+
 (defn release [db oid book [x y]]
-  (let [nearest (:id (apply min-key
-    #(+ (square (- x (:x %)))
-        (square (- y (:y %))))
-    (:front-positions db)))
+  (let [nearest (find-nearest db [x y])
         nearest-book (get-in db [:books nearest])
         max-dist (* 0.5 (:size nearest-book))
         overlap (if (and (> max-dist (js/Math.abs (- x (:x nearest-book)))) 
-                  (> max-dist (js/Math.abs (- y (:y nearest-book)))))
+                         (> max-dist (js/Math.abs (- y (:y nearest-book)))))
                   nearest
                   nil)]
     (if overlap
       (-> db
           (assoc-in [:books overlap] (assoc (pos-obj db overlap) :ting (:ting book)))
           (assoc-in [:books oid] (assoc (pos-obj db oid) :ting (:ting nearest-book))))
-          (assoc-in db [:books oid] (assoc (pos-obj db oid) :ting (:ting book)))
-      )))
+      (assoc-in db [:books oid] (assoc (pos-obj db oid) :ting (:ting book))))))
 
 (register-handler
   :pointer-up
@@ -207,16 +211,9 @@
           x (- x (.-offsetLeft js/bibappcontainer))
           y (- y (.-offsetTop js/bibappcontainer))
           [x-step y-step] (get db :step-size [1 1])
-          x (/ x x-step)
-          y (/ y y-step)]
+          [x y] [(/ x x-step) (/ y y-step)]]
       (if book
-        (-> (release db oid book [x y])
-          (assoc-in [:pointer :down] false)
-          #_(assoc-in
-            [:books oid]
-            (-> book
-                (assoc :pos (or (:prev-pos book) (:pos book)))
-                (assoc :delta-pos [0 0]))))
+        (-> (release db oid book [x y]) (assoc-in [:pointer :down] false))
         db))))
 
 (register-handler
@@ -252,6 +249,7 @@
 (defn pointer-move [e pointer]
   (dispatch-sync [:pointer-move (aget pointer "clientX") (aget pointer "clientY")]) 
   (.preventDefault e))
+
 (defn pointer-down [o e pointer]
   (dispatch-sync [:pointer-down (:id o) (aget pointer "clientX") (aget pointer "clientY")])
   (.preventDefault e))
@@ -305,7 +303,7 @@
         ;(keys o)
         ;(:title ting)
         ;ting (:ting o)
-        
+
         )
       ]]))
 
@@ -334,17 +332,17 @@
      :on-submit search
      :value "søg"
      :style {:display :inline-block
-                  :width (* 3 x-step)
-                  :text-align "center"
-                  :background "black"
-                  :font-size y-step
-                  :float "right"
-                  :padding-top (* .20 y-step)
-                  :padding-bottom (* .20 y-step)
-                  :margin (* .20 y-step)
-                  :border "2px solid white"
-                  :border-radius (* .2 y-step)
-                  }}]
+             :width (* 3 x-step)
+             :text-align "center"
+             :background "black"
+             :font-size y-step
+             :float "right"
+             :padding-top (* .20 y-step)
+             :padding-bottom (* .20 y-step)
+             :margin (* .20 y-step)
+             :border "2px solid white"
+             :border-radius (* .2 y-step)
+             }}]
    [:input {:value (str @(subscribe [:query]))
             :on-key-down #(when (= 13 (.-keyCode %)) (search))
             :on-blur search
