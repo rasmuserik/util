@@ -21,6 +21,8 @@
 ; # BibApp
 ; TODO: extract common styling to classes
 (defn jslog [o] (js/console.log (clj->js o)) o)
+(defn square [a] (* a a))
+(defn epsilon [] (* 0.00001 (- (js/Math.random) (js/Math.random))))
 ; ## configuration
 (def background-color "black")
 (def header-space 2)
@@ -28,7 +30,7 @@
 (def view-height (+ header-space 18.5))
 (def widget-height (- view-height header-space 2.5))
 
-(def ting-objs  ; ##
+(defonce ting-objs  ; ##
   (cycle
     (shuffle 
       ["870970-basis:28995946" "870970-basis:28995814" "830060-katalog:24120236"
@@ -90,11 +92,6 @@
           (assoc-in db [:ting id] (into (get-in db [:ting id] {}) o))))
 
 ; ## :front-positions :back-positions :books initialisation
-(defn epsilon [] 
-  (* 0.00001 (- (js/Math.random) (js/Math.random)))
-  0
-  )
-
 (defn set-id [type os] 
   (map #(into %1 {:id [type %2] :x (+ (:x %1) (epsilon)) :y (+ (:y %1) (epsilon))}) 
        os (range)))
@@ -114,26 +111,65 @@
 
 (dispatch-sync 
   [:back-positions
-   (set-id :back
-           (map (fn [x y] {:x x :y (+ y header-space) :size 2 :pos :back})
-                (cycle (concat (range 1 17 2) (range 0 17 2)))
-                (concat (repeat 8 1) (repeat 9 3)
-                        (repeat 8 5) (repeat 9 7)
-                        (repeat 8 9) (repeat 9 11)
-                        (repeat 8 13) (repeat 9 15))))])
+   (map 
+     (fn [o]
+       ; TODO: have list of nearest 3 front-neighbours, instead of single
+       (assoc o :front-neighbours
+              [(:id
+                 (apply min-key
+                        #(+ (square (- (:x o) (:x %)))
+                            (square (- (:y o) (:y %))))
+                        @(subscribe [:front-positions])))]))
+     (set-id :back
+             (map (fn [x y] {:x x :y (+ y header-space) :size 2 :pos :back})
+                  (cycle (concat (range 1 17 2) (range 0 17 2)))
+                  (concat (repeat 8 1) (repeat 9 3)
+                          (repeat 8 5) (repeat 9 7)
+                          (repeat 8 9) (repeat 9 11)
+                          (repeat 8 13) (repeat 9 15)))))])
 
+(defonce books-initialise
+  (dispatch-sync
+    [:books
+     (into {} (->> 
+                (concat @(subscribe [:front-positions]) #_@(subscribe [:back-positions]))
+                (map #(into %2 {:ting %1}) ting-objs)
+                (map (fn [o] [(:id o) o]))))]))
 
-(dispatch-sync
-  [:books
-   (into {} (->> (concat @(subscribe [:front-positions]) @(subscribe [:back-positions]))
-                 (map #(into %2 {:ting %1}) ting-objs)
-                 ;(map #(into %2 {:img (nth isbn-urls %1)}) (range))
-                 (map (fn [o] [(:id o) o]))))])
+(defn back-books [db] ; ##
+  ;(log (->> (:ting db) (filter )))
+  (jslog db)
+  (assoc 
+    db :books
+    (loop [backs (:back-positions db)
+           taboo 
+           (into #{} (concat 
+                       (->> (:books db) 
+                            (map second) 
+                            (filter #(= :front (first (:id %)))) 
+                            (map :ting))
+                       #_(->> (:ting db)
+                              (filter (fn [[a b]] (not (:missing-cover b))))
+                              (map first))
+                       ))
+           books (:books db)
 
-(defn square [a] (* a a))
+           ]
+      (if (seq backs)
+        (let [o (first backs)
+              parent-id (first (:front-neighbours o))
+              parent (get-in db [:books parent-id])
+              options (filter #(not (taboo %))
+                              (get-in db [:ting (:ting parent) :related]))   
+              ting (first options)
+              books (assoc books (:id o) (into o {:ting ting}))]
+          (recur (rest backs) (conj taboo ting) books))
+        books))))
+(register-handler :back-books back-books)
+(dispatch-sync [:back-books])
 ; ## API-access
 (defn cover-api-url [id]
-  (str "https://dev.vejlebib.dk/ting-visual-relation/get-ting-object/" id) )
+  (str "https://dev.vejlebib.dk/ting-visual-relation/get-ting-object/" id))
 (defn <jsonp [url] ; ### custom jsonp needed due to bug in dev.vejlebib.dk jsonp-implementation
   (let [url (str url "?callback=")
         c (chan)
@@ -160,6 +196,7 @@
         {:title (first (o "title"))
          :creator (string/join " & "(o "creator"))
          :related (->> (o "related") (drop 1) (map first))
+         :missing-cover (first (o "hasTingCover"))
          :vector (js/Float32Array.from 
                    (.map (.split (first (o "vector")) ",") #(js/Number %)))})))
 ;(go (js/console.log (clj->js (<! (<info "870970-basis:24945669")))))
@@ -213,7 +250,10 @@
           [x-step y-step] (get db :step-size [1 1])
           [x y] [(/ x x-step) (/ y y-step)]]
       (if book
-        (-> (release db oid book [x y]) (assoc-in [:pointer :down] false))
+        (-> 
+          (release db oid book [x y]) 
+          (assoc-in [:pointer :down] false)
+          (back-books))
         db))))
 
 (register-handler
@@ -257,7 +297,8 @@
 (defn load-ting [id] ; ##
   (when (not (:title @(subscribe [:ting id])))
     (dispatch-sync [:ting id {:title "[loading]"}])  
-    (go (dispatch [:ting id (<! (<info id))]))
+    (go (dispatch [:ting id (<! (<info id))])
+        (dispatch [:back-books]))
     (go (dispatch [:ting id {:cover (<! (<cover-url id))}]))))
 (defn book-elem ; ##
   [o x-step y-step]
@@ -290,21 +331,26 @@
                     :display "inline-block"
                     :top 0 :left 0
                     :width "100%" :height "100%"
-                    :color "black"
+                    ;:color "black"
+                    :color "#333"
                     :padding 0
                     :margin 0
                     :overflow "hidden"
                     :font-size 10
                     :background
                     (if (= :back (:pos o))
-                      "rgba(255,255,255,0.5)"
+                      "rgba(255,255,255,0.3)"
                       "rgba(0,0,0,0)")}}
-      (str 
-        ;(keys o)
-        ;(:title ting)
-        ;ting (:ting o)
 
+      (if (:cover ting)
+        [:span]
+        [:span (:title ting) [:span {:style {:font-style "italic"}} [:br] "af " (:creator ting)]]
         )
+      ;(:front-neighbours o)
+      ;(keys o)
+      ;(:title ting)
+      ;(:ting o)
+
       ]]))
 
 (defn search [] ; ## 
@@ -322,6 +368,7 @@
             (shuffle positions))
           ]
       (dispatch [:books books])
+      (dispatch [:back-books])
       (log results positions books))))
 (defn bibapp-header [x-step y-step] ; ##
   [:div
