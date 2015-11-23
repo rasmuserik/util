@@ -221,7 +221,9 @@ Detailed goals:
   - √Limit related to objects that have cover-links
 - Splash-screen 
   - √autoshow when loaded
+- only search on søg-knap
 - Generated layout, to experiment with that
+- Generate new elastic-search content
 - Bundle for android market
 - Optional: faster webservice
 - Optional: togglable saved materials
