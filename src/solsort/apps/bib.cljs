@@ -33,36 +33,44 @@
 (defonce ting-objs  ; ##
   (cycle
     (shuffle 
-      ["870970-basis:28995946" "870970-basis:28995814" "830060-katalog:24120236"
-       "870970-basis:28530439" "870970-basis:29094055" "870970-basis:22639862"
-       "870970-basis:51567064" "870970-basis:29687579" "870970-basis:29404313"
-       "870970-basis:20757299" "870970-basis:22965492" "870970-basis:26240549"
-       "870970-basis:29525102" "870970-basis:27463061" "870970-basis:28308108"
-       "870970-basis:27398898" "870970-basis:26499518" "870970-basis:26940702"
-       "870970-basis:27193323" "870970-basis:51301242" "870970-basis:21840769"
-       "870970-basis:51571959" "870970-basis:50979075" "870970-basis:29524831"
-       "870970-basis:45305112" "870970-basis:29973512" "870970-basis:51468686"
-       "870970-basis:29741034" "870970-basis:50959082" "870970-basis:26628075"
-       "870970-basis:51689445" "870970-basis:24741133" "870970-basis:22893645"
-       "870970-basis:50712389" "870970-basis:25724100" "870970-basis:26247888"
-       "870970-basis:51128664" "870970-basis:29646066" "870970-basis:28185871"
-       "870970-basis:26768322" "870970-basis:29567956" "870970-basis:29567875"
-       "870970-basis:29879893" "870970-basis:29567980" "870970-basis:27931928"
-       "870970-basis:29040427" "870970-basis:29727198" "870970-basis:25546199"
-       "870970-basis:51413849" "870970-basis:29869014" "870970-basis:27891535"
-       "870970-basis:28644248" "870970-basis:28849532" "870970-basis:28437064"
-       "870970-basis:28943636" "870970-basis:21821470" "870970-basis:20133643"
-       "870970-basis:23500663" "870970-basis:24690423" "870970-basis:23527545"
-       "870970-basis:28421753" "870970-basis:50826880" "870970-basis:24587770"
-       "870970-basis:24653161" "870970-basis:27276806" "870970-basis:24945669"
-       "870970-basis:28995938" "870970-basis:28995849" "870970-basis:28995822"
-       "870970-basis:28002947" "870970-basis:29239134" "870970-basis:29239142"
-       "870970-basis:50989682" "870970-basis:51076699" "870970-basis:50557499"
-       "870970-basis:27928420" "870970-basis:28417888" "870970-basis:28273177"
-       "870970-basis:28427654" "870970-basis:28474709" "870970-basis:22808370"
-       "870970-basis:22435051" "870970-basis:25915461" "870970-basis:23066475"
-       "870970-basis:24372480" "870970-basis:22208470" "870970-basis:28552408"
-       "870970-basis:29238596" "870970-basis:28138504" "870970-basis:22958496"])))
+      ["870970-basis:29820031" "870970-basis:45231402" "870970-basis:29146004" 
+       "870970-basis:28794630" "870970-basis:28904061" "870970-basis:45574881" 
+       "870970-basis:51604288" "870970-basis:44351641" "870970-basis:45470075" 
+       "870970-basis:27697917" "870970-basis:22324284" "870970-basis:28452551" 
+       "810010-katalog:008471560" "870970-basis:44741830" "870970-basis:28534698" 
+       "870970-basis:45583457" "870970-basis:45386864" "870970-basis:45421716" 
+       "870970-basis:28052472" "870970-basis:45493016" "870970-basis:44291738" 
+       "870970-basis:23060132" "810010-katalog:007071351" "870970-basis:45554813" 
+       "870970-basis:45237648" "870970-basis:28407513" "870970-basis:44950723" 
+       "830380-katalog:93161505" "870970-basis:27006434" "870970-basis:45618765" 
+        "870970-basis:26666074" "870970-basis:44695634" 
+       "870970-basis:27455344" "870970-basis:28815263" "870970-basis:27578381" 
+       "870970-basis:50914968" "870970-basis:45170306" "870970-basis:45233758" 
+       "870970-basis:29706328" "870970-basis:51582772" "870970-basis:45199088" 
+       "870970-basis:27880436" "870970-basis:29991537" "870970-basis:44313235" 
+       "870970-basis:23116642" "870970-basis:45233332" "870970-basis:44547759" 
+       "870970-basis:44910888" "870970-basis:51313380" "870970-basis:44887509" 
+       "870970-basis:26829798" "870970-basis:45005801" "870970-basis:25893018" 
+       "870970-basis:44364999" "870970-basis:44331225" "870970-basis:50625656" 
+       "870970-basis:45534952" "870970-basis:44591413" "870970-basis:44592045" 
+       "870970-basis:28522517" "870970-basis:29100160" "870970-basis:26396417" 
+       "870970-basis:50565858" "870970-basis:28930240" "870970-basis:28108990" 
+       "870970-basis:27195105" "870970-basis:28372531" "870970-basis:44831562" 
+       "870970-basis:50520846" "870970-basis:45182266" "870970-basis:29158746" 
+       "870970-basis:43917579" "870970-basis:45217345" "870970-basis:45263762" 
+       "870970-basis:50909794" "810010-katalog:007144163" "870970-basis:26952425" 
+       "870970-basis:27873251" "870970-basis:45350568" "870970-basis:44850001" 
+       "870970-basis:44520028" "870970-basis:44150484" "870970-basis:27561527" 
+       "870970-basis:27867138" "870970-basis:28539290" "870970-basis:45153843" 
+       "870970-basis:29287341" "870970-basis:26681316" "870970-basis:45281434" 
+       "870970-basis:28715730" "870970-basis:45300439" "870970-basis:45575969" 
+       "870970-basis:28283032" "870970-basis:28379129" 
+       "870970-basis:27374859" "820010-katalog:3096314" "870970-basis:26509904" 
+        "870970-basis:44741385" "870970-basis:28958188" 
+       "870970-basis:44406365" "870970-basis:44623234" "870970-basis:44973650" 
+       "870970-basis:44537052" "870970-basis:51283708" "870970-basis:45377458" 
+       "870970-basis:28009011" "870970-basis:45076261" "870970-basis:27165435" 
+       "870970-basis:24232123" "870970-basis:45164683" "870970-basis:44529807"])))
 
 
 ; ## subscriptions: :books :back-positions :front-positions :saved-positions :step-size :query
@@ -82,6 +90,8 @@
 
 (register-sub :coverable (fn [db] (reaction (get @db :coverable))))
 (register-handler :coverable (fn [db [_ coverable]] (assoc db :coverable coverable)))
+
+(register-sub :show (fn [db] (reaction (get @db :show))))
 
 (register-sub :step-size (fn [db] (reaction (get @db :step-size))))
 (register-handler :step-size (fn [db [_ step-size]] (assoc db :step-size step-size)))
@@ -109,7 +119,7 @@
                    {:x 2 :y 8} {:x 10 :y 8}
                    {:x 6 :y 11} {:x 14 :y 11}
                    {:x 2 :y 14} {:x 10 :y 14}])
-             (map (fn [x] {:x x :y (- view-height 1) :size 1.8 :pos :saved}) 
+             #_(map (fn [x] {:x x :y (- view-height 1) :size 1.8 :pos :saved}) 
                   (range 1 17 2))))])
 
 (dispatch-sync 
@@ -197,6 +207,9 @@
 (defn <info [id] ; ###
   (go (let [o (<! (<ajax (str "http://solsort.com/db/bib/" id)))] 
         {:title (first (o "title"))
+         :description (first (o "description"))
+         :abstract (first (o "abstract"))
+         :date (first (o "date"))
          :creator (string/join " & "(o "creator"))
          :related (->> (o "related") (drop 1) (map first))
          :isbn-cover (->> (o "isbn")
@@ -237,29 +250,42 @@
         nearest-book (get-in db [:books nearest])
         max-dist (* 0.5 (:size nearest-book))
         overlap (if (and (> max-dist (js/Math.abs (- x (:x nearest-book)))) 
-                         (> max-dist (js/Math.abs (- y (:y nearest-book)))))
+                         (> max-dist (js/Math.abs (- y (:y nearest-book))))
+                         (not= oid nearest)
+                         
+                         )
                   nearest
-                  nil)]
-    (if overlap
-      (-> db
+                  nil)
+        db (assoc-in db [:books oid] (assoc (pos-obj db oid) :ting (:ting book)))    
+        ]
+    (cond
+      (:show db) (assoc-in db [:show] false) 
+
+      overlap 
+      (-> db 
           (assoc-in [:books overlap] (assoc (pos-obj db overlap) :ting (:ting book)))
           (assoc-in [:books oid] (assoc (pos-obj db oid) :ting (:ting nearest-book))))
-      (assoc-in db [:books oid] (assoc (pos-obj db oid) :ting (:ting book))))))
+
+      (> 300 (- (js/Date.now) (get-in db [:pointer :start-time]))) 
+      (assoc-in db [:show] (get-in db [:books oid :ting]))
+          
+      :else db)))
 
 (register-handler
   :pointer-up
   (fn [db _]
     (let [oid (get-in db [:pointer :oid])
           book (get-in db [:books oid])
+          start-time (get-in db [:pointer :start-time])
           [x y] (get-in db [:pointer :pos])
           x (- x (.-offsetLeft js/bibappcontainer))
           y (- y (.-offsetTop js/bibappcontainer))
           [x-step y-step] (get db :step-size [1 1])
-          [x y] [(/ x x-step) (/ y y-step)]]
+          [x y] [(/ x x-step) (/ y y-step)]
+          db (assoc-in db [:pointer :down] false)]
       (if book
-        (-> 
-          (release db oid book [x y]) 
-          (assoc-in [:pointer :down] false)
+        (-> db
+          (release oid book [x y]) 
           (back-books))
         db))))
 
@@ -268,6 +294,8 @@
   (fn [db [_ oid x y]]
     (let [book  (get-in db  [:books oid])]
       (-> db
+          (assoc-in [:show] false)
+          (assoc-in [:pointer :start-time] (js/Date.now))
           (assoc-in [:pointer :down] true)
           (assoc-in [:pointer :oid] oid)
           (assoc-in
@@ -275,6 +303,7 @@
             (-> book
                 (assoc :pos :active)
                 (assoc :prev-pos (or (:prev-pos book) (:pos book)))))
+          (assoc-in [:pointer :pos] [x y])
           (assoc-in [:pointer :pos0] [x y])))))
 
 (register-handler
@@ -419,6 +448,85 @@
                     :border-bottom "2px solid white"}}]])
 
 
+(defn bibinfo [] ; ##
+  (if @(subscribe [:show]) 
+    (let [id @(subscribe [:show])    
+          o @(subscribe [:ting id])]
+      [:div {:style 
+         {:position :absolute
+          :top 0
+          :left "3%"
+          :width "94%"
+          :max-height "96%"
+          :overflow :hidden
+          :padding "0px"
+          :box-sizing :border-box
+          :box-shadow "5px 5px 10px black"
+         ; :border "1px solid black"
+          ;:border "2px solid black"
+          :color "black"
+          ;:border-radius "3px"
+          :text-align :left
+          :background "rgba(255,245,230,0.9)"
+          :text-shadow "0px 0px 4px white"
+          :z-index "6" }}
+
+       
+        [:h1 {:style {:clear :none :text-align :center}} (:title o)]
+        [:img {:src (:cover o) 
+               :style
+               {:width "50%"
+                :float :right
+                :margin "2%"
+                }
+               }]
+       [:div {:style 
+              {
+               :text-align :center}}[:i "af " (:creator o)]]
+       [:p {:style 
+            {:text-shadow "none"
+             :font-size "80%"
+             :text-align :left
+             }} 
+        [:a {:href 
+            (str "http://bibliotek.dk/linkme.php?rec.id=" id)
+            :target "_blank"
+            :style
+            {:display :inline-block
+             :box-sizing :border-box
+             :font-weight :bold
+             :text-decoration "none"
+             :color "white"
+             :background "black"
+             :padding "8px 2px 8px 2px"}}
+        " BIBLIOTEK" [:span 
+                      {:style {:color "#088eb4"}}
+                      "DK "]]
+       [:a {:href 
+            (str "https://bibliotek.dk/da/reservation?ids=" id)
+            :target "_blank"
+            :style
+            {:display :inline-block
+             :box-sizing :border-box
+             :text-decoration "none"
+             :background "#088eb4"
+             :font-weight :bold
+             :color "white"
+             :padding "6px 2px 6px 2px" 
+             :border-left "1px solid white"
+             :border-top "2px solid #088eb4"
+             :border-right "2px solid #088eb4"
+             :border-bottom "2px solid #088eb4"}}
+        " Bestil "]]
+       [:p 
+        {:style {:margin "5%" :hyphens "auto" }}
+        (or (:abstract o) (:description o))]
+       [:hr]
+       [:p 
+        {:style {:margin "5%"}}
+        "Udgivet " (:date o)]])
+    [:span]))
+(log (str (take 200  (shuffle @(subscribe [:coverable]))))) ; ##
 (defn bibapp [] ; ##
   (let
     [ww @(subscribe [:width])
@@ -447,7 +555,10 @@
                      :overflow :hidden
                      :color "white"
                      }}
-       [bibapp-header x-step y-step]]
+       [bibapp-header x-step y-step]
+       [bibinfo]
+       
+       ]
       (map #(book-elem % x-step y-step)
            (map second (seq @(subscribe [:books])))))
       (do

@@ -19,6 +19,8 @@
 (defonce initialise
   (do
     (js/React.initializeTouchEvents true)
+    (dispatch [:update-viewport])
+    (js/window.addEventListener "load" #(dispatch [:update-viewport]))  
     (js/window.addEventListener "resize" #(dispatch [:update-viewport]))))
 
 (register-sub :view-dimensions
