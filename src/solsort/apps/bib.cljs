@@ -23,12 +23,12 @@
 (defn jslog [o] (js/console.log (clj->js o)) o)
 (defn square [a] (* a a))
 (defn epsilon [] (* 0.00001 (- (js/Math.random) (js/Math.random))))
-; ## configuration
 (def background-color "black")
 (def header-space 2)
 (def view-width 16)
 (def view-height (+ header-space 18.5))
 (def widget-height (- view-height header-space 2.5))
+(def isbn-covers true)
 
 (defonce ting-objs  ; ##
   (cycle
@@ -79,6 +79,9 @@
 
 (register-sub :query (fn [db] (reaction (get @db :query))))
 (register-handler :query (fn [db [_ q]] (assoc db :query q)))
+
+(register-sub :coverable (fn [db] (reaction (get @db :coverable))))
+(register-handler :coverable (fn [db [_ coverable]] (assoc db :coverable coverable)))
 
 (register-sub :step-size (fn [db] (reaction (get @db :step-size))))
 (register-handler :step-size (fn [db [_ step-size]] (assoc db :step-size step-size)))
@@ -138,7 +141,6 @@
 
 (defn back-books [db] ; ##
   ;(log (->> (:ting db) (filter )))
-  (jslog db)
   (assoc 
     db :books
     (loop [backs (:back-positions db)
@@ -149,7 +151,7 @@
                             (filter #(= :front (first (:id %)))) 
                             (map :ting))
                        #_(->> (:ting db)
-                              (filter (fn [[a b]] (not (:missing-cover b))))
+                              (filter (fn [[a b]] (not (:has-cover b))))
                               (map first))
                        ))
            books (:books db)
@@ -161,6 +163,7 @@
               parent (get-in db [:books parent-id])
               options (filter #(not (taboo %))
                               (get-in db [:ting (:ting parent) :related]))   
+              options (filter #(contains? (:coverable db) %) options)
               ting (first options)
               books (assoc books (:id o) (into o {:ting ting}))]
           (recur (rest backs) (conj taboo ting) books))
@@ -196,7 +199,11 @@
         {:title (first (o "title"))
          :creator (string/join " & "(o "creator"))
          :related (->> (o "related") (drop 1) (map first))
-         :missing-cover (first (o "hasTingCover"))
+         :isbn-cover (->> (o "isbn")
+                          (filter #(= "978" (.slice % 0 3)))
+                          (map #(str "http://bogpriser.dk/Covers/"  (.slice % 10) "/" % ".jpg"))
+                          (first))
+         :has-cover (first (o "hasTingCover"))
          :vector (js/Float32Array.from 
                    (.map (.split (first (o "vector")) ",") #(js/Number %)))})))
 ;(go (js/console.log (clj->js (<! (<info "870970-basis:24945669")))))
@@ -297,9 +304,13 @@
 (defn load-ting [id] ; ##
   (when (not (:title @(subscribe [:ting id])))
     (dispatch-sync [:ting id {:title "[loading]"}])  
-    (go (dispatch [:ting id (<! (<info id))])
-        (dispatch [:back-books]))
-    (go (dispatch [:ting id {:cover (<! (<cover-url id))}]))))
+    (go (let [o (<! (<info id))]
+      (dispatch [:ting id o])
+      (dispatch [:ting id {:cover (if (contains? @(subscribe [:coverable]) id)  
+                                    (:isbn-cover o)
+                                    (<! (<cover-url id)))} ])
+        (dispatch [:back-books])))
+    ))
 (defn book-elem ; ##
   [o x-step y-step]
   (let [[dx dy] (get o :delta-pos [0 0])
@@ -326,7 +337,7 @@
           :saved { :outline "1px solid white" }
           :active{:box-shadow "10px 10px 20px black"}
           (log {}  'ERR-MISSING-POS (:pos o) o) ))}
-     [:img {:src (:cover ting) :width "100%" :height "100%"}] 
+     [:img {:src (or (:isbn-cover ting) (:cover ting)) :width "100%" :height "100%"}] 
      [:div {:style {:position "absolute"
                     :display "inline-block"
                     :top 0 :left 0
@@ -420,7 +431,8 @@
               (/ wh view-height xy-ratio))
      y-step (* xy-ratio x-step)]
     (dispatch-sync [:step-size [x-step y-step]])
-    (into
+    (if @(subscribe [:coverable]) 
+                    (into
       [:div {:on-mouse-move #(pointer-move % %)
              :on-touch-move #(pointer-move % (aget (aget % "touches") 0))
              :on-mouse-up #(dispatch-sync [:pointer-up])  
@@ -437,7 +449,13 @@
                      }}
        [bibapp-header x-step y-step]]
       (map #(book-elem % x-step y-step)
-           (map second (seq @(subscribe [:books])))))))
+           (map second (seq @(subscribe [:books])))))
+      (do
+        (go
+          (dispatch [:coverable (into #{} (get (<! (<ajax "http://solsort.com/db/bib/coverable")) "coverable"))])
+          )
+        [:div {:style {:color :green}}"loading..."]
+        ))))
 
 ; #notes
 ; NB: http://ogp.me/, http://schema.org, dublin-core, https://en.wikipedia.org/wiki/RDFa
