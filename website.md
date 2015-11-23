@@ -209,17 +209,18 @@ References:
 - ..
 
 
-## 2015-11-25
+## 2015-11-25 BibApp
 
 The goal of this 3-day sprint is to have a functional prototype of the BibApp, and the first draft of a project report.
 
 Detailed goals:
 
 - Report: Summary/toc, Purpose/value, UX, Data, Tech+Perspective
-- Book-info-pop-up
-- Use cover-links instead of ting-webservice for performance reasons
-  - Limit related to objects that have cover-links
-- Splash-screen + autoshow when loaded
+- √Book-info-pop-up
+- √Use cover-links instead of ting-webservice for performance reasons
+  - √Limit related to objects that have cover-links
+- Splash-screen 
+  - √autoshow when loaded
 - Generated layout, to experiment with that
 - Bundle for android market
 - Optional: faster webservice

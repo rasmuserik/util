@@ -145,7 +145,7 @@
   (dispatch-sync
     [:books
      (into {} (->> 
-                (concat @(subscribe [:front-positions]) #_@(subscribe [:back-positions]))
+                (concat @(subscribe [:front-positions]))
                 (map #(into %2 {:ting %1}) ting-objs)
                 (map (fn [o] [(:id o) o]))))]))
 
@@ -248,6 +248,7 @@
 (defn release [db oid book [x y]]
   (let [nearest (find-nearest db [x y])
         nearest-book (get-in db [:books nearest])
+        [dx dy] (get book :delta-pos)
         max-dist (* 0.5 (:size nearest-book))
         overlap (if (and (> max-dist (js/Math.abs (- x (:x nearest-book)))) 
                          (> max-dist (js/Math.abs (- y (:y nearest-book))))
@@ -256,17 +257,15 @@
                          )
                   nearest
                   nil)
-        db (assoc-in db [:books oid] (assoc (pos-obj db oid) :ting (:ting book)))    
-        ]
+        db (assoc-in db [:books oid] (assoc (pos-obj db oid) :ting (:ting book)))]
     (cond
-      (:show db) (assoc-in db [:show] false) 
-
       overlap 
       (-> db 
           (assoc-in [:books overlap] (assoc (pos-obj db overlap) :ting (:ting book)))
           (assoc-in [:books oid] (assoc (pos-obj db oid) :ting (:ting nearest-book))))
 
-      (> 300 (- (js/Date.now) (get-in db [:pointer :start-time]))) 
+      (and (> 100 (+ (* dx dx) (* dy dy)))
+          (> 1500 (- (js/Date.now) (get-in db [:pointer :start-time]))))
       (assoc-in db [:show] (get-in db [:books oid :ting]))
           
       :else db)))
@@ -274,7 +273,9 @@
 (register-handler
   :pointer-up
   (fn [db _]
-    (let [oid (get-in db [:pointer :oid])
+    (if-not (get-in db [:pointer :down])
+      db
+     (let [oid (get-in db [:pointer :oid])
           book (get-in db [:books oid])
           start-time (get-in db [:pointer :start-time])
           [x y] (get-in db [:pointer :pos])
@@ -287,14 +288,15 @@
         (-> db
           (release oid book [x y]) 
           (back-books))
-        db))))
+        db)))))
 
 (register-handler
   :pointer-down
   (fn [db [_ oid x y]]
-    (let [book  (get-in db  [:books oid])]
+    (if (get db :show)
+      (assoc db :show nil)
+     (let [book  (get-in db  [:books oid])]
       (-> db
-          (assoc-in [:show] false)
           (assoc-in [:pointer :start-time] (js/Date.now))
           (assoc-in [:pointer :down] true)
           (assoc-in [:pointer :oid] oid)
@@ -304,7 +306,7 @@
                 (assoc :pos :active)
                 (assoc :prev-pos (or (:prev-pos book) (:pos book)))))
           (assoc-in [:pointer :pos] [x y])
-          (assoc-in [:pointer :pos0] [x y])))))
+          (assoc-in [:pointer :pos0] [x y]))))))
 
 (register-handler
   :pointer-move
@@ -452,7 +454,10 @@
   (if @(subscribe [:show]) 
     (let [id @(subscribe [:show])    
           o @(subscribe [:ting id])]
-      [:div {:style 
+      [:div {
+      :on-mouse-down #(pointer-down o % %)
+      :on-touch-start #(pointer-down o % (aget (aget % "touches") 0))
+             :style 
          {:position :absolute
           :top 0
           :left "3%"
@@ -491,6 +496,8 @@
         [:a {:href 
             (str "http://bibliotek.dk/linkme.php?rec.id=" id)
             :target "_blank"
+            :on-mouse-down #(js/open (str "http://bibliotek.dk/linkme.php?rec.id=" id))
+            :on-touch-start #(js/open (str "http://bibliotek.dk/linkme.php?rec.id=" id))
             :style
             {:display :inline-block
              :box-sizing :border-box
@@ -504,6 +511,8 @@
                       "DK "]]
        [:a {:href 
             (str "https://bibliotek.dk/da/reservation?ids=" id)
+            :on-mouse-down #(js/open (str "https://bibliotek.dk/da/reservation?ids=" id))
+            :on-touch-start #(js/open (str "https://bibliotek.dk/da/reservation?ids=" id))
             :target "_blank"
             :style
             {:display :inline-block
