@@ -108,8 +108,48 @@ hej@solsort.com
 
 ## Posts
 
+# Misc
+## BibApp Konkurrencebidrag
+### Notes
+
+Vægt:
+- er realiserbar
+- skaber værdi for biblioteker og/eller (eksisterende /potentielle) biblioteksbrugere
+- er brugervenlig og visuelt appellerende
+- bruger data fra kultur- og uddannelsesområdet
+- er på dansk
+- kan bruges af DBC efter endt konkurrence.
+
+
+### Side 1 Indhold
+
+#### Beskrivelse
+
+#### Indhold
+
+På de næste side går mere i detaljer med følgende indhold:
+
+*Formålet* 
+
+*Brugsoplevelsen* er designet til at være så visuelt appelerende som muligt, og samtidig 
+
+*Datasættet* som er grundlaget for applikationen er ADHL-biblioteks-brugeradfærdsdata. 
+Dette er videre raffineret til en anbefalingsservice, i første omgang via heuristisk model, og derefter via eigenvektoranalyse.  Udover ADHL-datasættet til at finde relaterede materialer, bruger applikationen også bibliografiske data, samt forsider.
+
+*Teknisk* set er løsningen realiserbar og skalérbar. Prototypen demonstrerer grundidéen. 
+
+*Perspektivet* er at når den er udviklet færdig, kan den bruges af DBC og bibliotekerne på mange måder: 1) biblioteksbrugere downloaded den som app eller i browser, 2) bibliotekerne kan anvende den til at gøre deres touch/info-skærme mere interaktive og 3) Bibliotek.dk og DDB-CMS kan indlejre den som en komponent.
+
+
+#### Konkulsion
+
+### Side 2 Formål og værdi
+### Side 3 Brugsoplevelse / UX
+### Side 4 Data
+### Side 5 Teknik og perspektiv
+
 # 3-day sprints
-## 2015-12-01
+## 2015-12-02
 
 ..
 
@@ -171,7 +211,22 @@ References:
 
 ## 2015-11-25
 
-..
+The goal of this 3-day sprint is to have a functional prototype of the BibApp, and the first draft of a project report.
+
+Detailed goals:
+
+- Report: Summary/toc, Purpose/value, UX, Data, Tech+Perspective
+- Book-info-pop-up
+- Use cover-links instead of ting-webservice for performance reasons
+  - Limit related to objects that have cover-links
+- Splash-screen + autoshow when loaded
+- Generated layout, to experiment with that
+- Bundle for android market
+- Optional: faster webservice
+- Optional: togglable saved materials
+- Optional: randomness slider
+- Optional: refactor style
+- Optional: move overwritten material into saved-materials
 
 
 Results:
@@ -185,7 +240,7 @@ Tools: ...
 
 Starting point:
 
-- ..
+- Initial/simple prorotype already created
 - ..
 
 Takeways:
@@ -447,3 +502,4 @@ References:
 
 - Blogpost with examples: http://solsort.com/2015/10/02/3-day-sprint-hack4dk/
 - Code: http://github.com/rasmuserik/solsort-util
+
