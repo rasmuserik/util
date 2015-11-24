@@ -199,7 +199,7 @@
 
 (defn <search [s] ; ###
   (go (map #(% "_id")
-           (get-in (<! (<ajax (str "http://solsort.com/es/bib/ting/_search?q=" s)))
+           (get-in (<! (<ajax (str "http://solsort.com/es/bibapp/ting/_search?q=" s)))
                    ["hits" "hits"]))))
 ;(go (log (<! (<search "harry potter"))))
 
@@ -211,6 +211,7 @@
          :date (first (o "date"))
          :creator (string/join " & "(o "creator"))
          :related (->> (o "related") (drop 1) (map first))
+         :isbn (->> (o "isbn") (filter #(= "978" (.slice % 0 3))) (first))
          :isbn-cover (->> (o "isbn")
                           (filter #(= "978" (.slice % 0 3)))
                           (map #(str "http://bogpriser.dk/Covers/"  (.slice % 10) "/" % ".jpg"))
@@ -455,7 +456,7 @@
               :padding "0px"
               :box-sizing :border-box
               :box-shadow "5px 5px 10px black"
-              ; :border "1px solid black"
+              :outline "1px solid black"
               ;:border "2px solid black"
               :color "black"
               ;:border-radius "3px"
@@ -470,7 +471,7 @@
               :style
               {:width "50%"
                :float :right
-               :margin "2%"
+               :margin-bottom "2%"
                }
               }]
        [:div {:style 
@@ -479,7 +480,7 @@
        [:p {:style 
             {:text-shadow "none"
              :font-size "80%"
-             :text-align :left
+             :text-align :center
              }} 
         [:a {:href 
              (str "http://bibliotek.dk/linkme.php?rec.id=" id)
@@ -493,7 +494,7 @@
               :text-decoration "none"
               :color "white"
               :background "black"
-              :padding "8px 2px 8px 2px"}}
+              :padding "8px 2px 8px 4px"}}
          " BIBLIOTEK" [:span 
                        {:style {:color "#088eb4"}}
                        "DK "]]
@@ -514,7 +515,30 @@
               :border-top "2px solid #088eb4"
               :border-right "2px solid #088eb4"
               :border-bottom "2px solid #088eb4"}}
-         " Bestil "]]
+         " Bestil "]
+        [:p {:style 
+            {:text-shadow "none"
+             :font-size "60%"
+             :text-align :center
+             }} 
+         [:a {:href 
+             (str "http://www.bogpriser.dk/Search/Result?isbn=" (:isbn o)) 
+             :target "_blank"
+             :on-mouse-down #(js/open (str "http://www.bogpriser.dk/Search/Result?isbn=" (:isbn o)))
+             :on-touch-start #(js/open (str "http://www.bogpriser.dk/Search/Result?isbn=" (:isbn o)))
+             :style
+             {:display :inline-block
+              :box-sizing :border-box
+              :font-weight :bold
+              :text-decoration "none"
+              :color "white"
+              :background "#605746"
+              :padding "7px 7px 7px 7px"}}
+         " BOGPRISER" [:span 
+                       {:style {:color "#ffdc12"}}
+                       ".DK "]]]
+        
+        ]
        [:p 
         {:style {:margin "5%" :hyphens "auto" }}
         (or (:abstract o) (:description o))]
@@ -542,7 +566,10 @@
      x-step (js/Math.min
               (/ ww view-width)
               (/ wh view-height xy-ratio))
-     y-step (* xy-ratio x-step)]
+     y-step (* xy-ratio x-step)
+   ; x-step 20
+   ; y-step 30
+    ]
     (dispatch-sync [:step-size [x-step y-step]])
     (if @(subscribe [:coverable]) 
       (into
