@@ -43,7 +43,7 @@
        "870970-basis:23060132" "810010-katalog:007071351" "870970-basis:45554813" 
        "870970-basis:45237648" "870970-basis:28407513" "870970-basis:44950723" 
        "830380-katalog:93161505" "870970-basis:27006434" "870970-basis:45618765" 
-        "870970-basis:26666074" "870970-basis:44695634" 
+       "870970-basis:26666074" "870970-basis:44695634" 
        "870970-basis:27455344" "870970-basis:28815263" "870970-basis:27578381" 
        "870970-basis:50914968" "870970-basis:45170306" "870970-basis:45233758" 
        "870970-basis:29706328" "870970-basis:51582772" "870970-basis:45199088" 
@@ -66,7 +66,7 @@
        "870970-basis:28715730" "870970-basis:45300439" "870970-basis:45575969" 
        "870970-basis:28283032" "870970-basis:28379129" 
        "870970-basis:27374859" "820010-katalog:3096314" "870970-basis:26509904" 
-        "870970-basis:44741385" "870970-basis:28958188" 
+       "870970-basis:44741385" "870970-basis:28958188" 
        "870970-basis:44406365" "870970-basis:44623234" "870970-basis:44973650" 
        "870970-basis:44537052" "870970-basis:51283708" "870970-basis:45377458" 
        "870970-basis:28009011" "870970-basis:45076261" "870970-basis:27165435" 
@@ -120,7 +120,7 @@
                    {:x 6 :y 11} {:x 14 :y 11}
                    {:x 2 :y 14} {:x 10 :y 14}])
              #_(map (fn [x] {:x x :y (- view-height 1) :size 1.8 :pos :saved}) 
-                  (range 1 17 2))))])
+                    (range 1 17 2))))])
 
 (dispatch-sync 
   [:back-positions
@@ -252,7 +252,7 @@
         overlap (if (and (> max-dist (js/Math.abs (- x (:x nearest-book)))) 
                          (> max-dist (js/Math.abs (- y (:y nearest-book))))
                          (not= oid nearest)
-                         
+
                          )
                   nearest
                   nil)
@@ -264,9 +264,9 @@
           (assoc-in [:books oid] (assoc (pos-obj db oid) :ting (:ting nearest-book))))
 
       (and (> 100 (+ (* dx dx) (* dy dy)))
-          (> 1500 (- (js/Date.now) (get-in db [:pointer :start-time]))))
+           (> 1500 (- (js/Date.now) (get-in db [:pointer :start-time]))))
       (assoc-in db [:show] (get-in db [:books oid :ting]))
-          
+
       :else db)))
 
 (register-handler
@@ -274,38 +274,38 @@
   (fn [db _]
     (if-not (get-in db [:pointer :down])
       db
-     (let [oid (get-in db [:pointer :oid])
-          book (get-in db [:books oid])
-          start-time (get-in db [:pointer :start-time])
-          [x y] (get-in db [:pointer :pos])
-          x (- x (.-offsetLeft js/bibappcontainer))
-          y (- y (.-offsetTop js/bibappcontainer))
-          [x-step y-step] (get db :step-size [1 1])
-          [x y] [(/ x x-step) (/ y y-step)]
-          db (assoc-in db [:pointer :down] false)]
-      (if book
-        (-> db
-          (release oid book [x y]) 
-          (back-books))
-        db)))))
+      (let [oid (get-in db [:pointer :oid])
+            book (get-in db [:books oid])
+            start-time (get-in db [:pointer :start-time])
+            [x y] (get-in db [:pointer :pos])
+            x (- x (.-offsetLeft js/bibappcontainer))
+            y (- y (.-offsetTop js/bibappcontainer))
+            [x-step y-step] (get db :step-size [1 1])
+            [x y] [(/ x x-step) (/ y y-step)]
+            db (assoc-in db [:pointer :down] false)]
+        (if book
+          (-> db
+              (release oid book [x y]) 
+              (back-books))
+          db)))))
 
 (register-handler
   :pointer-down
   (fn [db [_ oid x y]]
     (if (get db :show)
       (assoc db :show nil)
-     (let [book  (get-in db  [:books oid])]
-      (-> db
-          (assoc-in [:pointer :start-time] (js/Date.now))
-          (assoc-in [:pointer :down] true)
-          (assoc-in [:pointer :oid] oid)
-          (assoc-in
-            [:books oid]
-            (-> book
-                (assoc :pos :active)
-                (assoc :prev-pos (or (:prev-pos book) (:pos book)))))
-          (assoc-in [:pointer :pos] [x y])
-          (assoc-in [:pointer :pos0] [x y]))))))
+      (let [book  (get-in db  [:books oid])]
+        (-> db
+            (assoc-in [:pointer :start-time] (js/Date.now))
+            (assoc-in [:pointer :down] true)
+            (assoc-in [:pointer :oid] oid)
+            (assoc-in
+              [:books oid]
+              (-> book
+                  (assoc :pos :active)
+                  (assoc :prev-pos (or (:prev-pos book) (:pos book)))))
+            (assoc-in [:pointer :pos] [x y])
+            (assoc-in [:pointer :pos0] [x y]))))))
 
 (register-handler
   :pointer-move
@@ -335,11 +335,11 @@
   (when (not (:title @(subscribe [:ting id])))
     (dispatch-sync [:ting id {:title "[loading]"}])  
     (go (let [o (<! (<info id))]
-      (dispatch [:ting id o])
-      (dispatch [:ting id {:cover (if (contains? @(subscribe [:coverable]) id)  
-                                    (:isbn-cover o)
-                                    (<! (<cover-url id)))} ])
-        (dispatch [:back-books])))
+          (dispatch [:ting id o])
+          (dispatch [:ting id {:cover (if (contains? @(subscribe [:coverable]) id)  
+                                        (:isbn-cover o)
+                                        (<! (<cover-url id)))} ])
+          (dispatch [:back-books])))
     ))
 (defn book-elem ; ##
   [o x-step y-step]
@@ -443,36 +443,36 @@
     (let [id @(subscribe [:show])    
           o @(subscribe [:ting id])]
       [:div {
-      :on-mouse-down #(pointer-down o % %)
-      :on-touch-start #(pointer-down o % (aget (aget % "touches") 0))
+             :on-mouse-down #(pointer-down o % %)
+             :on-touch-start #(pointer-down o % (aget (aget % "touches") 0))
              :style 
-         {:position :absolute
-          :top 0
-          :left "3%"
-          :width "94%"
-          :max-height "96%"
-          :overflow :hidden
-          :padding "0px"
-          :box-sizing :border-box
-          :box-shadow "5px 5px 10px black"
-         ; :border "1px solid black"
-          ;:border "2px solid black"
-          :color "black"
-          ;:border-radius "3px"
-          :text-align :left
-          :background "rgba(255,245,230,0.9)"
-          :text-shadow "0px 0px 4px white"
-          :z-index "6" }}
+             {:position :absolute
+              :top 0
+              :left "3%"
+              :width "94%"
+              :max-height "96%"
+              :overflow :hidden
+              :padding "0px"
+              :box-sizing :border-box
+              :box-shadow "5px 5px 10px black"
+              ; :border "1px solid black"
+              ;:border "2px solid black"
+              :color "black"
+              ;:border-radius "3px"
+              :text-align :left
+              :background "rgba(255,245,230,0.9)"
+              :text-shadow "0px 0px 4px white"
+              :z-index "6" }}
 
-       
-        [:h1 {:style {:clear :none :text-align :center}} (:title o)]
-        [:img {:src (:cover o) 
-               :style
-               {:width "50%"
-                :float :right
-                :margin "2%"
-                }
-               }]
+
+       [:h1 {:style {:clear :none :text-align :center}} (:title o)]
+       [:img {:src (:cover o) 
+              :style
+              {:width "50%"
+               :float :right
+               :margin "2%"
+               }
+              }]
        [:div {:style 
               {
                :text-align :center}}[:i "af " (:creator o)]]
@@ -482,39 +482,39 @@
              :text-align :left
              }} 
         [:a {:href 
-            (str "http://bibliotek.dk/linkme.php?rec.id=" id)
-            :target "_blank"
-            :on-mouse-down #(js/open (str "http://bibliotek.dk/linkme.php?rec.id=" id))
-            :on-touch-start #(js/open (str "http://bibliotek.dk/linkme.php?rec.id=" id))
-            :style
-            {:display :inline-block
-             :box-sizing :border-box
-             :font-weight :bold
-             :text-decoration "none"
-             :color "white"
-             :background "black"
-             :padding "8px 2px 8px 2px"}}
-        " BIBLIOTEK" [:span 
-                      {:style {:color "#088eb4"}}
-                      "DK "]]
-       [:a {:href 
-            (str "https://bibliotek.dk/da/reservation?ids=" id)
-            :on-mouse-down #(js/open (str "https://bibliotek.dk/da/reservation?ids=" id))
-            :on-touch-start #(js/open (str "https://bibliotek.dk/da/reservation?ids=" id))
-            :target "_blank"
-            :style
-            {:display :inline-block
-             :box-sizing :border-box
-             :text-decoration "none"
-             :background "#088eb4"
-             :font-weight :bold
-             :color "white"
-             :padding "6px 2px 6px 2px" 
-             :border-left "1px solid white"
-             :border-top "2px solid #088eb4"
-             :border-right "2px solid #088eb4"
-             :border-bottom "2px solid #088eb4"}}
-        " Bestil "]]
+             (str "http://bibliotek.dk/linkme.php?rec.id=" id)
+             :target "_blank"
+             :on-mouse-down #(js/open (str "http://bibliotek.dk/linkme.php?rec.id=" id))
+             :on-touch-start #(js/open (str "http://bibliotek.dk/linkme.php?rec.id=" id))
+             :style
+             {:display :inline-block
+              :box-sizing :border-box
+              :font-weight :bold
+              :text-decoration "none"
+              :color "white"
+              :background "black"
+              :padding "8px 2px 8px 2px"}}
+         " BIBLIOTEK" [:span 
+                       {:style {:color "#088eb4"}}
+                       "DK "]]
+        [:a {:href 
+             (str "https://bibliotek.dk/da/reservation?ids=" id)
+             :on-mouse-down #(js/open (str "https://bibliotek.dk/da/reservation?ids=" id))
+             :on-touch-start #(js/open (str "https://bibliotek.dk/da/reservation?ids=" id))
+             :target "_blank"
+             :style
+             {:display :inline-block
+              :box-sizing :border-box
+              :text-decoration "none"
+              :background "#088eb4"
+              :font-weight :bold
+              :color "white"
+              :padding "6px 2px 6px 2px" 
+              :border-left "1px solid white"
+              :border-top "2px solid #088eb4"
+              :border-right "2px solid #088eb4"
+              :border-bottom "2px solid #088eb4"}}
+         " Bestil "]]
        [:p 
         {:style {:margin "5%" :hyphens "auto" }}
         (or (:abstract o) (:description o))]
@@ -545,27 +545,27 @@
      y-step (* xy-ratio x-step)]
     (dispatch-sync [:step-size [x-step y-step]])
     (if @(subscribe [:coverable]) 
-                    (into
-      [:div {:on-mouse-move #(pointer-move % %)
-             :on-touch-move #(pointer-move % (aget (aget % "touches") 0))
-             :on-mouse-up #(dispatch-sync [:pointer-up])  
-             :on-touch-end #(dispatch-sync [:pointer-up])  
-             :id "bibappcontainer"
-             :style {:display :inline-block
-                     :width (* x-step view-width)
-                     :height (* y-step view-height)
-                     :margin-left (* x-step -8)
-                     :background background-color
-                     :position :absolute
-                     :overflow :hidden
-                     :color "white"
-                     }}
-       [bibapp-header x-step y-step]
-       [bibinfo]
-       
-       ]
-      (map #(book-elem % x-step y-step)
-           (map second (seq @(subscribe [:books])))))
+      (into
+        [:div {:on-mouse-move #(pointer-move % %)
+               :on-touch-move #(pointer-move % (aget (aget % "touches") 0))
+               :on-mouse-up #(dispatch-sync [:pointer-up])  
+               :on-touch-end #(dispatch-sync [:pointer-up])  
+               :id "bibappcontainer"
+               :style {:display :inline-block
+                       :width (* x-step view-width)
+                       :height (* y-step view-height)
+                       :margin-left (* x-step -8)
+                       :background background-color
+                       :position :absolute
+                       :overflow :hidden
+                       :color "white"
+                       }}
+         [bibapp-header x-step y-step]
+         [bibinfo]
+
+         ]
+        (map #(book-elem % x-step y-step)
+             (map second (seq @(subscribe [:books])))))
       (do
         (go
           (dispatch [:coverable (into #{} (get (<! (<ajax "http://solsort.com/db/bib/coverable")) "coverable"))])
