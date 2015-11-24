@@ -150,7 +150,6 @@
                 (map (fn [o] [(:id o) o]))))]))
 
 (defn back-books [db] ; ##
-  ;(log (->> (:ting db) (filter )))
   (assoc 
     db :books
     (loop [backs (:back-positions db)
@@ -384,15 +383,7 @@
                       "rgba(255,255,255,0.3)"
                       "rgba(0,0,0,0)")}}
 
-      (if (:cover ting)
-        [:span]
-        [:span (:title ting) [:span {:style {:font-style "italic"}} [:br] "af " (:creator ting)]]
-        )
-      ;(:front-neighbours o)
-      ;(keys o)
       ;(:title ting)
-      ;(:ting o)
-
       ]]))
 
 (defn search [] ; ## 
@@ -409,8 +400,7 @@
             (shuffle positions))
           ]
       (dispatch [:books books])
-      (dispatch [:back-books])
-      (log results positions books))))
+      (dispatch [:back-books]))))
 (defn bibapp-header [x-step y-step] ; ##
   [:div
    [:input
@@ -533,7 +523,15 @@
         {:style {:margin "5%"}}
         "Udgivet " (:date o)]])
     [:span]))
-(log (str (take 200  (shuffle @(subscribe [:coverable]))))) ; ##
+(defn splash-screen [] ; ##
+  [:div
+   {:style {:color "#ccf"}}
+   [:h1 "BibApp"]
+   [:h2 "Eksperimentel prototype"]
+   [:p "- ikke optimeret, så have tålmodighed."]
+   [:br] [:br] [:br] [:br]
+   [:p "solsort.com"]]
+  )
 (defn bibapp [] ; ##
   (let
     [ww @(subscribe [:width])
@@ -572,7 +570,7 @@
         (go
           (dispatch [:coverable (into #{} (get (<! (<ajax "http://solsort.com/db/bib/coverable")) "coverable"))])
           )
-        [:div {:style {:color :green}}"loading..."]
+        [splash-screen]
         ))))
 
 ; #notes

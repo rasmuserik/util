@@ -219,7 +219,7 @@ Detailed goals:
 - √Book-info-pop-up
 - √Use cover-links instead of ting-webservice for performance reasons
   - √Limit related to objects that have cover-links
-- Splash-screen 
+- √Splash-screen 
   - √autoshow when loaded
 - √only search on søg-knap +(+on-enter-key)
 - Generated layout, to experiment with that
