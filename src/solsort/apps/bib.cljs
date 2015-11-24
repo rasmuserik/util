@@ -207,6 +207,7 @@
               (close! c))
             (goog.object.remove js/window id)))
     (let [tag (js/document.createElement "script")]
+      (aset tag "async" true)
       (aset tag "src" (str url id))
       (js/document.head.appendChild tag))
     c))
@@ -228,7 +229,7 @@
          :isbn (->> (o "isbn") (filter #(= "978" (.slice % 0 3))) (first))
          :isbn-cover (->> (o "isbn")
                           (filter #(= "978" (.slice % 0 3)))
-                          (map #(str "http://bogpriser.dk/Covers/"  (.slice % 10) "/" % ".jpg"))
+                          (map #(str "http://www.bogpriser.dk/Covers/"  (.slice % 10) "/" % ".jpg"))
                           (first))
          :has-cover (first (o "hasTingCover"))
          :vector (js/Float32Array.from 
