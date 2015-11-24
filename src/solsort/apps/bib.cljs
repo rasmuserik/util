@@ -396,7 +396,6 @@
       ]]))
 
 (defn search [] ; ## 
-  (log 'search @(subscribe [:query]))
   (go
     (let [results (<! (<search @(subscribe [:query])))
           positions 
@@ -434,7 +433,6 @@
              }}]
    [:input {:value (str @(subscribe [:query]))
             :on-key-down #(when (= 13 (.-keyCode %)) (search))
-            :on-blur search
             :on-change
             (fn  [e] (dispatch-sync  [:query (-> e .-target  (aget "value"))])) 
             :style {:display :inline-block
