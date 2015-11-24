@@ -222,8 +222,9 @@ Detailed goals:
 - √Splash-screen 
   - √autoshow when loaded
 - √only search on søg-knap +(+on-enter-key)
-- Generated layout, to experiment with that
-- Generate new elastic-search content
+- (√ improved, but still only portrait) ÷Generated layout, to experiment with that
+- √Generate new elastic-search content
+- √+footer
 - Bundle for android market
 - Optional: faster webservice
 - Optional: togglable saved materials
