@@ -395,7 +395,7 @@
                     :font-size 10
                     :background
                     (if (= :back (:pos o))
-                      "rgba(255,255,255,0.3)"
+                      "rgba(255,255,255,0.45)"
                       "rgba(0,0,0,0)")}}
 
       ;(:title ting)
