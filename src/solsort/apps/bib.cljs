@@ -26,7 +26,7 @@
 (def background-color "black")
 (def header-space 2)
 (def view-width 16)
-(def view-height (+ header-space 18.5))
+(def view-height (+ header-space 18))
 (def widget-height (- view-height header-space 2.5))
 (def isbn-covers true)
 
@@ -114,11 +114,23 @@
    (set-id :front
            (concat
              (map #(into % {:y (+ header-space (:y %)) :size 3 :pos :front})
-                  [{:x 2 :y 2} {:x 10 :y 2}
+                  #_[{:x 3 :y 2} {:x 13 :y 2}
+                   {:x 8 :y 6} 
+                   {:x 8 :y 12}
+                   {:x 2 :y 9} {:x 14 :y 9}
+                   {:x 3 :y 16} {:x 13 :y 16}]
+                  [{:x 2 :y 3} {:x 10 :y 3}
+                   {:x 6 :y 7} {:x 14 :y 7}
+                   {:x 2 :y 11} {:x 10 :y 11}
+                   {:x 6 :y 15} {:x 14 :y 15} ]
+                  #_[{:x 2 :y 2} {:x 10 :y 2}
                    {:x 6 :y 5} {:x 14 :y 5}
                    {:x 2 :y 8} {:x 10 :y 8}
                    {:x 6 :y 11} {:x 14 :y 11}
-                   {:x 2 :y 14} {:x 10 :y 14}])
+                   {:x 2 :y 14} {:x 10 :y 14}]
+                  #_(map (fn [t] {:x (+ 8 (* 6 (js/Math.sin t))) 
+                                :y (+ 9 (* -7 (js/Math.cos t)))})
+                       (range 0 (* 2 js/Math.PI) (/ js/Math.PI 4))))
              #_(map (fn [x] {:x x :y (- view-height 1) :size 1.8 :pos :saved}) 
                     (range 1 17 2))))])
 
@@ -139,7 +151,9 @@
                   (concat (repeat 8 1) (repeat 9 3)
                           (repeat 8 5) (repeat 9 7)
                           (repeat 8 9) (repeat 9 11)
-                          (repeat 8 13) (repeat 9 15)))))])
+                          (repeat 8 13) (repeat 9 15)
+                          (repeat 8 17) 
+                          ))))])
 
 (defonce books-initialise
   (dispatch-sync
@@ -364,7 +378,7 @@
         (case (:pos o)
           :hidden {}
           :back {}
-          :front {:box-shadow "5px 5px 10px black"}
+          :front {:box-shadow "5px 5px 10px black" }
           :saved { :outline "1px solid white" }
           :active{:box-shadow "10px 10px 20px black"}
           (log {}  'ERR-MISSING-POS (:pos o) o) ))}
@@ -411,7 +425,7 @@
      :on-submit search
      :value "søg"
      :style {:display :inline-block
-             :width (* 3 x-step)
+             :width (* 3.5 x-step)
              :text-align "center"
              :background "black"
              :font-size y-step
@@ -549,13 +563,51 @@
     [:span]))
 (defn splash-screen [] ; ##
   [:div
-   {:style {:color "#ccf"}}
+   {:style {:color "#cfc"}}
    [:h1 "BibApp"]
    [:h2 "Eksperimentel prototype"]
-   [:p "- ikke optimeret, så have tålmodighed."]
+   [:p "- ikke optimeret, så hav tålmodighed."]
    [:br] [:br] [:br] [:br]
    [:p "solsort.com"]]
   )
+
+         (defn bibfooter []; ##
+           [:div
+          {:style
+           {:position :absolute
+            :z-index 6
+            :width "96%"
+            :bottom 0
+            :font-size 12
+            :margin "2%"
+
+            :text-shadow "
+            0px 0px 1px black,
+            0px 0px 2px black,
+            0px 0px 3px black,
+            0px 0px 3px black,
+            0px 0px 2px black,
+            0px 0px 1px black
+                         "
+            :height 24
+            :color "#dfd"
+            }
+           }
+          #_[:div {:style
+                 {:display :inline-block
+                  :float :left
+                  :font-weight :bold
+                  :text-align :left} }
+          "BibApp" [:br]
+          "solsort.com"]
+          [:div {:style
+                 {:display :inline-block
+                  :float :right
+                  :text-align :right } }
+          " Eksperimentel prototype," [:br]
+          "- ikke optimeret, så hav tålmodighed."]
+          ])
+          
 (defn bibapp [] ; ##
   (let
     [ww @(subscribe [:width])
@@ -589,7 +641,7 @@
                        }}
          [bibapp-header x-step y-step]
          [bibinfo]
-
+         [bibfooter]
          ]
         (map #(book-elem % x-step y-step)
              (map second (seq @(subscribe [:books])))))
