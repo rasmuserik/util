@@ -466,12 +466,19 @@
              :on-touch-start #(pointer-down o % (aget (aget % "touches") 0))
              :style 
              {:position :absolute
-              :top 0
-              :left "3%"
+              :top "30%"
+              :transform "translateY(-30%)"
+              :left 0
+              :right 0
+              :margin "auto"
               :width "94%"
               :max-height "96%"
+              :max-width 500
               :overflow :hidden
-              :padding "0px"
+              :padding-top "1%"
+              :padding-left "3%"
+              :padding-right "3%"
+              :padding-bottom "0%"
               :box-sizing :border-box
               :box-shadow "5px 5px 10px black"
               :outline "1px solid black"
@@ -479,7 +486,7 @@
               :color "black"
               ;:border-radius "3px"
               :text-align :left
-              :background "rgba(255,245,230,0.9)"
+              :background "rgba(255,245,230,0.95)"
               :text-shadow "0px 0px 4px white"
               :z-index "6" }}
 
@@ -489,6 +496,7 @@
               :style
               {:width "50%"
                :float :right
+               :max-width 200
                :margin-bottom "2%"
                }
               }]
@@ -560,7 +568,6 @@
        [:p 
         {:style {:margin "5%" :hyphens "auto" }}
         (or (:abstract o) (:description o))]
-       [:hr]
        [:p 
         {:style {:margin "5%"}}
         "Udgivet " (:date o)]])
