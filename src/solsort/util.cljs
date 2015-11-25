@@ -21,7 +21,7 @@
   (next-tick start)
   (js/document.addEventListener "DOMContentLoaded" start))
 (js/document.addEventListener "page:load" start) 
-(js/window.addEventListener "hashchange" start)
+;(js/window.addEventListener "hashchange" start)
 
 (def host net/host)
 (def log misc/log)

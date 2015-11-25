@@ -20,7 +20,7 @@
 
 ; # BibApp
 ; TODO: extract common styling to classes
-(defn jslog [o] (js/console.log (clj->js o)) o)
+(defn jslog [o] (js/console.log (js/Date.) (clj->js o)) o)
 (defn square [a] (* a a))
 (defn epsilon [] (* 0.00001 (- (js/Math.random) (js/Math.random))))
 (def background-color "black")
@@ -92,6 +92,7 @@
 (register-handler :coverable (fn [db [_ coverable]] (assoc db :coverable coverable)))
 
 (register-sub :show (fn [db] (reaction (get @db :show))))
+(register-handler :show (fn [db [_ show]] (assoc db :show show)))
 
 (register-sub :step-size (fn [db] (reaction (get @db :step-size))))
 (register-handler :step-size (fn [db [_ step-size]] (assoc db :step-size step-size)))
@@ -281,7 +282,9 @@
 
       (and (> 100 (+ (* dx dx) (* dy dy)))
            (> 1500 (- (js/Date.now) (get-in db [:pointer :start-time]))))
-      (assoc-in db [:show] (get-in db [:books oid :ting]))
+      (do
+        (aset js/location "hash" (str "#solsort:bib/bibapp/" (get-in db  [:books oid :ting])))
+        db)
 
       :else db)))
 
@@ -309,7 +312,7 @@
   :pointer-down
   (fn [db [_ oid x y]]
     (if (get db :show)
-      (assoc db :show nil)
+      (do (aset js/location "hash" "#solsort:bib/bibapp") db)
       (let [book  (get-in db  [:books oid])]
         (-> db
             (assoc-in [:pointer :start-time] (js/Date.now))
@@ -568,7 +571,9 @@
    [:h1 "BibApp"]
    [:h2 "Eksperimentel prototype"]
    [:p "- ikke optimeret, så hav tålmodighed."]
-   [:br] [:br] [:br] [:br]
+   [:br] [:br] [:br]
+   [:p "Træk bøger" [:br] "fra baggrund til forgrund" [:br] "for inspiration"]
+   [:br] [:br] [:br]
    [:p "solsort.com"]]
   )
 
@@ -594,21 +599,24 @@
             :color "#dfd"
             }
            }
-          #_[:div {:style
+          [:div {:style
                  {:display :inline-block
                   :float :left
-                  :font-weight :bold
                   :text-align :left} }
-          "BibApp" [:br]
-          "solsort.com"]
+
+          "Træk bøger fra baggrund " [:br]  "til forgrund "  "for inspiration" ]
           [:div {:style
                  {:display :inline-block
                   :float :right
                   :text-align :right } }
           " Eksperimentel prototype," [:br]
-          "- ikke optimeret, så hav tålmodighed."]
+          " - så hav tålmodighed."]
           ])
           
+(defn hashupdate []
+  (jslog js/location.hash)
+  (dispatch [:show (second (re-find #"bibapp/(.*)" js/location.hash))])
+  )
 (defn bibapp [] ; ##
   (let
     [ww @(subscribe [:width])
@@ -619,10 +627,18 @@
      x-step (js/Math.min
               (/ ww view-width)
               (/ wh view-height xy-ratio))
-     y-step (* xy-ratio x-step)
-   ; x-step 20
-   ; y-step 30
-    ]
+     y-step (* xy-ratio x-step)]
+    #_(aset js/location "hash" 
+          (str "#solsort:bib/bibapp" 
+               (if @(subscribe [:show])
+                 (str "/" @(subscribe [:show])) 
+                 "")))
+     #_(aset js/location "hash"
+            (.replace js/location.hash
+                      #"bibapp.*" 
+                      (if @(subscribe [:show])    
+                        (str "bibapp/" @(subscribe [:show])    )
+                        ("bibapp"))))
     (dispatch-sync [:step-size [x-step y-step]])
     (if @(subscribe [:coverable]) 
       (into
@@ -948,6 +964,8 @@
 
 
 (defn route-fn [info]
+  ;(aset js/window.onhashchange hashupdate)
+  (js/window.addEventListener "hashchange" hashupdate)
   (let [path (string/split (info "path") "/")
         id (nth path 2 "")
         kind (nth path 1 "")]
@@ -971,7 +989,8 @@
                    :text-align :center
                    :background "black"}
                   }
-                 [bibapp]]}
+                 [bibapp]
+                 ]}
       (<default))))
 
 (route "bib" route-fn)
