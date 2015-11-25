@@ -123,7 +123,7 @@
                [".wm" "(min-width:480px)"]
                [".wl" "(min-width:840px)"]]))
   (when (<= i 24) (recur (inc i))))
-(log @default-style (clj->css @default-style))
+;(log @default-style (clj->css @default-style))
 
 (defn add-default-style [o] (swap! default-style into o))
 (defn default-style-str [] 

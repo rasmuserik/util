@@ -215,7 +215,7 @@
 
 (defn <search [s] ; ###
   (go (map #(% "_id")
-           (get-in (<! (<ajax (str "http://solsort.com/es/bibapp/ting/_search?q=" s)))
+           (get-in (<! (<ajax (str "http://solsort.com/es/bibapp/ting/_search?q=" s) :credentials (not (= js/location.host "solsort.com"))))
                    ["hits" "hits"]))))
 ;(go (log (<! (<search "harry potter"))))
 
@@ -233,8 +233,9 @@
                           (map #(str "http://www.bogpriser.dk/Covers/"  (.slice % 10) "/" % ".jpg"))
                           (first))
          :has-cover (first (o "hasTingCover"))
-         :vector (js/Float32Array.from 
-                   (.map (.split (first (o "vector")) ",") #(js/Number %)))})))
+         ;:vector 
+         #_(js/Float32Array.from 
+                   (.map (.split (or (first (o "vector")) "0") ",") #(js/Number %)))})))
 ;(go (js/console.log (clj->js (<! (<info "870970-basis:24945669")))))
 
 (defn <cover-url [id] ; ###
@@ -352,19 +353,23 @@
 
 (defn load-ting [id] ; ##
   (when (not (:title @(subscribe [:ting id])))
+    (log 'loading id)
     (dispatch-sync [:ting id {:title "[loading]"}])  
     (go (let [o (<! (<info id))]
           (dispatch [:ting id o])
-          (dispatch [:ting id {:cover (if (contains? @(subscribe [:coverable]) id)  
+          (dispatch [:ting id {:cover (:isbn-cover o)
+                               #_(if (contains? @(subscribe [:coverable]) id)  
                                         (:isbn-cover o)
                                         (<! (<cover-url id)))} ])
           (dispatch [:back-books])))
+    (log 'loaded id)
     ))
 (defn book-elem ; ##
   [o x-step y-step]
   (let [[dx dy] (get o :delta-pos [0 0])
         ting @(subscribe [:ting (:ting o)])]
-    (load-ting (:ting o))
+    (when (:ting o)
+      (load-ting (:ting o)))
     [:span
      {:on-mouse-down #(pointer-down o % %)
       :on-touch-start #(pointer-down o % (aget (aget % "touches") 0))
@@ -585,7 +590,34 @@
   )
 
          (defn bibfooter []; ##
-           [:div
+           [:div 
+            #_[:div {:style 
+                   {:position :absolute
+                    :color "white"
+                    :z-index 7
+                    :left 0
+                    :right 0
+                    :bottom 0
+                    :text-align :left
+                    :font-size 10
+            :text-shadow "
+            0px 0px 1px black,
+            0px 0px 2px black,
+            0px 0px 3px black,
+            0px 0px 3px black,
+            0px 0px 2px black,
+            0px 0px 1px black
+                         "
+                    }
+                   } 
+                (into  [:div]
+                               (map
+                                            (fn  [e]  [:div  {:key  (unique-id)}  (.slice  (str e) 1 -1)])
+                                                       @(subscribe  [:log])))
+             "Temporarily defunkt due to debugging in progress"
+             
+             ]
+            [:div
           {:style
            {:position :absolute
             :z-index 6
@@ -618,7 +650,7 @@
                   :text-align :right } }
           " Eksperimentel prototype," [:br]
           " - så hav tålmodighed."]
-          ])
+          ]])
           
 (defn hashupdate []
   (jslog js/location.hash)
@@ -973,6 +1005,7 @@
 (defn route-fn [info]
   ;(aset js/window.onhashchange hashupdate)
   (js/window.addEventListener "hashchange" hashupdate)
+  ;(js/window.addEventListener "error" #(js/alert (.toString %)))
   (let [path (string/split (info "path") "/")
         id (nth path 2 "")
         kind (nth path 1 "")]
