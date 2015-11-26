@@ -122,33 +122,95 @@ Vægt:
 
 
 ### Side 1 Indhold
-
-#### Beskrivelse
-
-#### Indhold
+- Beskrivelse
+- Indhold
 
 På de næste side går mere i detaljer med følgende indhold:
 
 *Formålet* 
 
-*Brugsoplevelsen* er designet til at være så visuelt appelerende som muligt, og samtidig 
+*Brugsoplevelsen* er designet til at være så brugsvenlig, og visuelt appelerende som muligt. Usability tests har givet god feedback, som er brugt til at forbedre prototype, - og derudover har brugerne været begejstrede for app'en, og interaktionen er intuitiv for de fleste.
 
 *Datasættet* som er grundlaget for applikationen er ADHL-biblioteks-brugeradfærdsdata. 
 Dette er videre raffineret til en anbefalingsservice, i første omgang via heuristisk model, og derefter via eigenvektoranalyse.  Udover ADHL-datasættet til at finde relaterede materialer, bruger applikationen også bibliografiske data, samt forsider.
 
 *Teknisk* set er løsningen realiserbar og skalérbar. Prototypen demonstrerer grundidéen. 
-
 *Perspektivet* er at når den er udviklet færdig, kan den bruges af DBC og bibliotekerne på mange måder: 1) biblioteksbrugere downloaded den som app eller i browser, 2) bibliotekerne kan anvende den til at gøre deres touch/info-skærme mere interaktive og 3) Bibliotek.dk og DDB-CMS kan indlejre den som en komponent.
 
 
-#### Konkulsion
+- Konkulsion
 
 ### Side 2 Formål og værdi
-### Side 3 Brugsoplevelse / UX
+
+### Side 3 Brugsoplevelse
 ### Side 4 Data
+
+
+
 ### Side 5 Teknik og perspektiv
 
+
 # 3-day sprints
+## 2015-12-09
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Starting point:
+
+- ..
+- ..
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
+## 2015-12-06
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Starting point:
+
+- ..
+- ..
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
 ## 2015-12-02
 
 ..
@@ -179,10 +241,22 @@ References:
 - ..
 
 
-## 2015-11-29
+## 2015-11-29 BibApp
 
 ..
 
+goals:
+
+- BibApp report
+- user tests
+- fix iOS missing keyboard bug
+- bundle for android
+
+- Optional: faster webservice
+- Optional: togglable saved materials
+- Optional: randomness slider
+- Optional: refactor style
+- Optional: move overwritten material into saved-materials
 
 Results:
 
@@ -211,52 +285,49 @@ References:
 
 ## 2015-11-25 BibApp
 
-The goal of this 3-day sprint is to have a functional prototype of the BibApp, and the first draft of a project report.
-
-Detailed goals:
-
-- Report: Summary/toc, Purpose/value, UX, Data, Tech+Perspective
-- √Book-info-pop-up
-- √Use cover-links instead of ting-webservice for performance reasons
-  - √Limit related to objects that have cover-links
-- √Splash-screen 
-  - √autoshow when loaded
-- √only search on søg-knap +(+on-enter-key)
-- (√ improved, but still only portrait) ÷Generated layout, to experiment with that
-- √Generate new elastic-search content
-- √+footer
-- Bundle for android market
-- Optional: faster webservice
-- Optional: togglable saved materials
-- Optional: randomness slider
-- Optional: refactor style
-- Optional: move overwritten material into saved-materials
-
+The goal of this 3-day sprint is to have a functional prototype of the BibApp
 
 Results:
 
-- ..
-- ..
+- Working version running
+- Book info pop-up
+- Usability testing, and fixing discovered usability issues
+  - Improve book-info
+  - close book-info on back-button
+  - mention in text that books can be moved from background to foreground
+- Layout:
+  - extra line of background books
+  - fewer foreground books, to make background books more visible
+- bugfix - did not work in non-current browsers, ie. iOS 9
+- network-performance improvement
+- data dump with only books that have covers - ready for elastic search
+  - updated/made search engine service
+- begin working on bibapp-report
+- use bogpriser instead of ting for images, for performance reasons
+- splash screen + footer text
+- only search on søg-knap +(+on-enter-key, but not on blur)
+- Limit related to objects that have cover-links
 
-Productivity: Normal
+Productivity: Normal 19
 
-Tools: ...
+Tools: ClojureScript, HTML5, ElasticSearch
 
 Starting point:
 
 - Initial/simple prorotype already created
-- ..
 
 Takeways:
 
-- ..
-- ..
+- Studied how to implement efficient search in eigenspace
+  - kNN scales well on GPUs, multi-distance calculation can also be implemented as matrix multiplication
+  - Optimised BLAS/LAPACK seems like good option for performance, - recent versions also have GPU-implementations
+  - C++/(CL)JS implementation seems like a viable approach: Armadillo for linear algebra/search, node-gyp for glue, and webservice in node.js
+- Usability testing is very useful, looking forward for more next sprint
+- iOS-safari is the new MSIE
 
 References:
 
-- ..
-- ..
-
+- http://solsort.com/app.html#solsort:bib/bibapp
 
 ## 2015-11-18 BibApp Progress
 
