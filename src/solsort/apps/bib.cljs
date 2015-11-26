@@ -500,7 +500,9 @@
               :z-index "6" }}
 
 
-       [:h1 {:style {:clear :none :text-align :center}} (:title o)]
+       [:h1 {:style {:font-size "150%"
+                     :margin "0 0 2% 0"
+                     :clear :none :text-align :left}} (:title o)]
        [:img {:src (:cover o) 
               :style
               {:width "50%"
