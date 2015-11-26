@@ -497,7 +497,7 @@
               :text-align :left
               :background "rgba(255,245,230,0.95)"
               :text-shadow "0px 0px 4px white"
-              :z-index "6" }}
+              :z-index "10" }}
 
 
        [:h1 {:style {:font-size "150%"
