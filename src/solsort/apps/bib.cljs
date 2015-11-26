@@ -221,7 +221,8 @@
 
 (defn <info [id] ; ###
   (go (let [o (<! (<ajax (str "http://solsort.com/db/bib/" id)))] 
-        {:title (first (o "title"))
+        (if-not o {}
+          {:title (first (o "title"))
          :description (first (o "description"))
          :abstract (first (o "abstract"))
          :date (first (o "date"))
@@ -235,7 +236,7 @@
          :has-cover (first (o "hasTingCover"))
          ;:vector 
          #_(js/Float32Array.from 
-                   (.map (.split (or (first (o "vector")) "0") ",") #(js/Number %)))})))
+                   (.map (.split (or (first (o "vector")) "0") ",") #(js/Number %)))}))))
 ;(go (js/console.log (clj->js (<! (<info "870970-basis:24945669")))))
 
 (defn <cover-url [id] ; ###
@@ -434,13 +435,15 @@
      :on-submit search
      :value "søg"
      :style {:display :inline-block
-             :width (* 3.5 x-step)
+             :width (* 3 x-step)
              :text-align "center"
              :background "black"
-             :font-size y-step
+             :font-size (* 0.8 y-step)
              :float "right"
-             :padding-top (* .20 y-step)
-             :padding-bottom (* .20 y-step)
+             :padding-top (* .15 y-step)
+             :padding-bottom (* .25 y-step)
+             :padding-left 0
+             :padding-right 0
              :margin (* .20 y-step)
              :border "2px solid white"
              :border-radius (* .2 y-step)
@@ -450,15 +453,16 @@
             :on-change
             (fn  [e] (dispatch-sync  [:query (-> e .-target  (aget "value"))])) 
             :style {:display :inline-block
-                    :width (* 11 x-step)
-                    :font-size y-step
+                    :width (* 10.5 x-step)
+                    :font-size (* 0.8 y-step)
                     :padding-top (* .20 y-step)
                     :padding-bottom (* .20 y-step)
                     :margin (* .20 y-step)
                     :background :black
-                    :border-top "0px"
+                    :border-top "2px solid black"
                     :border-left "0px"
                     :border-right "0px"
+                    :border-radius "0px"
                     :border-bottom "2px solid white"}}]])
 
 
