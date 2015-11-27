@@ -121,7 +121,7 @@ Vægt:
 - kan bruges af DBC efter endt konkurrence.
 
 
-### Side 1 Indhold
+### Report
 
 Formålet er at skabe et værktøj til at inspirere og gå på opdagelse i bibliotekets materialer på mobiltelefonen.
 
@@ -154,19 +154,20 @@ Dette er videre raffineret til en anbefalingsservice, i første omgang via heuri
 *Teknisk* set er løsningen realiserbar og skalérbar. Prototypen demonstrerer grundidéen. 
 *Perspektivet* er at når den er udviklet færdig, kan den bruges af DBC og bibliotekerne på mange måder: 1) biblioteksbrugere downloaded den som app eller i browser, 2) bibliotekerne kan anvende den til at gøre deres touch/info-skærme mere interaktive og 3) Bibliotek.dk og DDB-CMS kan indlejre den som en komponent.
 
+----
+
+Status: jeg har implementeret en prototype, som ligger som en webapp på http://solsort.com/apps/bibapp/ og som en android-app på http://solsort.com/apps/bibapp.apk Da den er implementeret i HTML5 vil den også kunne indpakkes som app på iPhone etc., samt indlejres i andre sites.
 
 - Konkulsion
 
-### Side 2 Formål og værdi
+Formål og værdi
 
-### Side 3 Brugsoplevelse
-
+Brugsoplevelse
 
 
 
 Erfaringer fra tidligere udvikling af biblioteks-touch-widget er at brugere finde det naturligt at trække og interagere direkte med bogforsiderne. 
 
-### Side 4 Data
 
 Datagrundlaget for App'en er: ADHL-datadumpet, bibliografiske data fra DBCs Databrønd, samt links til forsideillustrationer.
 
@@ -188,8 +189,6 @@ Kildekoden til databehandlingen ligger på github:rasmuserik/bib-data
 Teknisk anvender prototypen elasticsearch og couchdb, til at få data op hurtigt. 
 
 
-### Teknik
-### Perspektiv
 
 Perspektivet er at det udover at være inspirationsværktøj på mobiltelefon og tablet - også kan være interessant på storskærme med touch på det fysiske bibliotek, og ligeledes som en inspirationskomponent til DDB-CMS og bibliotek.dk
 
