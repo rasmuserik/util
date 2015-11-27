@@ -695,8 +695,8 @@
                :style {:display :inline-block
                        :width (* x-step view-width)
                        :height (* y-step view-height)
-                       :margin-left (* x-step -8)
                        :background background-color
+                       :left (* .5 (- ww (* x-step view-width)))
                        :position :absolute
                        :overflow :hidden
                        :color "white"
@@ -1032,7 +1032,6 @@
                    :position :absolute
                    :width "100%"
                    :height "100%"
-                   :text-align :center
                    :background "black"}
                   }
                  [bibapp]
