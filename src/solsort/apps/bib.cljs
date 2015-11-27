@@ -585,7 +585,8 @@
     [:span]))
 (defn splash-screen [] ; ##
   [:div
-   {:style {:color "#cfc"}}
+   {:style {:text-align :center
+            :color "#cfc"}}
    [:h1 "BibApp"]
    [:h2 "Eksperimentel prototype"]
    [:p "- ikke optimeret, så hav tålmodighed."]
