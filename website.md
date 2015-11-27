@@ -122,6 +122,23 @@ Vægt:
 
 
 ### Side 1 Indhold
+
+Formålet er at skabe et værktøj til at inspirere og gå på opdagelse i bibliotekets materialer på mobiltelefonen.
+
+Jeg sidder selv med den konkrete use-case at jeg vil finde gode bøger at læse højt for min søn. 
+
+Derudover har jeg hørt fra bibliotekarer at der mangler digitale værktøj til inspiration.
+
+
+Formålet er at skabe en ny måde for biblioteks brugere at gå på opdagelse i materialesamlingen på. At inspirere med relateret litteratur.
+Samtaler med bibliotekarer har indikeret at der netop mangler værktøj til inspirationssegmentet.
+
+Prototypen er udviklet til at blive brugt på telefoner, men kan let forestilles et bredere anvendelsesspektrum: storskærme med touch-support på bibliotekerne, så vel som indlejring i hjemmesider såsom DDB-CMS og bibliotek.dk
+
+Konkret er det et værktøj, som jeg også selv vil bruge, - eksempelvis når jeg vil finde bøger at læse højt for min søn, kan jeg allerede nu se at jeg har gavn af den.
+
+Illustrationen herunder demonstrerer hvordan den inspirere: da jeg søger efter Pippi Langstrømpe, inspirerer den mig til Cirkeline, Emil fra Lønneberg, Mumi-troldende, og Alfons Åberg. På lignende vis vil en søgning efter "Turen går til ...", dukker Lonely Planet, og andre rejseguider op, - og hvis man søger efter HTML5, kommer der inspiration, både i retning af kode(JavaScript,Python,PHP,Drupal...), design(CSS,Tegning,...) og derudover også indhold/strategi. 
+
 - Beskrivelse
 - Indhold
 
@@ -143,11 +160,38 @@ Dette er videre raffineret til en anbefalingsservice, i første omgang via heuri
 ### Side 2 Formål og værdi
 
 ### Side 3 Brugsoplevelse
+
+
+
+
+Erfaringer fra tidligere udvikling af biblioteks-touch-widget er at brugere finde det naturligt at trække og interagere direkte med bogforsiderne. 
+
 ### Side 4 Data
 
+Datagrundlaget for App'en er: ADHL-datadumpet, bibliografiske data fra DBCs Databrønd, samt links til forsideillustrationer.
 
 
-### Side 5 Teknik og perspektiv
+I forbindelse med udvikling af prototypen, har jeg sat forskellige services op oven på data:
+
+- Søgemaskine, der kun retunerer materialer som har forsider
+- Anbefalingsservice, der kommer med anbefalinger i stil med ADHL, men med en vægtninger der giver mere relevante resulatater.
+- Afstandsmål mellem materialer (eigenvektoranalyse af lån), der kan bruges til klynger, materialer mellem materialer etc.
+- Bibliografiske data der kan tilgås fra webapp, såvel som semantisk opmarkeret html.
+- Info om hvilke materialer der har forsider
+
+
+----
+
+Den nuværende prototype bruger endnu ikke afstandsmålet (kunne ikke nå det pga. deadline), men det vil kunne forbedre app'en betydeligt da den så vil inspire med bøger der ligger _imellem_ de materialer som brugeren trækker rundt, frem for nu hvor den blot kommer med anbefalinger fra nærmeste materiale.
+
+Kildekoden til databehandlingen ligger på github:rasmuserik/bib-data 
+Teknisk anvender prototypen elasticsearch og couchdb, til at få data op hurtigt. 
+
+
+### Teknik
+### Perspektiv
+
+Perspektivet er at det udover at være inspirationsværktøj på mobiltelefon og tablet - også kan være interessant på storskærme med touch på det fysiske bibliotek, og ligeledes som en inspirationskomponent til DDB-CMS og bibliotek.dk
 
 
 # 3-day sprints
