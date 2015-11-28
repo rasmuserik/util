@@ -123,6 +123,17 @@ Vægt:
 
 ### Report content draft
 
+Idéen om at trække bøger mellem forgrund og baggrund, er baseret på erfaringer fra tidligere projekte med visualisering af bibliotekmaterialer, hvor brugere med touch-devices netop ønskede at interagere med bøgerne ved at trække i dem.
+
+Idéen er at skabe et redskab til at gå på opdagelse i bibliotekets materialer. Jeg hører fra bibliotekarer at der er et uopfyldt behov for digitale inspirationsværktøj. Som biblioteksbruger ønsker jeg selv at bruge det, - eksempelvis nu hvor jeg leder efter bøger at læse højt for min søn. Her vil en app en som anbefaler bøger ud fra dem man allerede kigger på, være et værdifuldt værktøj.
+
+
+Et redskab som automatisk kan anbefale bøger ud fra hvad man allerede kigger på.
+Et redskab som jeg selv kan bruge, eksempelvis nu hvor jeg leder efter en god bog at læse højt for min søn.
+
+En årsag til at BibApp fokuserer på denne niche, er at jeg hører fra bibliotekarer, at der er et uopfyldt behov for digitale inspirationsværktøj.
+
+
 Formålet er at skabe et værktøj til at inspirere og gå på opdagelse i bibliotekets materialer på mobiltelefonen.
 
 Jeg sidder selv med den konkrete use-case at jeg vil finde gode bøger at læse højt for min søn. 
@@ -203,17 +214,31 @@ Højtlæsning use case som en rød tråd
 
 IMG_handphone
 
-BibApp
-inspirationsværktøj
+BibApp - inspirationsværktøj
+Projektbeskrivelse
 
-----
+Indhold:
 
-BibApp er et redskab til at gå på opdagelse i bibliotekernes materialer. 
-Et redskab som automatisk kan anbefale bøger ud fra hvad man allerede kigger på.
-Et redskab som jeg selv kan bruge, eksempelvis nu hvor jeg leder efter en god bog at læse højt for min søn.
 
-En årsag til at BibApp fokuserer på denne niche, er at jeg hører fra bibliotekarer, at der er et uopfyldt behov for digitale inspirationsværktøj.
+#### Idé og link
 
+Idéen er at skabe et redskab til at gå på opdagelse i bibliotekets materialer:
+
+- Ifølge bibliotekarer er der et uopfyldt behov for digitale inspirationsværktøj.
+- Biblioteksbrugere melder ud at det gerne vil finde eksempelvis romaner inden for samme "genre".
+- Konkret har jeg den personlige use-case, at jeg gerne vil finde gode bøger at læse højt for min søn.
+
+Derfor har jeg en lavet app-prototype, der kommer med automatiske anbefalinger og inspiration, ud fra bøger som man udvælger. 
+
+Princippet er at man har 8 bøger i forgrunden, og disse er grundlaget for bøger vist i baggrunden. En bog kan trækkes fra baggrunden og erstatte en bog i forgrunden, - og derved finde nye bøger til baggrunden.
+
+Prototypen er designet til mobiltelefon-format, og kan prøves i webbrowsere, installeres som app på Android-telefoner, og som web-app på iPhone hvis du vælger "Add to Home Screen"/"Føj til hjemmeskærm". Da det er en tidlig prototype, er den langsom, virker ikke på alle modeller, og har stadig en del skønhedsfejl, men den grundlæggende interaktion og visualisering er implementeret.
+
+- Webapp: http://solsort.com/apps/bibapp/
+- Android app(unsigned): http://solsort.com/apps/bibapp/bibapp.apk
+
+
+####
 ----
 
 Idé: interaktion fra relvis-erfaringer(træk materialer, visuelt-forsider), perspektiv(mobil+widget+storskærm), brugerstudier
