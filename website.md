@@ -121,7 +121,7 @@ Vægt:
 - kan bruges af DBC efter endt konkurrence.
 
 
-### Report
+### Report content draft
 
 Formålet er at skabe et værktøj til at inspirere og gå på opdagelse i bibliotekets materialer på mobiltelefonen.
 
@@ -158,7 +158,7 @@ Dette er videre raffineret til en anbefalingsservice, i første omgang via heuri
 
 Status: jeg har implementeret en prototype, som ligger som en webapp på http://solsort.com/apps/bibapp/ og som en android-app på http://solsort.com/apps/bibapp.apk Da den er implementeret i HTML5 vil den også kunne indpakkes som app på iPhone etc., samt indlejres i andre sites.
 
-- Konkulsion
+- Konklusion
 
 Formål og værdi
 
@@ -189,9 +189,40 @@ Kildekoden til databehandlingen ligger på github:rasmuserik/bib-data
 Teknisk anvender prototypen elasticsearch og couchdb, til at få data op hurtigt. 
 
 
-
 Perspektivet er at det udover at være inspirationsværktøj på mobiltelefon og tablet - også kan være interessant på storskærme med touch på det fysiske bibliotek, og ligeledes som en inspirationskomponent til DDB-CMS og bibliotek.dk
 
+
+[idéen er at vise nogle biblioteksmaterialer på skærmen, hvor brugeren kan udvælge nogle af dem, hvorefter de øvrige viste relaterer sig til disse.
+i løbet af den forgangne måned har jeg fået en proof-of-concept prototype op at køre, som kan ses i webbrowsere (gerne på mobil) på http://solsort.com/apps/bibapp, og installeres på android fra http://solsort.com/app/bibapp/bibapp.apk (installation på android kræver at man har slået installation uden om Google-Play til, da jeg ikke har publiceret den endnu)]
+
+----
+
+Højtlæsning use case som en rød tråd
+
+### Report-draft
+
+IMG_handphone
+
+BibApp
+inspirationsværktøj
+
+----
+
+BibApp er et redskab til at gå på opdagelse i bibliotekernes materialer. 
+Et redskab som automatisk kan anbefale bøger ud fra hvad man allerede kigger på.
+Et redskab som jeg selv kan bruge, eksempelvis nu hvor jeg leder efter en god bog at læse højt for min søn.
+
+En årsag til at BibApp fokuserer på denne niche, er at jeg hører fra bibliotekarer, at der er et uopfyldt behov for digitale inspirationsværktøj.
+
+----
+
+Idé: interaktion fra relvis-erfaringer(træk materialer, visuelt-forsider), perspektiv(mobil+widget+storskærm), brugerstudier
+
+Interaktion: (screenshots med indtegnet interaktion)
+
+Prototypen - status / begrænsninger / brugerstudier / teknik
+
+Datakilder - liste af datakilder, vægtning af anbefalinger, eigenvektoranalyse som afstandsmål
 
 # 3-day sprints
 ## 2015-12-09
