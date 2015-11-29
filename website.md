@@ -211,39 +211,69 @@ i løbet af den forgangne måned har jeg fået en proof-of-concept prototype op 
 Højtlæsning use case som en rød tråd
 
 ### Report-draft
-
+#### Forside
 IMG_handphone
 
 BibApp - inspirationsværktøj
 Projektbeskrivelse
 
-Indhold:
+BibApp er et inspirationsværktøj, der hjælper brugeren med at finde bøger der ligner.. 
+Princippet er at man har nogle bøger i forgrunden, og disse er grundlaget for bøger vist i baggrunden. En bog kan trækkes fra baggrunden og erstatte en bog i forgrunden, - og derved finde nye bøger til baggrunden.
 
 
-#### Idé og link
+Den opfylder bedømmelseskriterierne:
+
+- _Realiserbar:_ kørende prototype er realiseret
+- _Værdiskabende for biblioteker og biblioteksbrugere:_ hjælper med at finde relaterede bøger, og inspirerer, hvilket et område hvor der mangler digitale redskaber.
+- _Brugervenlig og visuelt appellerende:_ interaktionen er designet til at være enkel og let at bruge, baseret på brugerfeedback. Typiske kommentarer fra brugertest er: "den er cool", "Charmerende, lettilgængelig, overskuelig vej til informationer", "begejstringen over det visuelt flotte".
+- _Bruger kulturdata:_ bygger på DBCs bibliografiske data, ADHL-datasæt, samt bogforsider. Den beriger desuden ADHL-data gennem anbefalingsservice og eigenvektoranalyse.
+- _Er på dansk:_ ja.
+- _Kan bruges efter konkurrencen:_ prototypen skal poleres før den er produktionsklar, men den er enkel at udvide så den udover at distribures som mobilapp, også kan optimeres til tablets og bibliotekernes touch-infoskærme, og indlejres som widget i DDB-CMS og bibliotek.dk
+
+TODO De følgende afsnit går mere i dybden: 1) formål, og intro til kørende prototype. 2)
+
+#### Idé og prototype
 
 Idéen er at skabe et redskab til at gå på opdagelse i bibliotekets materialer:
 
 - Ifølge bibliotekarer er der et uopfyldt behov for digitale inspirationsværktøj.
-- Biblioteksbrugere melder ud at det gerne vil finde eksempelvis romaner inden for samme "genre".
+- Biblioteksbrugere melder ud at det gerne vil finde lignende bøge, eksempelvis romaner inden for samme "genre".
 - Konkret har jeg den personlige use-case, at jeg gerne vil finde gode bøger at læse højt for min søn.
 
-Derfor har jeg en lavet app-prototype, der kommer med automatiske anbefalinger og inspiration, ud fra bøger som man udvælger. 
+Derfor har jeg en lavet app-prototype, der kommer med automatiske anbefalinger og inspiration, ud fra bøger som man udvælger. Dette kan ses herunder hvor:
 
-Princippet er at man har 8 bøger i forgrunden, og disse er grundlaget for bøger vist i baggrunden. En bog kan trækkes fra baggrunden og erstatte en bog i forgrunden, - og derved finde nye bøger til baggrunden.
+- "Turen går til..." inspirerer til "Lonely Planet" og lignende rejseguider
+- "Pippi Langstrømpe" inspirerer til "Cirkeline", "Mumitroldende", "Alfons Åberg", "Emil fra Lønneberg", "Rasmus Klump", "Peter Pedal", "Babapappa", "Hodja fra Pjort",  og andre højtlæsningsbøger
+- "HTML5" inspirerer udover CSS og webdesign også til mobiludvikling, Python, PHP og Drupal, etc.
+- Visning af materialer indeholder beskrivelse, forside, og direkte link til bestilling og selve materialet på bibliotek.dk
 
-Prototypen er designet til mobiltelefon-format, og kan prøves i webbrowsere, installeres som app på Android-telefoner, og som web-app på iPhone hvis du vælger "Add to Home Screen"/"Føj til hjemmeskærm". Da det er en tidlig prototype, er den langsom, virker ikke på alle modeller, og har stadig en del skønhedsfejl, men den grundlæggende interaktion og visualisering er implementeret.
+
+Prototypen er designet til mobiltelefon-format, og kan prøves i webbrowsere, installeres som app på Android-telefoner, - og som web-app på iPhone hvis du vælger "Add to Home Screen"/"Føj til hjemmeskærm". Da det er en tidlig prototype, er den langsom, virker ikke på alle modeller, og har stadig en del skønhedsfejl, men den grundlæggende interaktion og visualisering er implementeret.
 
 - Webapp: http://solsort.com/apps/bibapp/
 - Android app(unsigned): http://solsort.com/apps/bibapp/bibapp.apk
 
 
-####
+#### Interaktion og grænseflade
+
+[fire screenshots, to android, to iPhone]
+
+Søgning give overblik over materialer, og når man klikker på et element vises overlay med materialeinfo.
+
+Man kan trække elementer fra baggrund til forgrund, hvorefter der kommer nye relaterede materialer i baggrunden.
+
 ----
 
-Idé: interaktion fra relvis-erfaringer(træk materialer, visuelt-forsider), perspektiv(mobil+widget+storskærm), brugerstudier
+Idéen om at fokusere på visning af forsider, og at interaktionen foregår ved at trække bøgerne rundt på skærmen med touch, er inspireret af erfaringer/brugerfeedback i forbindelse med projektet "visualisering af relationer" ().
 
-Interaktion: (screenshots med indtegnet interaktion)
+Materialevisningen, layout/placering af forsider, og vejledning omkring at trække bøger fra baggrund til forgrund, er resultat på brugerstudier med første udgave af prototypen.
+
+
+#### Næste trin
+
+#### Brugerfeedback
+
+#### Data
 
 Prototypen - status / begrænsninger / brugerstudier / teknik
 
