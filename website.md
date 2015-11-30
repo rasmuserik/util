@@ -170,10 +170,15 @@ References:
 - ..
 
 
-## 2015-12-02
+## 2015-12-02 BibApp Done
 
 ..
 
+Goals:
+
+- report done and submitted to DBC
+- general planning+review
+- streamline app development (independent repository per app, deploy/publish-checklist)
 
 Results:
 
