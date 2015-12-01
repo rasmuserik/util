@@ -109,7 +109,97 @@ hej@solsort.com
 ## Posts
 
 # Misc
+## Platform TODO
+
+Services:
+
+- current-keep
+  - nginx
+  - couchdb
+  - elasticsearch
+- new microservices
+  - solsort/auth - login + create couchdbs for verified users
+  - solsort/html5-serverside - render pages serverside with phantomjs
+  - solsort/p2p-socket - socketio-p2p server
+- retire
+  - local hosted wordpress (get it managed)
+  - current-server
+
+Steps:
+
+1. reconfigure nginx (CORS-all, es-security)
+2. implement auth-server
+    - login, redirect -> redirect +"#login-token:..." (60s TTL)
+    - login-token -> `{public: PUBLIC, private: PRIVATE}`
+    - PUBLIC -> meta, ie `{"id": "github:rasmuserik", "verified": true}`
+    - autocreate couchdb - public_(hash PUBLIC) 644, private_(hash PUBLIC) 600, user: (hash PUBLIC), passwd: (hash PRIVATE)
+3. phantomjs render service: `http://localhost:.../http/localhost/blah` returns serverside rendered html
+4. socket.io-p2p server
+5. migrate wordpress to externally hosted
+6. ipfs
+
+
 # 3-day sprints
+## 2015-12-20
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Starting point:
+
+- ..
+- ..
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
+## 2015-12-16
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Starting point:
+
+- ..
+- ..
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
 ## 2015-12-09
 
 ..
