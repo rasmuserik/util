@@ -234,41 +234,13 @@ References:
 
 ..
 
-
-Results:
-
-- ..
-- ..
-
-Productivity: Normal
-
-Tools: ...
-
-Starting point:
-
-- ..
-- ..
-
-Takeways:
-
-- ..
-- ..
-
-References:
-
-- ..
-- ..
-
-
-## 2015-12-02 BibApp Done
-
-..
-
 Goals:
 
-- report done and submitted to DBC
-- general planning+review
-- streamline app development (independent repository per app, deploy/publish-checklist)
+- CORS-proxy
+- cph-toastmaster-agenda-app
+- separate repositories for apps
+- static nginx/elasticsearch/...
+- directory overview
 
 Results:
 
@@ -286,7 +258,6 @@ Starting point:
 
 Takeways:
 
-- inotifywait for interactive updates
 - ..
 - ..
 
@@ -294,6 +265,35 @@ References:
 
 - ..
 - ..
+
+
+## 2015-12-02 BibApp Done. Planning+strategy.
+
+
+The 3-day sprint, has been about finishing/submitting the report for the cultural app competion, - and then plan and strategy for platform and company.
+
+Results:
+
+- Finished and submitted report for BibApp competition entry.
+- Plan for app/backend structure
+- Company strategy
+
+Productivity: Normal 20
+
+Tools: markdown, pandoc, wkhtmltopdf
+
+Starting point:
+
+- reworked old platform structure, focus on simplify
+- reworked old company strategy/backlog
+
+Takeways: 
+
+- inotifywait for interactive updates
+
+References:
+
+- none public
 
 
 ## 2015-11-29 BibApp bugfixes and report
