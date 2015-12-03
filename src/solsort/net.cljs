@@ -43,7 +43,6 @@
 (def browser-crypto (atom false))
 (defn <sha256 [buffer]
   (go
-    (js/console.log buffer)
     (when-not @browser-crypto
       ; check if browser-crypt exists/works or else load https://solsort.com/polycrypt.js
       ; reset! browser-crypto crypto.subtle || msCrypto.subtle || polycrypt
@@ -203,6 +202,7 @@
           (if (= @prev-middleware (aget (aget stack i) "handle"))
             (aset (aget app "_router") "stack" (.concat (.slice stack 0 i) (.slice stack (inc i))))
             (recur (inc i)))))))
+ 
 
 (defn add-middleware []
   (log 'add-middleware)
@@ -219,6 +219,9 @@
               #js {"limit" "256mb"
                    "forwardPath" 
                    (fn [req res] 
+                     (when-not (= "GET" (aget req "method"))
+                       (js/console.log req)
+                        (throw "Only GET allowed for ElasticSearch"))
                      (.header res "Access-Control-Allow-Origin" (or (-> req (aget "headers") (aget "origin")) "*"))
                      (.header res "Access-Control-Allow-Credentials" "true")
                      (.header res "Access-Control-Allow-Headers" "Content-Type")
