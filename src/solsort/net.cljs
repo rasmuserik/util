@@ -341,7 +341,7 @@
                  ]
              (log secure o url-part url)
             {:type "text/plain"
-            :content (<! (<ajax "http://tmclub.eu/portal.php?page=1&c=381" :result "text"))}))))
+            :content (<! (<ajax url :result "text"))}))))
 ;; # Experiments
 
 #_
