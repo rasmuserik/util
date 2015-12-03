@@ -331,14 +331,11 @@
                       (go (<! (timeout 10000))
                           (js/process.exit))))))
 
-    (route "update-html"
+    (route "cors"
            (fn []
              (go
-               (log "updating html")
-               (log "updated sites"
-                    (<! (<exec "for path in /solsort/sites/*; do cd $path; git pull; done")))
-               (log "updated html" (<! (<exec "cd /solsort/html && git pull")))
-               ))))
+               {:type "text/plain"
+                :content "hello"}))))
 ;; # Experiments
 
 #_
