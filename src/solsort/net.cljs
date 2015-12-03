@@ -329,23 +329,29 @@
                     (fn []
                       (log 'XXXXX 'restarting-changed script-file)
                       (go (<! (timeout 10000))
-                          (js/process.exit))))))
+                          (js/process.exit)))))))
 
-    (route "cors"
-           (fn []
-             (go
-               {:type "text/plain"
-                :content "hello"}))))
+(route "cors" ;; #
+       (fn [o]
+         (go
+           (let [secure (= (.slice (o "path") 0 10) "cors/https") ; http or https (nothing else allowed)
+                 url-part (.slice (o "path") (if secure 11 10))
+                 url-part (re-matches #"^[^:]*/.*" url-part) ; disallow other than default-port
+                 url (str "http" (if secure "s" "") "://" url-part)
+                 ]
+             (log secure o url-part url)
+            {:type "text/plain"
+            :content (<! (<ajax "http://tmclub.eu/portal.php?page=1&c=381" :result "text"))}))))
 ;; # Experiments
 
 #_
 ((join "blah")
-(go
-  (let [realm (<! (<sha256-str "blah"))]
-    (msg realm "hello" "blah")
-    
-    )
-  
-  )
-(socket-emit "msg" "hello123")
-(msg "foo" "bar" "baz"))
+ (go
+   (let [realm (<! (<sha256-str "blah"))]
+     (msg realm "hello" "blah")
+
+     )
+
+   )
+ (socket-emit "msg" "hello123")
+ (msg "foo" "bar" "baz"))
