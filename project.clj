@@ -1,4 +1,4 @@
-(defproject solsort/util "0.0.2-SNAPSHOT"
+(defproject solsort/util "0.0.2"
   :description "Solsort utility-functions"
   :url "https://github.com/rasmuserik/solsort-util"
   :license {:name "Several licenses" :url "https://github.com/rasmuserik/solsort-util"}
