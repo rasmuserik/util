@@ -1,7 +1,7 @@
-    
-[![build status](https://travis-ci.org/rasmuserik/solsort-new.svg?branch=master)](https://travis-ci.org/rasmuserik/solsort-new)
-[![cljs dependency status](http://jarkeeper.com/rasmuserik/solsort-new/status.png)](http://jarkeeper.com/rasmuserik/solsort-new)
-[![node.js dependency status](https://david-dm.org/rasmuserik/solsort-new.svg)](https://david-dm.org/rasmuserik/solsort-new)
+[![build status](https://travis-ci.org/rasmuserik/solsort-util.svg?branch=master)](https://travis-ci.org/rasmuserik/solsort-util)
+[![cljs dependency status](http://jarkeeper.com/rasmuserik/solsort-util/status.png)](http://jarkeeper.com/rasmuserik/solsort-util)
+[![node.js dependency status](https://david-dm.org/rasmuserik/solsort-util.svg)](https://david-dm.org/rasmuserik/solsort-util)
+[![Clojars Project](http://clojars.org/solsort/util/latest-version.svg)](http://clojars.org/solsort/util)
 
 The solsort platform, including various utility libraries and apps.
 

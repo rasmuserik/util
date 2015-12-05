@@ -8,3 +8,4 @@ target/
 docs
 pom.xml
 npm-debug.log
+pom.xml.asc
