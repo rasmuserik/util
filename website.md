@@ -232,11 +232,12 @@ References:
 
 ## 2015-12-06
 
+This 3-day sprint actually spans a week, but only had three effective coding-days.
 ..
 
 Goals:
 
-- CORS-proxy
+- CORS-proxy (needed for web-version of app)
 - cph-toastmaster-agenda-app
 - separate repositories for apps
 - static nginx/elasticsearch/...
@@ -247,7 +248,7 @@ Results:
 - ..
 - ..
 
-Productivity: Normal
+Productivity: Low
 
 Tools: ...
 
