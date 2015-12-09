@@ -202,70 +202,32 @@ References:
 
 ## 2015-12-09
 
-..
+This 3-day sprint actually spans a week, but only had three effective coding-days. Focus was new structure for repositories for app-development, instead of current monolithic approach.
+
+----
 
 
 Results:
 
-- ..
-- ..
+- Skeleton for ClojureScript hybrid apps with Cordova / PhoneGap-build.
+- CORS-proxy (needed for web-version of apps)
+- Started code for toastmaster app prototype, - Code for scraping of data in progress
+- Various nginx config fixes
+- improvements of development environment (i3-window-manager, home-root in private git, instead of dot files link into repositories, private git server)
 
-Productivity: Normal
+Productivity: normal
 
-Tools: ...
-
-Starting point:
-
-- ..
-- ..
+Tools: ClojureScript, Cordova, shell, nginx
 
 Takeways:
 
-- ..
-- ..
+- scripts+config for easily buildable/deployable cljs html5 apps.
+- windows-manager+keyboard config for efficiency: i3 has sensible defaults and is super easy to configure. Keyboard fixed via setxkbmap, xbindkeys and xmodmap
+- bare git repositories for local git hosting
 
 References:
 
-- ..
-- ..
-
-
-## 2015-12-06
-
-This 3-day sprint actually spans a week, but only had three effective coding-days.
-..
-
-Goals:
-
-- CORS-proxy (needed for web-version of app)
-- cph-toastmaster-agenda-app
-- separate repositories for apps
-- static nginx/elasticsearch/...
-- directory overview
-
-Results:
-
-- ..
-- ..
-
-Productivity: Low
-
-Tools: ...
-
-Starting point:
-
-- ..
-- ..
-
-Takeways:
-
-- ..
-- ..
-
-References:
-
-- ..
-- ..
+- http://github.com/rasmuserik/cphtoastmaster-agenda (just skeleton app + some scraping)
 
 
 ## 2015-12-02 BibApp Done. Planning+strategy.
