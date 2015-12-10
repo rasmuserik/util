@@ -200,11 +200,10 @@ References:
 - ..
 
 
-## 2015-12-09
+## 2015-12-09 App Skeleton
 
-This 3-day sprint actually spans a week, but only had three effective coding-days. Focus was new structure for repositories for app-development, instead of current monolithic approach.
+This 3-day sprint actually spans a week, but only had three effective coding-days. Focus was new structure for repositories for app-development, instead of current monolithic approach. (Plus some genral tool/environment improvements).
 
-----
 
 
 Results:
