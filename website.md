@@ -215,7 +215,7 @@ Results:
 - Various nginx config fixes
 - improvements of development environment (i3-window-manager, home-root in private git, instead of dot files link into repositories, private git server)
 
-Productivity: normal
+Productivity: Normal, 20
 
 Tools: ClojureScript, Cordova, shell, nginx
 
