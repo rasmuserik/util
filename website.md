@@ -140,10 +140,262 @@ Steps:
 
 
 # 3-day sprints
+## 2016-02-07
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
+## 2016-02-03
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
+## 2016-01-27
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
+## 2016-01-24
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
+## 2016-01-20
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
+## 2016-01-13
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
+## 2016-01-10
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
+## 2016-01-06
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
+## 2016-01-03
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
+## 2015-12-30
+
+..
+
+
+Results:
+
+- ..
+- ..
+
+Productivity: Normal
+
+Tools: ...
+
+Takeways:
+
+- ..
+- ..
+
+References:
+
+- ..
+- ..
+
+
 ## 2015-12-20
 
 ..
 
+Goal:
+- wordpress-content app
 
 Results:
 
@@ -170,10 +422,32 @@ References:
 - ..
 
 
-## 2015-12-16
+## 2015-12-16 app-publishing, internal-site-structure, writings
 
 ..
 
+Goal:
+
+- website + structure
+  - ! website static-unison-able dir - move blog to blog.solsort.com
+  - ! nginx - proxy db, es in nginx instead of script
+  - ! find correct way to run node-micro-services
+  - unison static files, deduplicate - sync-script (to-webserver, to-localserver)
+- app deployment
+  - ! republish android apps
+  - lemon as separate buildable app-repository
+  - html5-"app simulator"
+  - bibapp as separate buildable app-repository
+  - web `/apps` online
+  - manifest-generation-script (https://developer.mozilla.org/en-US/docs/Web/Manifest)
+- textual
+  - ! write on pivot/focus
+  - ! update linkedin
+  - move sprint log and notes into writings
+  - write new solsort.com landing-page: HTML5-App udvikling
+  - write in danish about hybridapps vs native apps
+  - write checklist for app-deployment (in writings)
+- ! rocketlabs tech-event
 
 Results:
 
