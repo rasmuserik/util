@@ -432,6 +432,7 @@ Goal:
   - ! website static-unison-able dir - move blog to blog.solsort.com
   - ! nginx - proxy db, es in nginx instead of script
   - ! find correct way to run node-micro-services
+  - ! gateway-forward 3449
   - unison static files, deduplicate - sync-script (to-webserver, to-localserver)
 - app deployment
   - ! republish android apps
