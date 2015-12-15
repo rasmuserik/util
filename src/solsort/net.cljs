@@ -261,9 +261,10 @@
                 (re-find #"localhost" js/location.hostname)
                 (contains? #{"3449" "3000"} js/location.port)))
 (def location-hostname (if (= "" js/location.hostname) "localhost" js/location.hostname))
-(def host (if is-dev 
+#_(def host (if is-dev 
             (str "http://" location-hostname ":" port "/")
             (str "https://blog.solsort.com/")))
+(def host "https://solsort.com/")
 
 ; TODO keep track on connected rooms, and rejoin on reconnect
 (def socket (atom false))

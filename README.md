@@ -85,3 +85,9 @@ General:
 
 see mubackend notes on solsort.com blog
 
+# Changelog
+
+- 0.0.4 make apps separate from of solsort-util
+- 0.0.3 release with bibapp, - last release deployed as monolitic https://solsort.com/solsort.js
+- 0.0.2 deploy to clojars with updated dependencies
+- 0.0.1 initial version
