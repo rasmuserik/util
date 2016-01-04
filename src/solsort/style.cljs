@@ -8,14 +8,10 @@
     [cljs.core.async :refer  [>! <! chan put! take! timeout close! pipe]]
     [cljs.test :refer-macros  [deftest testing is run-tests]]
     [clojure.string :as string :refer  [split]]
-    [solsort.misc :refer [log]]
     [clojure.string :refer  [join]]
     ))
 
-(def is-figwheel (some? js/window.figwheel))
-(when is-figwheel (js/setTimeout #(run-tests nil) 0))
-
-;; # normalize-cs s
+;; # styles
 (def normalize-css
   (str "/*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css"
        " */html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size"
@@ -46,34 +42,9 @@
        "}table{border-collapse:collapse;border-spacing:0}td,th{padding:0}"
        ))
 
-;; # css
-(declare clj->css)
-(defn css-name [id]
-  (clojure.string/replace (name id) #"[A-Z]" #(str "-" (.toLowerCase %1))))
-#_(testcase 'css-name
-            #(= (css-name :FooBar) "-foo-bar"))
-(defn handle-rule [[k v]]
-  (cond 
-    (number? v) (str (css-name k) ":" v "px;") 
-    (map? v) (str (name k) "{" (join ""  (map handle-rule  (seq v))) "}")
-    :else (str (css-name k) ":" (name v) ";")))
-(defn handle-block [[id rules]]
-  (str (name id) "{" (join "" (map handle-rule (seq rules))) "}"))
-(defn clj->css [o]
-  (join (map str (seq o))) (join (map handle-block (seq o))))
-(defn js->css [o] (clj->css (js->clj o)))
-
-(testing "css"
-  (is (= (clj->css {:h1 {:fontWeight :normal :fontSize 14} :.div {:background :blue}})
-         "h1{font-weight:normal;font-size:14px}.div{background:blue}")))
-(is (= (clj->css [[:h1 {:fontWeight :normal :fontSize 14}]
-                  [:.div {:background :blue}]
-                  ["h1" {:background :red}]
-                  ])
-       "h1{font-weight:normal;font-size:14px}.div{background:blue}h1{background:red}"))
-
-(def default-style
-  (atom [["@font-face" {:fontFamily "Ubuntu"
+(defn grid []
+  (into 
+[["@font-face" {:fontFamily "Ubuntu"
                         :fontWeight "400"
                         :src "url(//solsort.com/font/ubuntu-latin1.ttf)format(truetype)"}]
          [:.inline-block {:display "inline-block"}]
@@ -85,64 +56,29 @@
          [:.right {:float "right"}]
          [:.left {:float "left"}]
          [:.scontain {:width "100%"
-                     :max-width 960
-                     :margin "auto"
-                     }]
+                      :max-width 960
+                      :margin "auto"
+                      }]
          [:.scol {:padding-left 8 
                   :vertical-align "top"
                   :padding-right 8
                   :box-sizing "border-box"}]
          ["@media (min-width: 600px)" 
           {:.scol {:padding-left 12
-                  :padding-right 12
-                  :box-sizing "border-box"}}]
-         [:div {:margin 0 :padding 0}] ]))
-
-(swap! default-style
-       into (map (fn [[id w]]
-[(str "@media " w)
- (into {}
- (for [i (range 1 25)]
-  [(str id i)
-    {:width (str (/ (js/Math.floor (/ i .0024)) 100) "%")
-    :display "inline-block" }]))])
-              [[".ws" "all"]
-               [".wm" "(min-width:480px)"]
-               [".wl" "(min-width:840px)"]]  
-     
-     ))
-#_(loop [i 1]
-  (swap! default-style
-         into
-         (map (fn [[id w]]
-                [(str "@media " w)
-                 {(str id i)
-                  {:width (str (/ (js/Math.floor (/ i .0024)) 100) "%")
-                   :display "inline-block" }}])
-              [[".ws" "all"]
-               [".wm" "(min-width:480px)"]
-               [".wl" "(min-width:840px)"]]))
-  (when (<= i 24) (recur (inc i))))
-;(log @default-style (clj->css @default-style))
-
-(defn add-default-style [o] (swap! default-style into o))
-(defn default-style-str [] 
-  (str normalize-css 
-       "\n/*! solsort-util css | github.com/rasmuserik/solsort-util */" 
-       (clj->css @default-style)))
-(defn load-default-style! []
-  (aset (or (js/document.getElementById "default-style")
-            (let [elem (js/document.createElement "style")]
-              (aset elem "id" "default-style")
-              (.appendChild js/document.head elem) 
-              elem))
-        "innerHTML" 
-        (default-style-str)))
-
-(defn style [o] [:style {"dangerouslySetInnerHTML" #js {:__html (clj->css o)}}])
-;; # kitchen sinkg
-(def 
-  kitchensink
+                   :padding-right 12
+                   :box-sizing "border-box"}}]
+         [:div {:margin 0 :padding 0}] ]
+    (map (fn [[id w]]
+               [(str "@media " w)
+                (into {}
+                      (for [i (range 1 25)]
+                        [(str id i)
+                         {:width (str (/ (js/Math.floor (/ i .0024)) 100) "%")
+                          :display "inline-block" }]))])
+             [[".ws" "all"]
+              [".wm" "(min-width:480px)"]
+              [".wl" "(min-width:840px)"]]  )))
+#_( 
   [:div.scontain "Responsive grid:"
    [:div.srow
     [:div.ws1.scol [:p.ccc "."]]
@@ -167,3 +103,41 @@
     [:div.ws8.wm6.wl4.scol [:p.ccc ".."]]]
    ]
   )
+;; # clj->css
+
+(defn css-name [id]
+  (clojure.string/replace (name id) #"[A-Z]" #(str "-" (.toLowerCase %1))))
+#_(testcase 'css-name
+            #(= (css-name :FooBar) "-foo-bar"))
+(defn handle-rule [[k v]]
+  (cond 
+    (number? v) (str (css-name k) ":" v "px;") 
+    (map? v) (str (name k) "{" (join ""  (map handle-rule  (seq v))) "}")
+    :else (str (css-name k) ":" (name v) ";")))
+(defn handle-block [[id rules]]
+  (str (name id) "{" (join "" (map handle-rule (seq rules))) "}"))
+(defn clj->css [o]
+  (join (map str (seq o))) (join (map handle-block (seq o))))
+(defn js->css [o] (clj->css (js->clj o)))
+
+(testing "css"
+  (is (= (clj->css {:h1 {:fontWeight :normal :fontSize 14} :.div {:background :blue}})
+         "h1{font-weight:normal;font-size:14px}.div{background:blue}"))
+  (is (= (clj->css [[:h1 {:fontWeight :normal :fontSize 14}]
+                    [:.div {:background :blue}]
+                    ["h1" {:background :red}]
+                    ])
+         "h1{font-weight:normal;font-size:14px}.div{background:blue}h1{background:red}")))
+
+;; # Load style
+(defn load-style! [s id]
+  (aset (or (js/document.getElementById id)
+            (let [elem (js/document.createElement "style")]
+              (aset elem "id" id)
+              (.appendChild js/document.head elem) 
+              elem))
+        "innerHTML" (clj->css s)))
+
+(defn style-tag [o] [:style {"dangerouslySetInnerHTML" #js {:__html (clj->css o)}}])
+;; # kitchen sinkg
+

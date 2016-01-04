@@ -4,8 +4,8 @@
   ;:license {:name "Several licenses" :url "https://github.com/rasmuserik/util"}
 
   :dependencies
-  [[org.clojure/clojure "1.7.0"]
-   [org.clojure/clojurescript "1.7.189"]
+  [[org.clojure/clojure "1.8.0-RC4"]
+   [org.clojure/clojurescript "1.7.170"]
    [org.clojure/core.async "0.2.374"]
    [reagent "0.5.1"]
 ;   [com.cognitect/transit-cljs "0.8.220"]
@@ -15,13 +15,13 @@
    ]
 
   :plugins
-  [[lein-cljsbuild "1.1.2"]
+  [[lein-cljsbuild "1.1.1"]
    [lein-ancient "0.6.8"]
-   [michaelblume/lein-marginalia "0.9.0"]
    [lein-figwheel "0.5.0-2"]
    [lein-kibit "0.1.2"]
    [lein-bikeshed "0.2.0"]
-   [cider/cider-nrepl "0.10.0"]]
+  ; [cider/cider-nrepl "0.10.0"]
+   ]
 
   :source-paths ["src"]
 
@@ -38,7 +38,8 @@
    [{:id "dev"
      :source-paths ["src"]
      :figwheel {:websocket-host ~(.getHostAddress (java.net.InetAddress/getLocalHost))
-                :on-jsload "solsort.main/start" }
+                ;:on-jsload "solsort.main/start" 
+                }
      :compiler {:main solsort.main
                 :asset-path "out"
                 :output-to "resources/public/solsort.js"

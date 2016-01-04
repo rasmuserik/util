@@ -5,29 +5,22 @@
   (:require
     [cljs.core.async.impl.channels :refer  [ManyToManyChannel]]
     [cljs.core.async :refer  [>! <! chan put! take! timeout close! pipe]]
-    [cljs.test :refer-macros  [deftest testing is run-tests]]
-    [clojure.string :as string :refer  [split]]
-    [clojure.string :refer  [join]]
-    [cognitect.transit :as transit]
-    [re-frame.core :as re-frame :refer [register-sub subscribe]]
+    [clojure.string :as string :refer  [split join]]
     [goog.net.Jsonp]
     [goog.net.XhrIo]
-    [re-frame.core :as re-frame :refer [register-sub subscribe register-handler dispatch]]
     [reagent.core :as reagent :refer  []]))
 
 (enable-console-print!)
 
 
 (defn next-tick [f] (js/setTimeout f 0))
-(declare log)
-(register-sub :log (fn [db _] (reaction (:log @db))))
 (defn unatom [o] (if (satisfies? IAtom o) @o o))
 (defn put!close!  [c d]  (if  (nil? d)  (close! c)  (put! c d)))
 (defn <p 
   "Convert a javascript promise to a core.async channel"
   [p]
   (let  [c  (chan)]
-    (.then p #(put!close! c %) (fn [e] (log e (js/Object.keys e)) (close! c)))
+    (.then p #(put!close! c %) (fn [e] (js/console.log "Error:" e) (close! c)))
     c))
 
 (defn <n 
@@ -54,18 +47,6 @@
       (.readAsText reader blob)
       (close! c))
     c))
-
-(defn log [& args]
-  (apply print 'log args)
-  (dispatch (into  [:log] args))
-  (first args))
-
-(register-handler
-  :log (fn [db [_ & entry] _]
-         (let [q (or (:log db) cljs.core/PersistentQueue.EMPTY)
-               q (if (<= 30 (count q)) (pop q) q)
-               q (conj q entry)]
-           (assoc db :log q))))
 
 (defn js-seq [o] (seq (js/Array.prototype.slice.call o)))
 (defn starts-with [string prefix] (= prefix (.slice string 0 (.-length prefix))) )
@@ -134,13 +115,13 @@
           cnt (atom 0)]
       (fn
         ([result]
-         (apply log (concat s (list 'done)))
+         (apply print (concat s (list 'done)))
          (xf result))
         ([result input]
          (swap! cnt inc)
          (when (< 60000 (- (.now js/Date) @prev-time))
            (reset! prev-time (.now js/Date))
-           (apply log (concat s (list @cnt))))
+           (apply print (concat s (list @cnt))))
          (xf result input))))))
 
 (defn transducer-accumulate [initial]
@@ -175,21 +156,4 @@
 ;; ## unique id
 (def -unique-id-counter  (atom 0))
 (defn unique-id  []  (str "id"  (swap! -unique-id-counter inc)))
-
-;; ## transit
-;(def -writer  (transit/writer :json))
-;(def -reader  (transit/reader :json))
-
-;; ## system
-(defn <exec  [cmd] 
-  (let  [c  (chan)]
-    (.exec  (js/require "child_process") cmd
-           (fn  [err stdout stderr]
-             (when (not= "" stderr)
-               (log 'exec-stderr cmd stderr)
-               )
-             (if  (nil? err)
-               (put! c stdout)
-               (close! c))))
-    c))
 
