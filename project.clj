@@ -28,12 +28,9 @@
   :clean-targets ^{:protect false} 
   ["resources/public/out" 
    "resources/public/solsort.js" 
- ;  "target"
    ".lein.failures"
    "figwheel_server.log"
- ;  "pom.xml"
    "docs"
-  ; "node_modules"
    ]
 
   :cljsbuild 
@@ -41,7 +38,7 @@
    [{:id "dev"
      :source-paths ["src"]
      :figwheel {:websocket-host ~(.getHostAddress (java.net.InetAddress/getLocalHost))
-                :on-jsload "solsort.util/start" }
+                :on-jsload "solsort.main/start" }
      :compiler {:main solsort.main
                 :asset-path "out"
                 :output-to "resources/public/solsort.js"
@@ -58,24 +55,11 @@
      :source-paths ["src"]
      :compiler {:output-to "resources/public/solsort.js"
                 :main solsort.main
-                :externs ~(into ["misc/externs.js"
+                :externs ["misc/externs.js"
                                  "misc/express.ext.js"
                                  "misc/cljsjs-pouchdb.ext.js"]
-                                (map 
-                                  #(str "node_modules/nodejs-externs/externs/" % ".js")
-                                  ["assert" "buffer" "child_process" "cluster" "core"
-                                   "crypto" "dgram" "dns" "domain" "events" "fs" "http"
-                                   "https" "net" "os" "path" "process" "punycode"
-                                   "querystring" "readline" "repl" "stream"
-                                   "string_decoder" "tls" "tty" "url" "util" "vm"
-                                   "zlib"]))
                 :optimizations :advanced
                 :pretty-print false}}]
-   ; TODO, notes:
-   ; https://github.com/cemerick/clojurescript.test/tree/master/resources/cemerick/cljs/test
-   ; https://github.com/emezeske/lein-cljsbuild/blob/master/doc/TESTING.md
-   ; :test-commands
-   ; {"unit-tests" ["phantomjs" :runner "resources/public/solsort.js"]}
    }
 
   :figwheel {:nrepl-port 7888})
