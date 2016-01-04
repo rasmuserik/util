@@ -1,11 +1,11 @@
 (defproject solsort/util "0.1.0-SNAPSHOT"
   :description "Solsort utility-functions"
-  :url "https://github.com/rasmuserik/solsort-util"
-  :license {:name "Several licenses" :url "https://github.com/rasmuserik/solsort-util"}
+  :url "https://github.com/rasmuserik/util"
+  ;:license {:name "Several licenses" :url "https://github.com/rasmuserik/util"}
 
   :dependencies
   [[org.clojure/clojure "1.7.0"]
-   [org.clojure/clojurescript "1.7.145"]
+   [org.clojure/clojurescript "1.7.189"]
    [org.clojure/core.async "0.2.374"]
    [reagent "0.5.1"]
 ;   [com.cognitect/transit-cljs "0.8.220"]
@@ -15,13 +15,13 @@
    ]
 
   :plugins
-  [[lein-cljsbuild "1.1.1"]
+  [[lein-cljsbuild "1.1.2"]
    [lein-ancient "0.6.8"]
    [michaelblume/lein-marginalia "0.9.0"]
-   [lein-figwheel "0.4.1"]
+   [lein-figwheel "0.5.0-2"]
    [lein-kibit "0.1.2"]
    [lein-bikeshed "0.2.0"]
-   [cider/cider-nrepl "0.9.1"]]
+   [cider/cider-nrepl "0.10.0"]]
 
   :source-paths ["src"]
 
