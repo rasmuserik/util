@@ -1,16 +1,11 @@
 language:
   - clojure
-  - node_js
 lein: lein2
-node_js:
-  "0.10"
-install:
-  - npm install
 before_script:
   - lein2 classpath
 script:
   - lein2 test # solsort.sys.util solsort.sys.platform
-  - lein2 cljsbuild test
-  - lein2 bikeshed -m 1000
+  - lein2 cljsbuild once dist
+  - lein2 bikeshed -m 100
   - lein2 kibit
-  - xvfb-run firefox test/test.html & node test/test-wait.js 
+lein: lein2

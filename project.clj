@@ -1,32 +1,81 @@
-(defproject solsort/util "0.0.1-SNAPSHOT"
-  :description "Utility library"
-  :url "https://github.com/rasmuserik/util"
+(defproject solsort/util "0.1.0-SNAPSHOT"
+  :description "Solsort utility-functions"
+  :url "https://github.com/rasmuserik/solsort-util"
+  :license {:name "Several licenses" :url "https://github.com/rasmuserik/solsort-util"}
 
-  :dependencies 
+  :dependencies
   [[org.clojure/clojure "1.7.0"]
-   [org.clojure/clojurescript "0.0-3308"]
-   [cljsjs/react "0.13.3-0"]
-   [com.cognitect/transit-cljs "0.8.220"]
-   [org.clojure/core.async "0.1.346.0-17112a-alpha"]]
+   [org.clojure/clojurescript "1.7.145"]
+   [org.clojure/core.async "0.2.374"]
+   [reagent "0.5.1"]
+;   [com.cognitect/transit-cljs "0.8.220"]
+;   [cljsjs/pouchdb "5.1.0-1"]
+;   [re-frame "0.6.0"]
+   
+   ]
 
-  :plugins 
-  [[lein-cljsbuild "1.0.6"]
-   [lein-kibit "0.1.2"] 
-   [lein-bikeshed "0.2.0"]]
+  :plugins
+  [[lein-cljsbuild "1.1.1"]
+   [lein-ancient "0.6.8"]
+   [michaelblume/lein-marginalia "0.9.0"]
+   [lein-figwheel "0.4.1"]
+   [lein-kibit "0.1.2"]
+   [lein-bikeshed "0.2.0"]
+   [cider/cider-nrepl "0.9.1"]]
 
   :source-paths ["src"]
-  :test-paths ["test"]
+
+  :clean-targets ^{:protect false} 
+  ["resources/public/out" 
+   "resources/public/solsort.js" 
+ ;  "target"
+   ".lein.failures"
+   "figwheel_server.log"
+ ;  "pom.xml"
+   "docs"
+  ; "node_modules"
+   ]
 
   :cljsbuild 
-  {:test-commands
-   {"node" ["node" "target/run-test.js"]}
-   :builds 
-   [{:id "test-node"
-     :source-paths ["src" "test"]
-     :compiler 
-     {:output-to "target/run-test.js"
-      :output-dir "target/out-test"
-      :optimizations :advanced
-      :pretty-print false
-      :externs ["node_modules/nodejs-externs/externs/assert.js" "node_modules/nodejs-externs/externs/buffer.js" "node_modules/nodejs-externs/externs/child_process.js" "node_modules/nodejs-externs/externs/cluster.js" "node_modules/nodejs-externs/externs/core.js" "node_modules/nodejs-externs/externs/crypto.js" "node_modules/nodejs-externs/externs/dgram.js" "node_modules/nodejs-externs/externs/dns.js" "node_modules/nodejs-externs/externs/domain.js" "node_modules/nodejs-externs/externs/events.js" "node_modules/nodejs-externs/externs/fs.js" "node_modules/nodejs-externs/externs/http.js" "node_modules/nodejs-externs/externs/https.js" "node_modules/nodejs-externs/externs/net.js" "node_modules/nodejs-externs/externs/os.js" "node_modules/nodejs-externs/externs/path.js" "node_modules/nodejs-externs/externs/process.js" "node_modules/nodejs-externs/externs/punycode.js" "node_modules/nodejs-externs/externs/querystring.js" "node_modules/nodejs-externs/externs/readline.js" "node_modules/nodejs-externs/externs/repl.js" "node_modules/nodejs-externs/externs/stream.js" "node_modules/nodejs-externs/externs/string_decoder.js" "node_modules/nodejs-externs/externs/tls.js" "node_modules/nodejs-externs/externs/tty.js" "node_modules/nodejs-externs/externs/url.js" "node_modules/nodejs-externs/externs/util.js" "node_modules/nodejs-externs/externs/vm.js" "node_modules/nodejs-externs/externs/zlib.js"]
-      }}]})
+  {:builds 
+   [{:id "dev"
+     :source-paths ["src"]
+     :figwheel {:websocket-host ~(.getHostAddress (java.net.InetAddress/getLocalHost))
+                :on-jsload "solsort.util/start" }
+     :compiler {:main solsort.main
+                :asset-path "out"
+                :output-to "resources/public/solsort.js"
+                :output-dir "resources/public/out"
+                :source-map-timestamp true }}
+
+    {:id "debug"
+     :source-paths ["src"]
+     :compiler {:main solsort.main
+                :source-map-timestamp true   
+                :optimizations :simple
+                :pretty-print true}}
+    {:id "dist"
+     :source-paths ["src"]
+     :compiler {:output-to "resources/public/solsort.js"
+                :main solsort.main
+                :externs ~(into ["misc/externs.js"
+                                 "misc/express.ext.js"
+                                 "misc/cljsjs-pouchdb.ext.js"]
+                                (map 
+                                  #(str "node_modules/nodejs-externs/externs/" % ".js")
+                                  ["assert" "buffer" "child_process" "cluster" "core"
+                                   "crypto" "dgram" "dns" "domain" "events" "fs" "http"
+                                   "https" "net" "os" "path" "process" "punycode"
+                                   "querystring" "readline" "repl" "stream"
+                                   "string_decoder" "tls" "tty" "url" "util" "vm"
+                                   "zlib"]))
+                :optimizations :advanced
+                :pretty-print false}}]
+   ; TODO, notes:
+   ; https://github.com/cemerick/clojurescript.test/tree/master/resources/cemerick/cljs/test
+   ; https://github.com/emezeske/lein-cljsbuild/blob/master/doc/TESTING.md
+   ; :test-commands
+   ; {"unit-tests" ["phantomjs" :runner "resources/public/solsort.js"]}
+   }
+
+  :figwheel {:nrepl-port 7888})
