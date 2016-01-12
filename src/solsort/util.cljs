@@ -2,6 +2,7 @@
   (:require
     [solsort.misc :as misc]
     [solsort.style :as style]
+    [solsort.net :as net]
     [reagent.ratom :as ratom :refer-macros [reaction]]
     ))
 
@@ -53,3 +54,14 @@
 (def group-lines-by-first misc/group-lines-by-first)
 (def print-channel misc/print-channel)
 (def by-first misc/by-first)
+;; # net
+(def <load-js net/<load-js)
+(def utf16->utf8 net/utf16->utf8)
+(def utf8->utf16 net/utf8->utf16)
+(def buf->utf8-str net/buf->utf8-str)
+(def buf->str net/buf->str)
+(def utf8-str->buf net/utf8-str->buf)
+(def str->buf net/str->buf)
+(def <sha256 net/<sha256)
+(def <sha256-str net/<sha256-str)
+(def <ajax net/<ajax)
