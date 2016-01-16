@@ -9,6 +9,9 @@
 (enable-console-print!)
 (def db )
 
+(defn log [& args] 
+  (apply js/console.log (map clj->js args))
+  (first args))
 ;; # style
 (def normalize-css style/normalize-css)
 (def grid style/grid)
