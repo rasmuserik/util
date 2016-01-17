@@ -2,12 +2,9 @@
   (:require
     [solsort.misc :as misc]
     [solsort.style :as style]
-    [solsort.net :as net]
-    [reagent.ratom :as ratom :refer-macros [reaction]]
-    ))
+    [solsort.net :as net]))
 
 (enable-console-print!)
-(def db )
 
 (defn log [& args] 
   (js/console.log (clj->js args))
