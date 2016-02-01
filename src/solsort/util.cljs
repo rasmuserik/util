@@ -17,7 +17,7 @@
 (def handle-block style/handle-block)
 (def clj->css style/clj->css)
 (def js->css style/js->css)
-(def load-style! style/load-style!)
+(def load-style! "(style, id) -> nil" style/load-style!)
 (def style-tag style/style-tag)
 
 ;; # misc

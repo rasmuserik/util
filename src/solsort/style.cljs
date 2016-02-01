@@ -136,7 +136,7 @@
               (aset elem "id" id)
               (.appendChild js/document.head elem) 
               elem))
-        "innerHTML" (clj->css s)))
+        "innerHTML" (if (string? s) s (clj->css s))))
 
 (defn style-tag [o] [:style {"dangerouslySetInnerHTML" #js {:__html (clj->css o)}}])
 ;; # kitchen sinkg
