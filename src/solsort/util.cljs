@@ -1,14 +1,17 @@
 (ns ^:figwheel-always solsort.util
   (:require
+    [solsort.ui :as ui]
+    [solsort.xml :as xml]
     [solsort.misc :as misc]
     [solsort.style :as style]
     [solsort.net :as net]))
 
 (enable-console-print!)
 
-(defn log [& args] 
-  (js/console.log (clj->js args))
+(defn log  [& args]
+  (js/console.log  (clj->js args))
   (first args))
+
 ;; # style
 (def normalize-css style/normalize-css)
 (def grid style/grid)
@@ -20,13 +23,22 @@
 (def load-style! "(style, id) -> nil" style/load-style!)
 (def style-tag style/style-tag)
 
+
+;; # xml
+(def dom->clj xml/dom->clj)
+(def xml->sxml xml/xml->sxml)
+
+;; # ui
+(def html-data ui/html-data)
+(def page-ready ui/page-ready)
+(def render ui/render)
+
 ;; # misc
 ;; ## js utils
 (def next-tick misc/next-tick)
 (def run-once misc/run-once)
 (def parse-json-or-nil misc/parse-json-or-nil)
 (def jsextend misc/jsextend)
-(def html-data misc/html-data)
 (def starts-with misc/starts-with)
 (def function? misc/function?)
 (def parse-path misc/parse-path)

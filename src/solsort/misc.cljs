@@ -1,6 +1,5 @@
 (ns solsort.misc
   (:require-macros
-    [reagent.ratom :as ratom :refer [reaction]]
     [cljs.core.async.macros :refer  [go go-loop alt!]])
   (:require
     [cljs.core.async.impl.channels :refer  [ManyToManyChannel]]
@@ -50,11 +49,6 @@
 
 (defn js-seq [o] (seq (js/Array.prototype.slice.call o)))
 (defn starts-with [string prefix] (= prefix (.slice string 0 (.-length prefix))) )
-(defn html-data [elem]
-  (into {} (->> (js-seq (.-attributes elem))   
-                (map (fn [attr] [(.-name attr) (.-value attr)]))  
-                (filter (fn [[k w]] (starts-with k "data-")))
-                (map (fn [[k w]] [(.slice k 5) w])))))
 
 (defn run-once [f]
   (let [do-run (atom true)]
