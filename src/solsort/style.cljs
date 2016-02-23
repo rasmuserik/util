@@ -6,7 +6,7 @@
   (:require
     [cljs.core.async.impl.channels :refer  [ManyToManyChannel]]
     [cljs.core.async :refer  [>! <! chan put! take! timeout close! pipe]]
-    [cljs.test :refer-macros  [deftest testing is run-tests]]
+    ;[cljs.test :refer-macros  [deftest testing is run-tests]]
     [clojure.string :as string :refer  [split]]
     [clojure.string :refer  [join]]
     ))
@@ -120,7 +120,7 @@
   (join (map str (seq o))) (join (map handle-block (seq o))))
 (defn js->css [o] (clj->css (js->clj o)))
 
-(testing "css"
+#_(testing "css"
   (is (= (clj->css {:h1 {:fontWeight :normal :fontSize 14} :.div {:background :blue}})
          "h1{font-weight:normal;font-size:14px}.div{background:blue}"))
   (is (= (clj->css [[:h1 {:fontWeight :normal :fontSize 14}]
