@@ -8,8 +8,8 @@
 
 (enable-console-print!)
 
-(defn log  [& args]
-  (js/console.log  (clj->js args))
+(defn log [& args]
+  (js/console.log.apply js/console  (clj->js args))
   (first args))
 
 ;; # style
