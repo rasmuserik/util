@@ -1,5 +1,9 @@
-(ns ^:figwheel-always solsort.util
+(ns ^:figwheel-always  solsort.util
+  (:require-macros
+   [cljs.core.async.macros :refer  [go go-loop alt!]])
   (:require
+    [cljs.core.async.impl.channels :refer  [ManyToManyChannel]]
+    [cljs.core.async :as async :refer  [>! <! chan put! take! timeout close! pipe]]
     [solsort.ui :as ui]
     [solsort.xml :as xml]
     [solsort.misc :as misc]
@@ -66,6 +70,7 @@
 (def group-lines-by-first misc/group-lines-by-first)
 (def print-channel misc/print-channel)
 (def by-first misc/by-first)
+
 ;; # net
 (def <load-js net/<load-js)
 (def utf16->utf8 net/utf16->utf8)
@@ -77,3 +82,40 @@
 (def <sha256 net/<sha256)
 (def <sha256-str net/<sha256-str)
 (def <ajax net/<ajax)
+
+;; # from fm-tools - needs refactoring
+(defn third [col] (nth col 2))
+(defn delay-fn [f] (fn [& args] (next-tick #(apply f args))))
+(defn <chan-seq [arr] (async/reduce conj nil (async/merge arr)))
+(defn to-map
+  [o]
+  (cond
+    (map? o) o
+    (sequential? o) (zipmap (range) o)
+    :else {}))
+(defn timestamp->isostring [i] (.toISOString (js/Date. i)))
+(defn str->timestamp [s] (.valueOf (js/Date. s)))
+(defn throttle "Limit how often a function (without arguments) is called"
+  ([f t] (let [prev-t (atom 0)
+               running (atom false)
+               scheduled (atom false)]
+           (log 'here)
+           (fn []
+             (if @running
+               (reset! scheduled true)
+               (do
+                 (reset! running true)
+                 (go-loop []
+                   (let [now (js/Date.now)
+                         delta-t (- now @prev-t)]
+                     (reset! prev-t now)
+                     (when (< delta-t t)
+                       (<! (timeout (- t delta-t))))
+                     (let [result (f)]
+                       (when (chan? result)
+                         (<! result)))
+                     (if @scheduled
+                       (do (reset! scheduled false)
+                           (recur))
+                       (reset! running false))))))))))
+(defn tap-chan [m] (let [c (chan)] (async/tap m c) c)) 
