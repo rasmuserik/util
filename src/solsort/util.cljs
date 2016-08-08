@@ -119,12 +119,3 @@
                            (recur))
                        (reset! running false))))))))))
 (defn tap-chan [m] (let [c (chan)] (async/tap m c) c)) 
-
-(defonce db-atom (atom {}))
-(defn db "get an entry from the application database"
-  ([path] (get-in @db-atom path))
-  ([path default] (get-in @db-atom path default)))
-(defn db! "set an entry into the application database"
-  [path val]
-  (swap! db-atom assoc-in atom path val)
-  val)
