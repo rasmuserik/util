@@ -15,18 +15,25 @@
 (defn next-tick [f] (js/setTimeout f 0))
 (defn unatom [o] (if (satisfies? IAtom o) @o o))
 (defn put!close!  [c d]  (if  (nil? d)  (close! c)  (put! c d)))
-(defn <p 
+(defn <p
   "Convert a javascript promise to a core.async channel"
   [p]
   (let  [c  (chan)]
-    (.then p #(put!close! c %) (fn [e] (js/console.log "Error:" e) (close! c)))
+    (.then p
+           #(put!close! c %)
+           #(put!close! c %))
     c))
 
-(defn <n 
+(defn <n
   "Convert a javascript node-style async to core.async channel"
   [f & args]
   (let  [c  (chan)]
-    (apply f (conj args (fn [err res] (if err (close! c) (put!close! c res)))))
+    (apply f
+           (conj args
+                (fn [err res]
+                    (if err
+                      (put!close! c err)
+                      (put!close! c res)))))
     c))
 
 (defn <blob-url [blob]
@@ -150,4 +157,3 @@
 ;; ## unique id
 (def -unique-id-counter  (atom 0))
 (defn unique-id  []  (str "id"  (swap! -unique-id-counter inc)))
-

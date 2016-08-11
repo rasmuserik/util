@@ -118,5 +118,11 @@
                        (do (reset! scheduled false)
                            (recur))
                        (reset! running false))))))))))
-(defn tap-chan [m] (let [c (chan)] (async/tap m c) c)) 
+(defn tap-chan [m] (let [c (chan)] (async/tap m c) c))
 (defn js-obj-push [obj k v] (.push (or (aget obj k) (aset obj k #js [])) v))
+
+;; ## throw an error for the <? macro
+(defn throw-error [e]
+  (if (instance? js/Error e)
+    (throw e)
+    e))
