@@ -4,9 +4,8 @@
   (:require
     [goog.net.XhrIo]
     [clojure.string :as string]
-    [solsort.misc :refer [<p]]
-    [cljs.core.async :refer [>! <! chan put! take! timeout close!]]
-    ))
+    [solsort.misc :refer [<p async-err]]
+    [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
 
 (defn <load-js
   "Load a JavaScript file, and emit true on returned channel when done"
@@ -72,7 +71,6 @@
                       ("js->clj") (js->clj (js/JSON.parse res)))]
             (put! c res))
           (catch :default e
-            (put! c e)
-            (close! c))))
+            (put! c (async-err e)))))
       method data (clj->js headers) timeout credentials)
     c))

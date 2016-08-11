@@ -1,4 +1,4 @@
 (ns solsort.macros)
 
 (defmacro <? [expr]
-  `(solsort.util/throw-error (cljs.core.async/<! ~expr)))
+  `(solsort.misc/throw-error (cljs.core.async/<! ~expr)))

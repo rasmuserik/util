@@ -11,6 +11,10 @@
 
 (enable-console-print!)
 
+(defn async-err "wrap in an js/Error object, if not already an error" [e]
+  (if (instance? js/Error e) e (js/Error. e)))
+(defn throw-error "throw e if e is an js/Error instance. used by the <? macro" [e]
+  (if (instance? js/Error e) (throw e) e))
 
 (defn next-tick [f] (js/setTimeout f 0))
 (defn unatom [o] (if (satisfies? IAtom o) @o o))
@@ -20,7 +24,7 @@
   [p]
   (let  [c  (chan)]
     (.then p
-           #(put!close! c %)
+           #(put! c (async-err %))
            #(put!close! c %))
     c))
 
@@ -32,7 +36,7 @@
            (conj args
                 (fn [err res]
                     (if err
-                      (put!close! c err)
+                      (put! c (async-err err))
                       (put!close! c res)))))
     c))
 
