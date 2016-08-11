@@ -119,3 +119,4 @@
                            (recur))
                        (reset! running false))))))))))
 (defn tap-chan [m] (let [c (chan)] (async/tap m c) c)) 
+(defn js-obj-push [obj k v] (.push (or (aget obj k) (aset obj k #js [])) v))
