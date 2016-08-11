@@ -8,7 +8,7 @@
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]
     ))
 
-(defn <load-js 
+(defn <load-js
   "Load a JavaScript file, and emit true on returned channel when done"
   [url]
   (let [c (chan)
@@ -34,15 +34,15 @@
       ; reset! browser-crypto crypto.subtle || msCrypto.subtle || polycrypt
       (reset!
         browser-crypto
-        (or (aget 
-              (or js/window.crypto 
-                  js/window.msCrypto 
+        (or (aget
+              (or js/window.crypto
+                  js/window.msCrypto
                   #js{})
               "subtle")
             (do (<! (<load-js "https://solsort.com/js/polycrypt.js"))
                 js/polycrypt))))
     (<! (<p (.digest @browser-crypto "SHA-256" buffer)))))
-(defn <sha256-str [s] 
+(defn <sha256-str [s]
   (go (js/btoa (buf->utf8-str (<! (<sha256  (str->buf s)))))))
 
 (defn <ajax ; # <ajax
@@ -72,7 +72,7 @@
                       ("js->clj") (js->clj (js/JSON.parse res)))]
             (put! c res))
           (catch :default e
-            (js/console.log e)
+            (put! c e)
             (close! c))))
       method data (clj->js headers) timeout credentials)
     c))
