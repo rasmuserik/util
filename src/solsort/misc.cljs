@@ -24,8 +24,8 @@
   [p]
   (let  [c  (chan)]
     (.then p
-           #(put! c (async-err %))
-           #(put!close! c %))
+           #(put!close! c %)
+           #(put! c (async-err %)))
     c))
 
 (defn <n

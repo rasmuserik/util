@@ -50,6 +50,18 @@
 (def swap-trim misc/swap-trim)
 (def hex-color misc/hex-color)
 (def unique-id misc/unique-id)
+(defn cryptohash [o] (str (hash o))) ; TODO expected collisionfree hash to string
+(defn <load-script [url]
+  (let [id (cryptohash [:load-script url])
+        tag (or
+             (js/document.getElementById id)
+             (js/document.createElement "script"))
+        c (chan)]
+    (aset tag "id" id)
+    (aset tag "src" url)
+    (.addEventListener tag "error" #(put! c (js/Error %)))
+    (.addEventListener tag "load " #(put! c true))
+    (js/document.head.appendChild tag)))
 
 ;; ## misc js/clj
 (def js-seq misc/js-seq)
