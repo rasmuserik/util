@@ -68,6 +68,7 @@
 (def <blob-url misc/<blob-url)
 (def <blob-text misc/<blob-text)
 (def unatom misc/unatom)
+(def throttle misc/throttle)
 
 ;; ## Async
 (def <p misc/<p)
@@ -107,28 +108,6 @@
     :else {}))
 (defn timestamp->isostring [i] (.toISOString (js/Date. i)))
 (defn str->timestamp [s] (.valueOf (js/Date. s)))
-(defn throttle "Limit how often a function (without arguments) is called"
-  ([f t] (let [prev-t (atom 0)
-               running (atom false)
-               scheduled (atom false)]
-           (log 'here)
-           (fn []
-             (if @running
-               (reset! scheduled true)
-               (do
-                 (reset! running true)
-                 (go-loop []
-                   (let [now (js/Date.now)
-                         delta-t (- now @prev-t)]
-                     (reset! prev-t now)
-                     (when (< delta-t t)
-                       (<! (timeout (- t delta-t))))
-                     (let [result (f)]
-                       (when (chan? result)
-                         (<! result)))
-                     (if @scheduled
-                       (do (reset! scheduled false)
-                           (recur))
-                       (reset! running false))))))))))
+
 (defn tap-chan [m] (let [c (chan)] (async/tap m c) c))
 (defn js-obj-push [obj k v] (.push (or (aget obj k) (aset obj k #js [])) v))

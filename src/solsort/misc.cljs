@@ -161,3 +161,26 @@
 ;; ## unique id
 (def -unique-id-counter  (atom 0))
 (defn unique-id  []  (str "id"  (swap! -unique-id-counter inc)))
+
+(defn throttle "Limit how often a function (without arguments) is called"
+  ([f t] (let [prev-t (atom 0)
+               running (atom false)
+               scheduled (atom false)]
+           (fn []
+             (if @running
+               (reset! scheduled true)
+               (do
+                 (reset! running true)
+                 (go-loop []
+                   (let [now (js/Date.now)
+                         delta-t (- now @prev-t)]
+                     (reset! prev-t now)
+                     (when (< delta-t t)
+                       (<! (timeout (- t delta-t))))
+                     (let [result (f)]
+                       (when (chan? result)
+                         (<! result)))
+                     (if @scheduled
+                       (do (reset! scheduled false)
+                           (recur))
+                       (reset! running false))))))))))
