@@ -7,7 +7,7 @@
    [solsort.misc :refer [throttle hex-byte]]
    [solsort.appdb :refer [db db! db-async!]]))
 
-(defonce use-query (atom false))
+(defonce use-query (atom true))
 (defonce path (atom [:route]))
 (defonce prev-url (atom nil))
 
