@@ -23,8 +23,9 @@
   (throttle add-history 2000))
 (defn open [o] (db! @path o))
 (defn current
-  ([] (db @path)
-   [default] (db @path default)))
+  ([] (db @path))
+   ([default] (db @path default)))
+
 (defn url [o]
   (str
    (re-find #"[^#?]*" js/location.href)  (if @use-query "?" "#")
@@ -33,7 +34,13 @@
     (js/RegExp. "[%#&?]" "g")
     (fn [c] (str "%" (hex-byte (.charCodeAt c 0)))))))
 (defn set-route-path [p] (reset! path p))
+(defn ahref
 
+  ([o] (ahref o {}))
+  ([o ext]
+   (into {:href (url o)
+          :on-click (fn [e] (.preventDefault e) (open o))}
+         ext)))
 (run! ; update url when :route changes
  (let [new-url (url (db @path))]
    (when (and (db @path)
