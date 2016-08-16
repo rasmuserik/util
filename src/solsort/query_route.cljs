@@ -22,7 +22,9 @@
 (def throttled-add-history "add-history, but executing at most once every other second"
   (throttle add-history 2000))
 (defn open [o] (db! @path o))
-(defn data [] (db @path))
+(defn current
+  ([] (db @path)
+   [default] (db @path default)))
 (defn url [o]
   (str
    (re-find #"[^#?]*" js/location.href)  (if @use-query "?" "#")
