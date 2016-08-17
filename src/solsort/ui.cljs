@@ -71,8 +71,7 @@
              :size size
              :max-length max-length
              :value (db id)
-             :on-change #(db-async! id (.-value (.-target %1)))}]))
-
+             :on-change #(db! id (.-value (.-target %1)))}])) 
 (defn- fix-height "used by rot90" [o]
   (let [node (reagent/dom-node o)
         child (-> node (aget "children") (aget 0))
