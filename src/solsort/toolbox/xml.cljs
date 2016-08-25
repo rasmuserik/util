@@ -1,6 +1,6 @@
 (ns solsort.toolbox.xml
   (:require
-    [solsort.misc :refer  [js-seq]]
+    [solsort.toolbox.misc :refer  [js-seq]]
     [clojure.string :as string :refer [blank?]]))
 
 ;; # xml-processing utilities

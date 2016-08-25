@@ -4,7 +4,7 @@
   (:require
     [goog.net.XhrIo]
     [clojure.string :as string]
-    [solsort.misc :refer [<p async-err]]
+    [solsort.toolbox.misc :refer [<p async-err]]
     [cljs.core.async :refer [>! <! chan put! take! timeout close!]]))
 
 (defn <load-js

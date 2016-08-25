@@ -2,7 +2,7 @@
   (:require-macros
    [reagent.ratom :as ratom :refer  [reaction]])
   (:require
-   [solsort.misc :refer [next-tick]]
+   [solsort.toolbox.misc :refer [next-tick]]
    [reagent.core :as reagent :refer []]))
 
 (defonce db-atom (reagent/atom {}))

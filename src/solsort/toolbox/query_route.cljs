@@ -4,8 +4,8 @@
   (:require
    [cljs.reader]
    [clojure.walk]
-   [solsort.misc :refer [throttle hex-byte]]
-   [solsort.appdb :refer [db db! db-async!]]))
+   [solsort.toolbox.misc :refer [throttle hex-byte]]
+   [solsort.toolbox.appdb :refer [db db! db-async!]]))
 
 (defonce use-query (atom true))
 (defonce path (atom [:route]))

@@ -1,7 +1,8 @@
 (ns solsort.toolbox.leaflet
   (:require
    [reagent.core :as reagent]
-   [solsort.appdb :as appdb]
+   [solsort.toolbox.appdb :as appdb]
+   [solsort.toolbox.misc :refer [canonize-string]]
    [solsort.util :refer [log]]))
 
 (defn cdnjs-img [file]
@@ -79,7 +80,7 @@
         newdb (if-not (coll? newdb) [db] newdb)
         orig (appdb/db newdb)
         pos (or pos (:pos orig) pos0)
-        id (or id (solsort.misc/canonize-string (prn-str newdb)))
+        id (or id (canonize-string (prn-str newdb)))
         o {:db newdb
            :id id
            :marker-icons (or marker-icons default-marker-icons)

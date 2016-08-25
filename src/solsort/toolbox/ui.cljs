@@ -1,7 +1,7 @@
 (ns solsort.toolbox.ui
   (:require
-    [solsort.misc :refer [js-seq starts-with]]
-    [solsort.appdb :as appdb]
+    [solsort.toolbox.misc :refer [js-seq starts-with]]
+    [solsort.toolbox.appdb :as appdb]
     [reagent.core :as reagent :refer []]
     [cljs.reader :refer [read-string]]))
 
