@@ -1,7 +1,7 @@
 (ns solsort.leaflet
   (:require
    [reagent.core :as reagent]
-   [solsort.appdb :refer [db db! db-async!]]
+   [solsort.appdb :as appdb]
    [solsort.util :refer [log]]))
 
 (defn cdnjs-img [file]
@@ -21,8 +21,8 @@
       :shadowAnchor  [6 42]}))})
 
 (defn- openstreetmap-inner
-  [{:keys [id pos zoom markers tile-url attribution handler class gc
-           marker-icons on-click]
+  [{:keys [db pos zoom markers tile-url attribution handler class gc
+           marker-icons on-click id]
     :or {pos [51.505 -0.09]
          scale 13
          markers []
@@ -30,16 +30,17 @@
          tile-url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
          attribution "&copy; OpenStreetMap"}
     :as o}]
+  (log 'inner db id)
   (let [leaflet (atom nil)
         marker-cluster (atom nil)]
     (reagent/create-class
-     {:display-name (prn-str id)
+     {:display-name id
       :reagent-render
-      (fn [] [:div {:id (prn-str id) :class class}
-              "OpenStreetMap" (prn-str id)])
+      (fn [] [:div {:id id :class class}
+              "OpenStreetMap" id])
       :component-did-mount
       (fn []
-        (reset! leaflet (js/L.map (prn-str id)))
+        (reset! leaflet (js/L.map id))
         (reset! marker-cluster (js/L.markerClusterGroup))
         (when on-click
           (.on @leaflet "click" #(on-click {:pos (let [ll (aget % "latlng")]
@@ -52,8 +53,8 @@
         (.on @leaflet "moveend"
              #(let [pos (-> % .-target .getCenter)
                     zoom (-> % .-target .getZoom)]
-                (db!
-                 id
+                (appdb/db!
+                 db
                  (-> o
                      (assoc :pos [(.-lat pos) (.-lng pos)])
                      (assoc :zoom zoom)))))
@@ -68,21 +69,26 @@
         (.addLayer @leaflet @marker-cluster))
       :component-did-update (fn [component])
       :component-will-unmount
-      (fn [] (when gc (db! id)))})))
+      (fn [] (when gc (appdb/db! db)))})))
 
-(defn ^:export openstreetmap [{:keys [marker-icons id gc pos pos0 zoom zoom0]
+(defn ^:export openstreetmap [{:keys [marker-icons db gc pos pos0 zoom zoom0 id]
                                :as params}]
-  (let [newid (or id ["leaflet" (.slice  (str  (js/Math.random)) 2)])
-        newid (if-not (coll? newid) [id])
-        orig (db newid)
+  (let [newdb (or db
+                  (and id [:leaflet id])
+                  ["leaflet" (.slice  (str  (js/Math.random)) 2)])
+        newdb (if-not (coll? newdb) [db] newdb)
+        orig (appdb/db newdb)
         pos (or pos (:pos orig) pos0)
-        o {:id newid
+        id (or id (solsort.misc/canonize-string (prn-str newdb)))
+        o {:db newdb
+           :id id
            :marker-icons (or marker-icons default-marker-icons)
            :on-click #(log %)
-           :gc (if id gc true)
+           :gc (if db gc true)
            :pos (if (seqable? pos) pos [55.67 12.57])
            :zoom (or zoom (:zoom orig) zoom0 10)}
         o (into params o)]
-    (db-async! newid o)
+    (log 'here newdb db id)
+    (appdb/db-async! newdb o)
     (fn [params]
-      [openstreetmap-inner (into (db newid o) params)])))
+      [openstreetmap-inner (into (appdb/db newdb o) params)])))
