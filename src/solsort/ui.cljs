@@ -51,16 +51,16 @@
               [:option {:style {:padding-left 0
                                 :padding-right 0}
                         :key v :value v} k])))))
-(defn checkbox [id]
-  (let [value (appdb/db id)]
+(defn checkbox [{:keys [db]}]
+  (let [value (appdb/db db)]
     [:img.checkbox
-     {:on-click (fn [] (appdb/db-async! id (not value)) nil)
+     {:on-click (fn [] (appdb/db-async! db (not value)) nil)
       :src (if value "assets/check.png" "assets/uncheck.png")}]))
 (defn input  [id & {:keys [type size max-length options]
                     :or {type "text"}}]
   (case type
     :select (select id options)
-    :checkbox (checkbox id)
+    :checkbox (checkbox {:db id})
     [:input {:type type
              :style {:padding-right 0
                      :padding-left 0
