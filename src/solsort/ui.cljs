@@ -38,14 +38,14 @@
               :padding-bottom (* 0.7 js/window.innerHeight)}}
      "Loading..."]
     [:span]))
-(defn select [id options]
-  (let [current (appdb/db id)]
+(defn select [{:keys [db options]}]
+  (let [current (appdb/db db)]
     (into [:select
            {:style {:padding-left 0
                     :padding-right 0}
             :value (prn-str current)
             :onChange
-            #(appdb/db-async! id (read-string (.-value (.-target %1))))}]
+            #(appdb/db-async! db (read-string (.-value (.-target %1))))}]
           (for [[k v] options]
             (let [v (prn-str v)]
               [:option {:style {:padding-left 0
@@ -56,10 +56,11 @@
     [:img.checkbox
      {:on-click (fn [] (appdb/db-async! db (not value)) nil)
       :src (if value "assets/check.png" "assets/uncheck.png")}]))
+
 (defn input  [id & {:keys [type size max-length options]
                     :or {type "text"}}]
   (case type
-    :select (select id options)
+    :select (select {:db id :options options})
     :checkbox (checkbox {:db id})
     [:input {:type type
              :style {:padding-right 0
