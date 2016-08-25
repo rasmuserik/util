@@ -57,22 +57,23 @@
      {:on-click (fn [] (appdb/db-async! db (not value)) nil)
       :src (if value "assets/check.png" "assets/uncheck.png")}]))
 
-(defn input  [id & {:keys [type size max-length options]
-                    :or {type "text"}}]
+(defn input  [{:keys [type size max-length options db]
+               :or {type "text"}
+               :as params}]
   (case type
-    :select (select {:db id :options options})
-    :checkbox (checkbox {:db id})
+    :select (select {:db db :options options})
+    :checkbox (checkbox {:db db})
     [:input {:type type
              :style {:padding-right 0
                      :padding-left 0
                      :text-align :center
                      :overflow :visible}
-             :name (prn-str id)
-             :key (prn-str id)
+             :name (prn-str db)
+             :key (prn-str db)
              :size size
              :max-length max-length
-             :value (appdb/db id)
-             :on-change #(appdb/db! id (.-value (.-target %1)))}])) 
+             :value (appdb/db db)
+             :on-change #(appdb/db! db(.-value (.-target %1)))}])) 
 (defn- fix-height "used by rot90" [o]
   (let [node (reagent/dom-node o)
         child (-> node (aget "children") (aget 0))
