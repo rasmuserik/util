@@ -111,3 +111,17 @@
 
 (defn tap-chan [m] (let [c (chan)] (async/tap m c) c))
 (defn js-obj-push [obj k v] (.push (or (aget obj k) (aset obj k #js [])) v))
+
+(defn fourth-first [[v _ _ k]] [k v])
+(defn delta
+  "get changes from a to b"
+  [from to]
+  (if (= from to)
+    (if (coll? to) {} to)
+    (if (coll? to)
+      (let [from (to-map from)
+            to (to-map to)
+            ks (distinct (concat (keys from) (keys to)))
+            ks (filter #(not= (from %) (to %)) ks)]
+        (into {} (map (fn [k]  [k (delta (from k) (to k))])  ks)))
+      to)))
