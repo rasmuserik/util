@@ -1,4 +1,4 @@
-(ns solsort.style
+(ns solsort.toolbox.style
   (:require-macros
     [reagent.ratom :as ratom :refer [reaction]]
     [cljs.core.async.macros :refer  [go go-loop alt!]])

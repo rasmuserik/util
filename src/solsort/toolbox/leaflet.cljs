@@ -1,4 +1,4 @@
-(ns solsort.leaflet
+(ns solsort.toolbox.leaflet
   (:require
    [reagent.core :as reagent]
    [solsort.appdb :as appdb]

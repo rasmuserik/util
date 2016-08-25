@@ -1,4 +1,4 @@
-(ns solsort.xml
+(ns solsort.toolbox.xml
   (:require
     [solsort.misc :refer  [js-seq]]
     [clojure.string :as string :refer [blank?]]))

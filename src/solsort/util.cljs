@@ -4,11 +4,11 @@
   (:require
     [cljs.core.async.impl.channels :refer  [ManyToManyChannel]]
     [cljs.core.async :as async :refer  [>! <! chan put! take! timeout close! pipe]]
-    [solsort.ui :as ui]
-    [solsort.xml :as xml]
-    [solsort.misc :as misc]
-    [solsort.style :as style]
-    [solsort.net :as net]))
+    [solsort.toolbox.ui :as ui]
+    [solsort.toolbox.xml :as xml]
+    [solsort.toolbox.misc :as misc]
+    [solsort.toolbox.style :as style]
+    [solsort.toolbox.net :as net]))
 
 (enable-console-print!)
 

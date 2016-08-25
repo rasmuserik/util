@@ -1,4 +1,4 @@
-(ns solsort.net
+(ns solsort.toolbox.net
   (:require-macros
     [cljs.core.async.macros :refer  [go alt!]])
   (:require

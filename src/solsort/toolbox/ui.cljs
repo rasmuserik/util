@@ -1,4 +1,4 @@
-(ns solsort.ui
+(ns solsort.toolbox.ui
   (:require
     [solsort.misc :refer [js-seq starts-with]]
     [solsort.appdb :as appdb]

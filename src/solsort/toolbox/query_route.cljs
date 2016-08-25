@@ -1,4 +1,4 @@
-(ns solsort.query-route
+(ns solsort.toolbox.query-route
   (:require-macros
    [reagent.ratom :as ratom :refer [run!]])
   (:require

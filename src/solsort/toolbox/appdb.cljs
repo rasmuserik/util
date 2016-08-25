@@ -1,4 +1,4 @@
-(ns solsort.appdb
+(ns solsort.toolbox.appdb
   (:require-macros
    [reagent.ratom :as ratom :refer  [reaction]])
   (:require
