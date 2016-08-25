@@ -74,8 +74,8 @@
 (defn ^:export openstreetmap [{:keys [marker-icons db gc pos pos0 zoom zoom0 id]
                                :as params}]
   (let [newdb (or db
-                  (and id [:leaflet id])
-                  ["leaflet" (.slice  (str  (js/Math.random)) 2)])
+                  (and id [:solsort-ui id])
+                  [:solsort-ui (str "leaflet" (.slice  (str  (js/Math.random)) 2))])
         newdb (if-not (coll? newdb) [db] newdb)
         orig (appdb/db newdb)
         pos (or pos (:pos orig) pos0)
