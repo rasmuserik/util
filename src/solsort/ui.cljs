@@ -1,7 +1,7 @@
 (ns solsort.ui
   (:require
     [solsort.misc :refer [js-seq starts-with]]
-    [solsort.appdb :refer [db-async! db! db]]
+    [solsort.appdb :as appdb]
     [reagent.core :as reagent :refer []]
     [cljs.reader :refer [read-string]]))
 
@@ -20,8 +20,8 @@
         (aset "id" "main"))))
  (reagent/render-component o  (js/document.getElementById "main")))
 
-(defn loading "simple loading indicator, showing when (db [:loading])" []
-  (if (db [:loading])
+(defn loading "simple loading indicator, showing when (appdb/db [:loading])" []
+  (if (appdb/db [:loading])
     [:div
      {:style {:position :fixed
               :display :inline-block
@@ -39,22 +39,22 @@
      "Loading..."]
     [:span]))
 (defn select [id options]
-  (let [current (db id)]
+  (let [current (appdb/db id)]
     (into [:select
            {:style {:padding-left 0
                     :padding-right 0}
             :value (prn-str current)
             :onChange
-            #(db-async! id (read-string (.-value (.-target %1))))}]
+            #(appdb/db-async! id (read-string (.-value (.-target %1))))}]
           (for [[k v] options]
             (let [v (prn-str v)]
               [:option {:style {:padding-left 0
                                 :padding-right 0}
                         :key v :value v} k])))))
 (defn checkbox [id]
-  (let [value (db id)]
+  (let [value (appdb/db id)]
     [:img.checkbox
-     {:on-click (fn [] (db-async! id (not value)) nil)
+     {:on-click (fn [] (appdb/db-async! id (not value)) nil)
       :src (if value "assets/check.png" "assets/uncheck.png")}]))
 (defn input  [id & {:keys [type size max-length options]
                     :or {type "text"}}]
@@ -70,8 +70,8 @@
              :key (prn-str id)
              :size size
              :max-length max-length
-             :value (db id)
-             :on-change #(db! id (.-value (.-target %1)))}])) 
+             :value (appdb/db id)
+             :on-change #(appdb/db! id (.-value (.-target %1)))}])) 
 (defn- fix-height "used by rot90" [o]
   (let [node (reagent/dom-node o)
         child (-> node (aget "children") (aget 0))
