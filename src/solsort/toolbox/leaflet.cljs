@@ -21,9 +21,11 @@
       :shadowSize  [25 45]
       :shadowAnchor  [6 42]}))})
 
+(defn geo->vec [o] [(.-lat o) (.-lng o)])
+(defn vec->geo [o] #js{:lat (first o) :lng (second o)})
 (defn- openstreetmap-inner
   [{:keys [db pos zoom markers tile-url attribution handler class gc
-           marker-icons on-click id]
+           marker-icons on-click id style]
     :or {pos [51.505 -0.09]
          scale 13
          markers []
@@ -31,13 +33,12 @@
          tile-url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
          attribution "&copy; OpenStreetMap"}
     :as o}]
-  (log 'inner db id)
   (let [leaflet (atom nil)
         marker-cluster (atom nil)]
     (reagent/create-class
      {:display-name id
       :reagent-render
-      (fn [] [:div {:id id :class class}
+      (fn [] [:div {:id id :class class :style style}
               "OpenStreetMap" id])
       :component-did-mount
       (fn []
@@ -68,7 +69,14 @@
              (when (:click m) (.on marker "click" (:click m)))
              (.addLayer @marker-cluster marker))))
         (.addLayer @leaflet @marker-cluster))
-      :component-did-update (fn [component])
+      :component-did-update
+      (fn [component]
+        (let [map-pos (geo->vec (.getCenter @leaflet))
+              pos (appdb/db (conj db :pos))]
+          (when-not (= pos map-pos)
+            (.setView @leaflet (clj->js pos))
+            )
+          #_(log 'component-update component map-pos pos)))
       :component-will-unmount
       (fn [] (when gc (appdb/db! db)))})))
 
@@ -84,12 +92,11 @@
         o {:db newdb
            :id id
            :marker-icons (or marker-icons default-marker-icons)
-           :on-click #(log %)
            :gc (if db gc true)
            :pos (if (seqable? pos) pos [55.67 12.57])
            :zoom (or zoom (:zoom orig) zoom0 10)}
         o (into params o)]
-    (log 'here newdb db id)
     (appdb/db-async! newdb o)
-    (fn [params]
+    (fn [params & args]
+      (log 'fn (:pos (second (first args))))
       [openstreetmap-inner (into (appdb/db newdb o) params)])))
