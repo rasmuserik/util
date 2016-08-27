@@ -32,7 +32,7 @@
         o (into {:pos (or (:pos0 o) [55.67 12.57])
                  :zoom (or (:zoom0 o) 10)
                  :tile-url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-                 :attribution "&copy; OpenStreetMap"} o)
+                 :attribution " OpenStreetMap | <a href=https://solsort.com target=_blank>solsort.com</a>"} o)
         o (into o {:id id :db path})
         leaflet (atom nil)
         marker-objs (atom [])
