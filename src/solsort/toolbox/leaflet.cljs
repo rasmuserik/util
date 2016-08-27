@@ -80,8 +80,9 @@
               pos (:pos o)
               markers (filter #(= :marker (first %)) (:args o))
               markers (map #(assoc (second %) :children (drop 2 %)) markers)]
-          (when-not (= pos map-pos)
-            (.setView @leaflet (clj->js pos)))
+          (when-not (and (= (.getZoom @leaflet) (:zoom o))
+                         (= pos map-pos))
+            (.setView @leaflet (clj->js pos) (:zoom o)))
           (when-not (= @prev-markers markers)
             (js/console.log 'update markers @prev-markers)
             (when (< (count @prev-markers) (count markers))
