@@ -21,23 +21,25 @@
  (reagent/render-component o  (js/document.getElementById "main")))
 
 (defn loading "simple loading indicator, showing when (appdb/db [:loading])" []
-  (if (appdb/db [:loading])
-    [:div
-     {:style {:position :fixed
-              :display :inline-block
-              :top 0 :left 0
-              :width "100%"
-              :heigth "100%"
-              :background-color "rgba(0,0,0,0.6)"
-              :color "white"
-              :z-index 100
-              :padding-top (* 0.3 js/window.innerHeight)
-              :text-align "center"
-              :font-size "48px"
-              :text-shadow "2px 2px 8px #000000"
-              :padding-bottom (* 0.7 js/window.innerHeight)}}
-     "Loading..."]
-    [:span]))
+  (let [status (appdb/db [:loading])]
+   (if status
+     [:div
+      {:style {:position :fixed
+               :display :inline-block
+               :top 0 :left 0
+               :width "100%"
+               :heigth "100%"
+               :background-color "rgba(0,0,0,0.6)"
+               :color "white"
+               :z-index 100
+               :padding-top (* 0.3 js/window.innerHeight)
+               :text-align "center"
+               :font-size "48px"
+               :text-shadow "2px 2px 8px #000000"
+               :padding-bottom (* 0.7 js/window.innerHeight)}}
+      (if (string? status) status "Loading...")]
+     [:span])))
+
 (defn select [{:keys [db options]}]
   (let [current (appdb/db db)]
     (into [:select
