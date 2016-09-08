@@ -35,6 +35,7 @@
                :padding-top (* 0.3 js/window.innerHeight)
                :text-align "center"
                :font-size "48px"
+               :line-height "48px"
                :text-shadow "2px 2px 8px #000000"
                :padding-bottom (* 0.7 js/window.innerHeight)}}
       (if (string? status) status "Loading...")]
