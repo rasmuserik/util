@@ -84,7 +84,6 @@
                          (= pos map-pos))
             (.setView @leaflet (clj->js pos) (:zoom o)))
           (when-not (= @prev-markers markers)
-            (js/console.log 'update markers @prev-markers)
             (when (< (count @prev-markers) (count markers))
               (doall
                (for [m (drop (count @prev-markers) markers)]
@@ -92,6 +91,8 @@
                        (js/L.marker
                         (clj->js (:pos m))
                         #js {:icon (or (:icon m) default-marker-icon)})]
+                   (when (:on-click m)
+                     (.on marker "click" (:on-click m)))
                    (swap! marker-objs conj marker)
                    (.addTo marker @leaflet)))))
             (doall
