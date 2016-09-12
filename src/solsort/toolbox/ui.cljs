@@ -41,11 +41,12 @@
       (if (string? status) status "Loading...")]
      [:span])))
 
-(defn select [{:keys [db options]}]
+(defn select [{:keys [db options class]}]
   (let [current (appdb/db db)]
     (into [:select
            {:style {:padding-left 0
                     :padding-right 0}
+            :class class
             :value (prn-str current)
             :onChange
             #(appdb/db-async! db (read-string (.-value (.-target %1))))}]
