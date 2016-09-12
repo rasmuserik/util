@@ -16,7 +16,7 @@
   (if (instance? js/Error e) e
       (let [o (js/Error. e)]
         (aset o "data" e)
-        e)))
+        o)))
 (defn throw-error "throw e if e is an js/Error instance. used by the <? macro" [e]
   (if (instance? js/Error e) (throw e) e))
 
