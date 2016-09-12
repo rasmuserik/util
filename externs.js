@@ -37,3 +37,4 @@ Object.prototype.lng = {};
 var dbcOpenPlatform = {};
 dbcOpenPlatform.connected = function() {};
 dbcOpenPlatform.connect = function() {};
+function setImmediate() {};

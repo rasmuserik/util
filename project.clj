@@ -56,9 +56,7 @@
      :source-paths ["src"]
      :compiler {:output-to "resources/public/solsort.js"
                 :main solsort.main
-                :externs ["misc/externs.js"
-                                 "misc/express.ext.js"
-                                 "misc/cljsjs-pouchdb.ext.js"]
+                :externs ["externs.js" ]
                 :optimizations :advanced
                 :pretty-print false}}]
    }
