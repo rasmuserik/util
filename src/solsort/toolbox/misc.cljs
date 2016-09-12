@@ -13,7 +13,10 @@
 
 (defn hex-byte [i] (.slice (.toString (bit-or i 256) 16) -2))
 (defn async-err "wrap in an js/Error object, if not already an error" [e]
-  (if (instance? js/Error e) e (js/Error. e)))
+  (if (instance? js/Error e) e
+      (let [o (js/Error. e)]
+        (aset o "data" e)
+        e)))
 (defn throw-error "throw e if e is an js/Error instance. used by the <? macro" [e]
   (if (instance? js/Error e) (throw e) e))
 
