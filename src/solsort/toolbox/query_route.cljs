@@ -44,7 +44,7 @@
 (run! ; update url when :route changes
  (let [new-url (url (db @path))]
    (when (and (db @path)
-              (not (= js/location.href new-url)))
+              (not= js/location.href new-url))
      (js/history.replaceState nil nil new-url)
      (throttled-add-history))))
 
