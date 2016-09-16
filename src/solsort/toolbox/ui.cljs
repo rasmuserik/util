@@ -61,17 +61,19 @@
      {:on-click (fn [] (appdb/db-async! db (not value)) nil)
       :src (if value "assets/check.png" "assets/uncheck.png")}]))
 
-(defn input  [{:keys [type size max-length options db placeholder id]
-               :or {type "text"}
+(defn input  [{:keys [type size max-length options db placeholder id style]
+               :or {type "text"
+                    style {}}
                :as params}]
   (case type
     :select (select {:db db :options options})
     :checkbox (checkbox {:db db})
     [:input {:type type
-             :style {:padding-right 0
-                     :padding-left 0
-                     :text-align :center
-                     :overflow :visible}
+             :style (into
+                     {:padding-right 0
+                      :padding-left 0
+                      :text-align :center
+                      :overflow :visible} style)
              :name (prn-str db)
              :key (prn-str db)
              :id id
