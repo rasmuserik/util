@@ -61,7 +61,7 @@
      {:on-click (fn [] (appdb/db-async! db (not value)) nil)
       :src (if value "assets/check.png" "assets/uncheck.png")}]))
 
-(defn input  [{:keys [type size max-length options db]
+(defn input  [{:keys [type size max-length options db placeholder id]
                :or {type "text"}
                :as params}]
   (case type
@@ -74,7 +74,9 @@
                      :overflow :visible}
              :name (prn-str db)
              :key (prn-str db)
+             :id id
              :size size
+             :placeholder placeholder
              :max-length max-length
              :value (appdb/db db)
              :on-change #(appdb/db! db(.-value (.-target %1)))}])) 
