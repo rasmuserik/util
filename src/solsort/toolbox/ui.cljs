@@ -41,11 +41,12 @@
       (if (string? status) status "Loading...")]
      [:span])))
 
-(defn select [{:keys [db options class]}]
+(defn select [{:keys [db options class style]}]
+  (js/console.log 'select style)
   (let [current (appdb/db db)]
     (into [:select
-           {:style {:padding-left 0
-                    :padding-right 0}
+           {:style (into {:padding-left 0
+                     :padding-right 0} style)
             :class class
             :value (prn-str current)
             :onChange
@@ -61,14 +62,17 @@
      {:on-click (fn [] (appdb/db-async! db (not value)) nil)
       :src (if value "assets/check.png" "assets/uncheck.png")}]))
 
-(defn input  [{:keys [type size max-length options db placeholder id style]
+(defn input  [{:keys [type size max-length options db placeholder id style class]
                :or {type "text"
                     style {}}
                :as params}]
   (case type
-    :select (select {:db db :options options})
-    :checkbox (checkbox {:db db})
+    :select (select {:db db :options options :style style :class class})
+    :checkbox (checkbox {:db db
+                         :style style
+                         :class class})
     [:input {:type type
+             :class class
              :style (into
                      {:padding-right 0
                       :padding-left 0
