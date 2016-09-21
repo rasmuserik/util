@@ -18,23 +18,40 @@ Object.prototype.parseFromString = function() {};
 window.onSolsortReady = function() {};
 var eventsKey = {};
 
-Object.prototype.addTo = function() {};
-Object.prototype.tileLayer = function() {};
-Object.prototype.map = function() {};
-Object.prototype.marker = function() {};
-Object.prototype.setView = function() {};
-Object.prototype.icon = function() {};
-Object.prototype.markerClusterGroup = function() {};
-Object.prototype.attributionControl = {};
-Object.prototype.setPrefix = function() {};
-Object.prototype.on = function() {};
-Object.prototype.getCenter = function() {};
-Object.prototype.getZoom = function() {};
-Object.prototype.addLayer = function() {};
-Object.prototype.target = {};
-Object.prototype.lat = {};
-Object.prototype.lng = {};
+
+var leaflet = Object.prototype;
+leaflet.addTo = function() {};
+leaflet.tileLayer = function() {};
+leaflet.map = function() {};
+leaflet.marker = function() {};
+leaflet.setView = function() {};
+leaflet.icon = function() {};
+leaflet.markerClusterGroup = function() {};
+leaflet.attributionControl = {};
+leaflet.setPrefix = function() {};
+leaflet.on = function() {};
+leaflet.getCenter = function() {};
+leaflet.getZoom = function() {};
+leaflet.addLayer = function() {};
+leaflet.target = {};
+leaflet.lat = {};
+leaflet.lng = {};
+
 var dbcOpenPlatform = {};
 dbcOpenPlatform.connected = function() {};
 dbcOpenPlatform.connect = function() {};
 function setImmediate() {};
+
+var process = {};
+function require() {};
+
+var node = Object.prototype;
+node.createServer = function() {};
+node.listen = function() {};
+node.setHeader= function() {};
+node.end = function() {};
+node.send = function() {};
+node.write = function() {};
+node.on = function() {};
+node.headers = function() {};
+node.statusCode = function() {};
