@@ -62,5 +62,7 @@ node.cwd = function() {};
 node.get = function() {};
 node.put = function() {};
 node.all = function() {};
+node.static = function() {};
+node.use = function() {};
 node.params = {};
 node.query = {};
