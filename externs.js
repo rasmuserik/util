@@ -1,4 +1,6 @@
 function setImmediate() {};
+var navigator = {};
+var window = {};
 navigator.mediaDevices = {}
 navigator.mediaDevices.getUserMedia = function() {};
 var URL = function() {};
@@ -57,6 +59,8 @@ node.headers = function() {};
 node.statusCode = function() {};
 node.globalPaths = function() {};
 node.cwd = function() {};
-node.get = function();
-node.put = function();
-node.all = function();
+node.get = function() {};
+node.put = function() {};
+node.all = function() {};
+node.params = {};
+node.query = {};
