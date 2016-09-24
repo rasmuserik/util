@@ -65,4 +65,5 @@ node.all = function() {};
 node.static = function() {};
 node.use = function() {};
 node.params = {};
+node.id = {};
 node.query = {};
