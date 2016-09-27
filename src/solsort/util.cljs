@@ -12,6 +12,10 @@
 
 (enable-console-print!)
 
+; hack for making developing with electron work
+(when (and js/window.process js/window.process.versions js/window.process.versions.electron)
+  (.push (.-globalPaths (js/require "module")) (str (js/process.cwd) "/node_modules")))
+
 (defn log [& args]
   (js/console.log.apply js/console  (clj->js args))
   (first args))
