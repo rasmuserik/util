@@ -62,7 +62,7 @@
      {:on-click (fn [] (appdb/db-async! db (not value)) nil)
       :src (if value "assets/check.png" "assets/uncheck.png")}]))
 
-(defn input  [{:keys [type size max-length options db placeholder id style class]
+(defn input  [{:keys [type size max-length options db placeholder id style class cols rows]
                :or {type "text"
                     style {}}
                :as params}]
@@ -71,6 +71,25 @@
     :checkbox (checkbox {:db db
                          :style style
                          :class class})
+    :textarea
+    [:textarea
+     {:class class
+      :cols cols
+      :rows rows
+      :style (into
+              {:padding-right 0
+               :padding-left 0
+               :text-align :center
+               :overflow :visible} style)
+      :name (prn-str db)
+      :key (prn-str db)
+      :id id
+      :size size
+      :placeholder placeholder
+      :max-length max-length
+      :value (appdb/db db)
+      :on-change #(appdb/db! db(.-value (.-target %1)))}
+     ]
     [:input {:type type
              :class class
              :style (into
