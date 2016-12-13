@@ -1,13 +1,14 @@
 (ns solsort.toolbox.misc
   (:require-macros
-    [cljs.core.async.macros :refer  [go go-loop alt!]])
+   [cljs.core.async.macros :refer  [go go-loop alt!]]
+   [clojure.set :as s])
   (:require
-    [cljs.core.async.impl.channels :refer  [ManyToManyChannel]]
-    [cljs.core.async :refer  [>! <! chan put! take! timeout close! pipe]]
-    [clojure.string :as string :refer  [split join]]
-    [goog.net.Jsonp]
-    [goog.net.XhrIo]
-    [reagent.core :as reagent :refer  []]))
+   [cljs.core.async.impl.channels :refer  [ManyToManyChannel]]
+   [cljs.core.async :refer  [>! <! chan put! take! timeout close! pipe]]
+   [clojure.string :as string :refer  [split join]]
+   [goog.net.Jsonp]
+   [goog.net.XhrIo]
+   [reagent.core :as reagent :refer  []]))
 
 (enable-console-print!)
 
@@ -154,10 +155,13 @@
 (defn parse-path [path] (.split (.slice path 1) #"[/.]"))
 
 (defn canonize-string [s]
-  (.replace (.trim (.toLowerCase s))
-            (js/RegExp. "(%[0-9a-fA-F][0-9a-fA-F]|[^a-z0-9])+", "g") "-"))
-(defn swap-trim  [[a b]] [(string/trim b) (string/trim a)])
+  (-> (.trim (.toLowerCase s))
+      (.replace (js/RegExp. "[æÆ]" "g") "ae")
+      (.replace (js/RegExp. "[øØ]" "g") "o")
+      (.replace (js/RegExp. "[åÅ]" "g") "å")
+      (.replace (js/RegExp. "(%[0-9a-fA-F][0-9a-fA-F]|[^a-z0-9])+", "g") "-")))
 
+(defn swap-trim  [[a b]] [(string/trim b) (string/trim a)])
 
 ;; ## integers / colors
 (defn hex-color [n] (str "#" (.slice (.toString (bit-or 0x1000000 (bit-and 0xffffff n)) 16) 1)))
