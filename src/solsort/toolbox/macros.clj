@@ -5,5 +5,5 @@
 
 (defmacro except [expr res]
   `(try ~expr
-        (catch :default e
+        (catch :default ~(gensym 'e)
           ~res)))

@@ -155,11 +155,16 @@
 (defn parse-path [path] (.split (.slice path 1) #"[/.]"))
 
 (defn canonize-string [s]
-  (-> (.trim (.toLowerCase s))
+  (-> s
+      (.toLowerCase)
+      (.replace (js/RegExp. "[éê]" "g") "e")
       (.replace (js/RegExp. "[æÆ]" "g") "ae")
       (.replace (js/RegExp. "[øØ]" "g") "o")
-      (.replace (js/RegExp. "[åÅ]" "g") "å")
-      (.replace (js/RegExp. "(%[0-9a-fA-F][0-9a-fA-F]|[^a-z0-9])+", "g") "-")))
+      (.replace (js/RegExp. "[åÅ]" "g") "aa")
+      (.replace (js/RegExp. "(%[0-9a-fA-F][0-9a-fA-F]|[^a-z0-9])+", "g") " ")
+      (.trim)
+      (.replace (js/RegExp. " " "g") "-")
+      ))
 
 (defn swap-trim  [[a b]] [(string/trim b) (string/trim a)])
 
